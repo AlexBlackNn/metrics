@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/services/metrics_service"
+	"github.com/AlexBlackNn/metrics/storage/mem_storage"
 	"log/slog"
 )
 
@@ -16,11 +17,13 @@ func New(
 ) *App {
 
 	//init storage
+	memStorage, _ := mem_storage.New()
 
 	// init services
 	metricsService := metrics_service.New(
 		log,
 		cfg,
+		memStorage,
 	)
 	return &App{MetricsService: metricsService}
 }
