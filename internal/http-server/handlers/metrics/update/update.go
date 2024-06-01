@@ -1,10 +1,14 @@
 package update
 
 import (
+	"context"
+	"github.com/AlexBlackNn/metrics/internal/app"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
+// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
 // @Summary J,y
 // @Description Создает новое выражение на сервере
 // @Tags Calculations
@@ -14,9 +18,20 @@ import (
 // @Success 201 {object} Response
 // @Router /expression [post]
 // @Security BearerAuth
-func New(log *slog.Logger) http.HandlerFunc {
+func New(log *slog.Logger, application *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Info("update", slog.String("update", "22"))
-		w.Write([]byte("Привет!"))
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		err := application.MetricsService.UpdateMetricValue(context.Background(), r.URL.Path)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
 	}
 }
