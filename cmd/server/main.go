@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/AlexBlackNn/metrics/internal/app"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/http-server/handlers/metrics/update"
 	"log/slog"
@@ -20,12 +21,13 @@ func main() {
 	// init logger
 	log := setupLogger(cfg.Env)
 	log.Info("starting application", slog.String("env", cfg.Env))
+	application := app.New(log, cfg)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
 	router := http.NewServeMux()
-	router.HandleFunc(`/update/counter/`, update.New(log))
+	router.HandleFunc(`/update/`, update.New(log, application))
 
 	srv := &http.Server{
 		Addr:         ":8076",
