@@ -2,25 +2,27 @@ package app
 
 import (
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/services/metrics_service"
-	"github.com/AlexBlackNn/metrics/storage/mem_storage"
+	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
+	"github.com/AlexBlackNn/metrics/storage/memstorage"
 	"log/slog"
 )
 
+// App service consists all service layers
 type App struct {
-	MetricsService *metrics_service.MetricService
+	MetricsService *metricsservice.MetricService
 }
 
+// New create App
 func New(
 	log *slog.Logger,
 	cfg *config.Config,
 ) *App {
 
 	//init storage
-	memStorage, _ := mem_storage.New()
+	memStorage, _ := memstorage.New()
 
 	// init services
-	metricsService := metrics_service.New(
+	metricsService := metricsservice.New(
 		log,
 		cfg,
 		memStorage,

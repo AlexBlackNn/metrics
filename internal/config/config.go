@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Config consists project settings
 type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	ServerAddr string `yaml:"server_addr" env-default:":8080"`
@@ -30,6 +31,7 @@ func fetchConfigPath() string {
 	return res
 }
 
+// Load loads config
 func Load() (*Config, error) {
 	configPath := fetchConfigPath()
 	if configPath == "" {
@@ -42,6 +44,7 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
+// LoadByPath loads config by path
 func LoadByPath(configPath string) (*Config, error) {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return &Config{}, ErrAbsentConfigFile

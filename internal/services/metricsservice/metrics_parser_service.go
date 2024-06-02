@@ -1,11 +1,11 @@
-package metrics_service
+package metricsservice
 
 import (
 	"context"
 	"errors"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/AlexBlackNn/metrics/storage/mem_storage"
+	"github.com/AlexBlackNn/metrics/storage/memstorage"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -49,7 +49,7 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, urlPath string) 
 
 	parts := strings.Split(strings.Trim(urlPath, "/"), "/")
 	if len(parts) != 4 {
-		return ErrNotValidUrl
+		return ErrNotValidURL
 	}
 
 	metricType := parts[1]
@@ -75,7 +75,7 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, urlPath string) 
 
 		// Get existing metric from storage
 		metric, err = ms.metricsStorage.GetMetric(ctx, metricName)
-		if errors.Is(err, mem_storage.ErrMetricNotFound) {
+		if errors.Is(err, memstorage.ErrMetricNotFound) {
 			metric = models.Metric{Type: metricType, Name: metricName, Value: metricValue}
 		} else {
 			metric.Value = metric.Value.(int64) + metricValue.(int64)
