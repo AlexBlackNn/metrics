@@ -26,3 +26,8 @@ go build -o server *.go
 ```bash
 curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/counter/testCounter/100
 ```
+
+
+```bash
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge/testGauge/500
+```
