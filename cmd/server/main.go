@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/app"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/http-server/handlers/metrics/update"
@@ -28,9 +29,8 @@ func main() {
 
 	router := http.NewServeMux()
 	router.HandleFunc(`/update/`, update.New(log, application))
-
 	srv := &http.Server{
-		Addr:         ":8080",
+		Addr:         fmt.Sprintf(cfg.ServerAddr),
 		Handler:      router,
 		ReadTimeout:  time.Duration(10 * time.Second),
 		WriteTimeout: time.Duration(10 * time.Second),
@@ -39,7 +39,7 @@ func main() {
 
 	go func() {
 		if err = srv.ListenAndServe(); err != nil {
-			log.Error("failed to start server")
+			panic(err)
 		}
 	}()
 

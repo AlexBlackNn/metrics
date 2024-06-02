@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	Env string `yaml:"env" env-default:"local"`
+	Env        string `yaml:"env" env-default:"local"`
+	ServerAddr string `yaml:"server_addr" env-default:":8080"`
 }
 
 // fetchConfigPath fetches config path from command line flag or env var

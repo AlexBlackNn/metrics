@@ -1,1 +1,2 @@
 env: "local" #demo, prod
+server_addr: ":8080"
