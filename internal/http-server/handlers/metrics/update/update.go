@@ -2,7 +2,9 @@ package update
 
 import (
 	"context"
+	"errors"
 	"github.com/AlexBlackNn/metrics/internal/app"
+	"github.com/AlexBlackNn/metrics/internal/services/metrics_service"
 	"log/slog"
 	"net/http"
 	"time"
@@ -25,6 +27,10 @@ func New(log *slog.Logger, application *app.App) http.HandlerFunc {
 			return
 		}
 		err := application.MetricsService.UpdateMetricValue(context.Background(), r.URL.Path)
+		if errors.Is(err, metrics_service.ErrNotValidUrl) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

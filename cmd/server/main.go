@@ -30,7 +30,7 @@ func main() {
 	router.HandleFunc(`/update/`, update.New(log, application))
 
 	srv := &http.Server{
-		Addr:         ":8076",
+		Addr:         ":8080",
 		Handler:      router,
 		ReadTimeout:  time.Duration(10 * time.Second),
 		WriteTimeout: time.Duration(10 * time.Second),

@@ -11,3 +11,18 @@ curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8076/update/gaug
 ```bash
 curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8076/update/gauge1/param1/2
 ```
+
+## Tests
+```
+cd cmd/server
+go build -o server *.go
+```
+
+```bash
+./metricstest -test.v -test.run=^TestIteration1$ -binary-path=/home/alex/Dev/GoYandex/metrics/cmd/server/server
+```
+
+
+```bash
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/counter/testCounter/100
+```
