@@ -25,5 +25,9 @@ func (s *Storage) GetMetric(
 	ctx context.Context,
 	name string,
 ) (models.Metric, error) {
-	return s.db[name], nil
+	metric, ok := s.db[name]
+	if !ok {
+		return models.Metric{}, ErrMetricNotFound
+	}
+	return metric, nil
 }

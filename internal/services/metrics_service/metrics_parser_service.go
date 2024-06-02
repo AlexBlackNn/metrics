@@ -2,8 +2,10 @@ package metrics_service
 
 import (
 	"context"
+	"errors"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/storage/mem_storage"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -73,25 +75,17 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, urlPath string) 
 
 		// Get existing metric from storage
 		metric, err = ms.metricsStorage.GetMetric(ctx, metricName)
-		if err != nil {
-			return ErrCouldNotUpdateMetric
-		}
-
-		// Increment counter value
-		switch value := metric.Value.(type) {
-		case int64:
-			metric.Value = value + metricValue.(int64)
-		default:
+		if errors.Is(err, mem_storage.ErrMetricNotFound) {
 			metric = models.Metric{Type: metricType, Name: metricName, Value: metricValue}
+		} else {
+			metric.Value = metric.Value.(int64) + metricValue.(int64)
 		}
 	default:
 		return ErrNotValidMetricType
 	}
-
 	err = ms.metricsStorage.UpdateMetric(ctx, metric)
 	if err != nil {
 		return ErrCouldNotUpdateMetric
 	}
-
 	return nil
 }
