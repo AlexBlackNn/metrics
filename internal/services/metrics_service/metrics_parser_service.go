@@ -49,7 +49,6 @@ func (ms *MetricService) UpdateMetricValue(
 	)
 	log.Info("starts update metric value")
 
-	//
 	parts := strings.Split(strings.Trim(urlPath, "/"), "/")
 	if len(parts) != 4 {
 		return ErrNotValidUrl
@@ -68,21 +67,31 @@ func (ms *MetricService) UpdateMetricValue(
 		if err != nil {
 			return ErrNotValidMetricValue
 		}
+		metric = models.Metric{Type: metricType, Name: parts[2], Value: metricValue}
+
 	case "counter":
 		metricValue, err = strconv.ParseInt(parts[3], 10, 64)
 		if err != nil {
 			return ErrNotValidMetricValue
 		}
+		metric, err = ms.metricsStorage.GetMetric(ctx, metric.Name)
+		if err != nil {
+			return ErrCouldNotUpdateMetric
+		}
+		switch value := metric.Value.(type) {
+		case int64:
+			metric.Value = value + metricValue.(int64)
+		default:
+			metric.Value = metricValue.(int64)
+		}
 	default:
 		return ErrNotValidMetricType
 	}
 
-	metric = models.Metric{Type: metricType, Name: parts[2], Value: metricValue}
 	err = ms.metricsStorage.UpdateMetric(ctx, metric)
-	gotMetric, err := ms.metricsStorage.GetMetric(ctx, metric.Name)
-	fmt.Println("111111111111", gotMetric)
+	fmt.Println(metric)
 	if err != nil {
-		return fmt.Errorf("could not update metric: %w", err)
+		return ErrCouldNotUpdateMetric
 	}
 	return nil
 }
