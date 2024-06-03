@@ -19,7 +19,7 @@ go build -o server *.go
 ```
 
 ```bash
-./metricstest -test.v -test.run=^TestIteration1$ -binary-path=/home/alex/Dev/GoYandex/metrics/cmd/server/server
+./metricstest -test.v -test.run=^TestIteration1$ -binary-path=./cmd/server/server
 ```
 
 
