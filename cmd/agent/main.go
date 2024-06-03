@@ -13,6 +13,7 @@ import (
 type MetricsMonitor struct {
 	Metrics      map[string]models.Metric
 	PollInterval int
+	mutex        sync.RWMutex
 }
 
 func NewMetricsMonitor(pollInterval int) *MetricsMonitor {
@@ -32,6 +33,7 @@ func (mm *MetricsMonitor) Start() {
 		runtime.ReadMemStats(&rtm)
 		t := reflect.TypeOf(rtm)
 		if t.Kind() == reflect.Struct {
+			mm.mutex.Lock()
 			for i := 0; i < t.NumField(); i++ {
 				metricName := t.Field(i).Name
 				metricValue := reflect.ValueOf(rtm).FieldByName(metricName).Interface()
@@ -42,6 +44,7 @@ func (mm *MetricsMonitor) Start() {
 			}
 			mm.Metrics["PollCount"] = models.Metric{Type: "counter", Value: mm.Metrics["PollCount"].Value.(int64) + 1, Name: "PollCount"}
 			mm.Metrics["RandomValue"] = models.Metric{Type: "gauge", Value: rand.Int63(), Name: "RandomValue"}
+			mm.mutex.Unlock()
 			fmt.Println(mm.Metrics)
 			<-time.After(interval)
 		}
