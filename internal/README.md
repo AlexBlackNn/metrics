@@ -38,3 +38,13 @@ https://command-not-found.com/golint
 ```bash
 golint ./...
 ```
+
+iter 2
+```bash
+go build -o agent *.go
+```
+
+```bash
+./metricstest -test.v -test.run=^TestIteration2 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server
+```
+
