@@ -45,25 +45,36 @@ func (mm *MetricsMonitor) Start() {
 			mm.Metrics["PollCount"] = models.Metric{Type: "counter", Value: mm.Metrics["PollCount"].Value.(int64) + 1, Name: "PollCount"}
 			mm.Metrics["RandomValue"] = models.Metric{Type: "gauge", Value: rand.Int63(), Name: "RandomValue"}
 			mm.mutex.Unlock()
-			fmt.Println(mm.Metrics)
 			<-time.After(interval)
 		}
 	}
 }
 
-//func main() {
-//	metricsMonitor := NewMetricsMonitor(10000)
-//	metricsMonitor.Start()
-//}
+func (mm *MetricsMonitor) GetMetrics() map[string]models.Metric {
+	return mm.Metrics
+}
 
 func main() {
 	var wg sync.WaitGroup
-	metricsMonitor := NewMetricsMonitor(10000)
+	metricsMonitor := NewMetricsMonitor(1)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		metricsMonitor.Start()
 	}()
+
+	wg.Add(1)
+	go func() {
+		for {
+			time.Sleep(time.Duration(3) * time.Second)
+			defer wg.Done()
+			metrics := metricsMonitor.GetMetrics()
+			for key, value := range metrics {
+				fmt.Println(key, value)
+			}
+		}
+	}()
+
 	wg.Wait()
 }
