@@ -42,8 +42,9 @@ func main() {
 			defer wg.Done()
 			metrics := monitor_application.MetricsService.GetMetrics()
 			for _, savedMetric := range metrics {
+				// TODO: convert any (int64, float64,...) to string
+				// TODO: backoff
 				//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
-
 				url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", savedMetric.Type, savedMetric.Name, "10")
 				fmt.Println(url)
 				response, err := http.Post(url, "text/pain", nil)
