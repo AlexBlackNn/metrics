@@ -3,14 +3,14 @@ package update
 import (
 	"context"
 	"errors"
-	"github.com/AlexBlackNn/metrics/internal/app"
+	"github.com/AlexBlackNn/metrics/internal/app_server"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
-func New(log *slog.Logger, application *app.App) http.HandlerFunc {
+func New(log *slog.Logger, application *app_server.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)

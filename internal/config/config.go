@@ -8,8 +8,10 @@ import (
 
 // Config consists project settings
 type Config struct {
-	Env        string `yaml:"env" env-default:"local"`
-	ServerAddr string `yaml:"server_addr" env-default:":8080"`
+	Env            string `yaml:"env" env-default:"local"`
+	ServerAddr     string `yaml:"server_addr" env-default:":8080"`
+	PollInterval   int    `yaml:"poll_interval" env-default:"2"`
+	ReportInterval int    `yaml:"report_interval" env-default:"5"`
 }
 
 // fetchConfigPath fetches config path from command line flag or env var
