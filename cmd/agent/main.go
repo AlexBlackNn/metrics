@@ -38,7 +38,11 @@ func main() {
 	wg.Add(1)
 	go func() {
 		//TODO:// get timeout from config
-		client := http.Client{Timeout: 3 * time.Second}
+		client := http.Client{
+			Timeout: 3 * time.Second,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error { // в 1 инкрименте "Редиректы не поддерживаются."
+				return http.ErrUseLastResponse
+			}}
 
 		for {
 			time.Sleep(time.Duration(3) * time.Second)
