@@ -6,6 +6,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/utils"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -42,6 +43,14 @@ func main() {
 			metrics := monitor_application.MetricsService.GetMetrics()
 			for key, value := range metrics {
 				fmt.Println(key, value)
+				//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
+				response, err := http.Post("http://localhost:8080/update/counter/testCounter/10", "text/pain", nil)
+				if err != nil {
+					fmt.Println("here")
+					panic(err)
+				}
+				fmt.Println("==========>", response.StatusCode)
+				response.Body.Close()
 			}
 		}
 	}()
