@@ -32,6 +32,11 @@ curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/count
 curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge/testGauge/111
 ```
 
+```bash
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge/Lookups/10
+```
+
+
 how to install golint
 https://command-not-found.com/golint
 

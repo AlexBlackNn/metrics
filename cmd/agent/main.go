@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/app_agent"
 	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/utils"
 	"log/slog"
 	"net/http"
@@ -48,24 +49,29 @@ func main() {
 			time.Sleep(time.Duration(3) * time.Second)
 			defer wg.Done()
 			metrics := monitor_application.MetricsService.GetMetrics()
+			wg.Add(len(metrics))
 			for _, savedMetric := range metrics {
-				// TODO: convert any (int64, float64,...) to string
-				// TODO: backoff
-				//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
-				url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", savedMetric.Type, savedMetric.Name, "10")
-				fmt.Println(url)
+				go func(savedMetric models.Metric) {
+					defer wg.Done()
+					// TODO: convert any (int64, float64,...) to string
+					// TODO: backoff
+					//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
+					url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", savedMetric.Type, savedMetric.Name, "10")
+					fmt.Println(url)
 
-				req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
-				if err != nil {
-					panic(err)
-				}
+					req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
+					if err != nil {
+						panic(err)
+					}
 
-				response, err := client.Do(req)
-				if err != nil {
-					panic(err)
-				}
-				fmt.Println("==========>", response.StatusCode)
-				response.Body.Close()
+					response, err := client.Do(req)
+					if err != nil {
+						fmt.Println("11111111111111", err)
+						os.Exit(1)
+					}
+					fmt.Println("==========>", response.StatusCode)
+					response.Body.Close()
+				}(savedMetric)
 			}
 		}
 	}()
