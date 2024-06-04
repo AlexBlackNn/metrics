@@ -41,11 +41,11 @@ func main() {
 			time.Sleep(time.Duration(3) * time.Second)
 			defer wg.Done()
 			metrics := monitor_application.MetricsService.GetMetrics()
-			for key, value := range metrics {
-				fmt.Println(key, value)
+			for _, savedMetric := range metrics {
 				//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
 
-				url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", "counter", "testCounter", "10")
+				url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", savedMetric.Type, savedMetric.Name, "10")
+				fmt.Println(url)
 				response, err := http.Post(url, "text/pain", nil)
 				if err != nil {
 					fmt.Println("here")
