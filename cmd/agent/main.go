@@ -44,7 +44,9 @@ func main() {
 			for key, value := range metrics {
 				fmt.Println(key, value)
 				//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
-				response, err := http.Post("http://localhost:8080/update/counter/testCounter/10", "text/pain", nil)
+
+				url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", "counter", "testCounter", "10")
+				response, err := http.Post(url, "text/pain", nil)
 				if err != nil {
 					fmt.Println("here")
 					panic(err)
