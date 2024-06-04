@@ -25,15 +25,15 @@ func TestNew(t *testing.T) {
 		want Want
 	}{
 		{
-			name: "positive test gauge",
-			url:  "/update/gauge/Lookups/10",
+			name: "positive test,  gauge with value 10.3",
+			url:  "/update/gauge/Lookups/10.3",
 			want: Want{
 				code:        http.StatusOK,
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name: "positive test counter",
+			name: "positive test, counter with value 10",
 			url:  "/update/counter/PoolCount/10",
 			want: Want{
 				code:        http.StatusOK,
@@ -41,7 +41,7 @@ func TestNew(t *testing.T) {
 			},
 		},
 		{
-			name: "negative test metric name absent",
+			name: "negative test, metric name absent",
 			url:  "/update/counter/10",
 			want: Want{
 				code:        http.StatusNotFound,
@@ -49,7 +49,7 @@ func TestNew(t *testing.T) {
 			},
 		},
 		{
-			name: "negative test metric wrong type value",
+			name: "negative test, metric wrong type value",
 			url:  "/update/counter/PoolCount/test",
 			want: Want{
 				code:        http.StatusBadRequest,
@@ -57,7 +57,7 @@ func TestNew(t *testing.T) {
 			},
 		},
 		{
-			name: "negative test metric wrong metric type",
+			name: "negative test, metric wrong metric type",
 			url:  "/update/histogram/PoolCount/10",
 			want: Want{
 				code:        http.StatusBadRequest,
