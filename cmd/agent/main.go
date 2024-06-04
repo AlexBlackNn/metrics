@@ -37,6 +37,9 @@ func main() {
 
 	wg.Add(1)
 	go func() {
+		//TODO:// get timeout from config
+		client := http.Client{Timeout: 3 * time.Second}
+
 		for {
 			time.Sleep(time.Duration(3) * time.Second)
 			defer wg.Done()
@@ -47,9 +50,14 @@ func main() {
 				//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
 				url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", savedMetric.Type, savedMetric.Name, "10")
 				fmt.Println(url)
-				response, err := http.Post(url, "text/pain", nil)
+
+				req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
 				if err != nil {
-					fmt.Println("here")
+					panic(err)
+				}
+
+				response, err := client.Do(req)
+				if err != nil {
 					panic(err)
 				}
 				fmt.Println("==========>", response.StatusCode)
