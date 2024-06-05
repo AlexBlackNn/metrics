@@ -28,7 +28,7 @@ func NewMetricsHttpService(
 	}
 }
 
-func (mhs *MetricsHttpService) Transmit() {
+func (mhs *MetricsHttpService) Transmit(stop chan struct{}) {
 
 	var wg sync.WaitGroup
 
@@ -40,39 +40,45 @@ func (mhs *MetricsHttpService) Transmit() {
 		}}
 
 	for {
-		time.Sleep(time.Duration(3) * time.Second)
 
-		metrics := mhs.GetMetrics()
+		select {
+		case <-stop:
+			return
+		default:
+			time.Sleep(time.Duration(3) * time.Second)
 
-		wg.Add(len(metrics))
-		for _, savedMetric := range metrics {
-			go func(savedMetric models.Metric) {
-				defer wg.Done()
-				// TODO: convert any (int64, float64,...) to string
-				// TODO: backoff
-				//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
-				url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", savedMetric.Type, savedMetric.Name, "10")
-				fmt.Println(url)
+			metrics := mhs.GetMetrics()
 
-				req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
-				// TODO: find out why without it EOF?
-				//https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi
-				req.Close = true
-				if err != nil {
-					//TODO: HANDLE error do not panic
-					panic(err)
-				}
+			wg.Add(len(metrics))
+			for _, savedMetric := range metrics {
+				go func(savedMetric models.Metric) {
+					defer wg.Done()
+					// TODO: convert any (int64, float64,...) to string
+					// TODO: backoff
+					//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
+					url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", savedMetric.Type, savedMetric.Name, "10")
+					fmt.Println(url)
 
-				response, err := client.Do(req)
-				if err != nil {
-					//TODO: HANDLE error do not exit
-					fmt.Println("11111111111111", err)
-					os.Exit(1)
-				}
+					req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
+					// TODO: find out why without it EOF?
+					//https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi
+					req.Close = true
+					if err != nil {
+						//TODO: HANDLE error do not panic
+						panic(err)
+					}
 
-				fmt.Println("==========>", response.StatusCode)
-				response.Body.Close()
-			}(savedMetric)
+					response, err := client.Do(req)
+					if err != nil {
+						//TODO: HANDLE error do not exit
+						fmt.Println("11111111111111", err)
+						os.Exit(1)
+					}
+
+					fmt.Println("==========>", response.StatusCode)
+					response.Body.Close()
+				}(savedMetric)
+			}
 		}
 	}
 }

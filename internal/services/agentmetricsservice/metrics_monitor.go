@@ -29,7 +29,7 @@ func New(
 	}
 }
 
-func (ms *MetricsService) Start() {
+func (ms *MetricsService) Start(stop chan struct{}) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.UpdateMetricValue"),
 	)
@@ -40,23 +40,28 @@ func (ms *MetricsService) Start() {
 
 	ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: int64(0), Name: "PollCount"}
 	for {
-		// Read full mem stats
-		runtime.ReadMemStats(&rtm)
-		t := reflect.TypeOf(rtm)
-		if t.Kind() == reflect.Struct {
-			ms.mutex.Lock()
-			for i := 0; i < t.NumField(); i++ {
-				metricName := t.Field(i).Name
-				metricValue := reflect.ValueOf(rtm).FieldByName(metricName).Interface()
-				metricType := reflect.TypeOf(metricValue).String()
-				if metricType == "float64" || metricType == "uint32" || metricType == "uint64" {
-					ms.Metrics[metricName] = models.Metric{Type: "gauge", Value: metricValue, Name: metricName}
+		select {
+		case <-stop:
+			return
+		default:
+			// Read full mem stats
+			runtime.ReadMemStats(&rtm)
+			t := reflect.TypeOf(rtm)
+			if t.Kind() == reflect.Struct {
+				ms.mutex.Lock()
+				for i := 0; i < t.NumField(); i++ {
+					metricName := t.Field(i).Name
+					metricValue := reflect.ValueOf(rtm).FieldByName(metricName).Interface()
+					metricType := reflect.TypeOf(metricValue).String()
+					if metricType == "float64" || metricType == "uint32" || metricType == "uint64" {
+						ms.Metrics[metricName] = models.Metric{Type: "gauge", Value: metricValue, Name: metricName}
+					}
 				}
+				ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: ms.Metrics["PollCount"].Value.(int64) + 1, Name: "PollCount"}
+				ms.Metrics["RandomValue"] = models.Metric{Type: "gauge", Value: rand.Int63(), Name: "RandomValue"}
+				ms.mutex.Unlock()
+				<-time.After(interval)
 			}
-			ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: ms.Metrics["PollCount"].Value.(int64) + 1, Name: "PollCount"}
-			ms.Metrics["RandomValue"] = models.Metric{Type: "gauge", Value: rand.Int63(), Name: "RandomValue"}
-			ms.mutex.Unlock()
-			<-time.After(interval)
 		}
 	}
 }

@@ -23,19 +23,27 @@ func main() {
 
 	appHttp := app_agent.NewAppHttp(log, cfg)
 	stop := make(chan os.Signal, 1)
+	cancel := make(chan struct{})
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
 	var wg sync.WaitGroup
+
 	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		appHttp.MetricsService.Start()
+		<-stop
+		close(cancel)
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		appHttp.MetricsService.Transmit()
+		appHttp.MetricsService.Start(cancel)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		appHttp.MetricsService.Transmit(cancel)
 	}()
 	wg.Wait()
 }
