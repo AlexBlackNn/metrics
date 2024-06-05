@@ -2,25 +2,25 @@ package app_agent
 
 import (
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/services/agentmetrics"
+	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"log/slog"
 )
 
 // App service consists all service layers
-type App struct {
-	MetricsService *agentmetrics.MetricsService
+type AppHttp struct {
+	MetricsService *agentmetricsservice.MetricsHttpService
 }
 
 // New create App
-func New(
+func NewAppHttp(
 	log *slog.Logger,
 	cfg *config.Config,
-) *App {
+) *AppHttp {
 
 	// init services
-	metricsService := agentmetrics.New(
+	metricsService := agentmetricsservice.NewMetricsHttpService(
 		log,
 		cfg,
 	)
-	return &App{MetricsService: metricsService}
+	return &AppHttp{MetricsService: metricsService}
 }

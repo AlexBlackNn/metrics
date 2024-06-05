@@ -1,4 +1,4 @@
-package agentmetrics
+package agentmetricsservice
 
 import (
 	"github.com/AlexBlackNn/metrics/internal/config"
@@ -12,11 +12,10 @@ import (
 )
 
 type MetricsService struct {
-	log          *slog.Logger
-	cfg          *config.Config
-	Metrics      map[string]models.Metric
-	PollInterval int
-	mutex        sync.RWMutex
+	log     *slog.Logger
+	cfg     *config.Config
+	Metrics map[string]models.Metric
+	mutex   sync.RWMutex
 }
 
 func New(
@@ -24,9 +23,9 @@ func New(
 	cfg *config.Config,
 ) *MetricsService {
 	return &MetricsService{
-		Metrics:      make(map[string]models.Metric),
-		PollInterval: cfg.PollInterval,
-		log:          log,
+		Metrics: make(map[string]models.Metric),
+		log:     log,
+		cfg:     cfg,
 	}
 }
 
@@ -37,7 +36,7 @@ func (ms *MetricsService) Start() {
 	log.Info("starts update metric value")
 
 	var rtm runtime.MemStats
-	interval := time.Duration(ms.PollInterval) * time.Second
+	interval := time.Duration(ms.cfg.PollInterval) * time.Second
 
 	ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: int64(0), Name: "PollCount"}
 	for {
