@@ -21,6 +21,8 @@ func (m *Metric) ConvertValueToString() (string, error) {
 		return fmt.Sprintf("%d", m.Value), nil
 	case reflect.Uint64:
 		return fmt.Sprintf("%d", m.Value), nil
+	case reflect.Int64:
+		return fmt.Sprintf("%d", m.Value), nil
 	default:
 		return "", fmt.Errorf("Unsupported type: %T", m.Value)
 	}

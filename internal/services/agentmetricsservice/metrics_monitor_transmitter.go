@@ -6,7 +6,6 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"log/slog"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -29,7 +28,6 @@ func NewMetricsHttpService(
 
 func (mhs *MetricsHttpService) Transmit(stop chan struct{}) {
 
-	var wg sync.WaitGroup
 	log := mhs.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
 	)
@@ -45,11 +43,8 @@ func (mhs *MetricsHttpService) Transmit(stop chan struct{}) {
 			return
 		default:
 			metrics := mhs.GetMetrics()
-			wg.Add(len(metrics))
 			for _, savedMetric := range metrics {
 				go func(savedMetric models.Metric) {
-					defer wg.Done()
-
 					savedMetricValue, err := savedMetric.ConvertValueToString()
 					// TODO: need refactoring to better work with error
 					if err != nil {
@@ -75,10 +70,11 @@ func (mhs *MetricsHttpService) Transmit(stop chan struct{}) {
 
 						// TODO: need refactoring to better work with error
 						if err != nil {
-							log.Error("error doing http request")
+							log.Error("error doing http request", "err", err.Error())
+						} else {
+							log.Info("sending data", "url", url, "status_code", response.StatusCode)
+							response.Body.Close()
 						}
-						log.Info("sending data", "url", url, "status_code", response.StatusCode)
-						response.Body.Close()
 					}
 				}(savedMetric)
 				<-time.After(time.Duration(mhs.cfg.ReportInterval) * time.Second)
