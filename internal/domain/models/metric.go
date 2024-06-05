@@ -12,7 +12,7 @@ type Metric struct {
 	Value any
 }
 
-// ConvertToString converts metric Value to string or returns error
+// ConvertValueToString converts metric Value to string or returns error
 func (m *Metric) ConvertValueToString() (string, error) {
 	switch reflect.TypeOf(m.Value).Kind() {
 	case reflect.Float64:

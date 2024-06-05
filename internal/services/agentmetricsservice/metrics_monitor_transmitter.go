@@ -9,24 +9,24 @@ import (
 	"time"
 )
 
-type MetricsHttpService struct {
+type MetricsHTTPService struct {
 	log *slog.Logger
 	cfg *config.Config
 	*MetricsService
 }
 
-func NewMetricsHttpService(
+func NewMetricsHTTPService(
 	log *slog.Logger,
 	cfg *config.Config,
-) *MetricsHttpService {
-	return &MetricsHttpService{
+) *MetricsHTTPService {
+	return &MetricsHTTPService{
 		log,
 		cfg,
 		New(log, cfg),
 	}
 }
 
-func (mhs *MetricsHttpService) Transmit(stop chan struct{}) {
+func (mhs *MetricsHTTPService) Transmit(stop chan struct{}) {
 
 	log := mhs.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),

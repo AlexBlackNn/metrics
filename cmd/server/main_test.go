@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/AlexBlackNn/metrics/internal/app_server"
+	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/update"
 	"github.com/stretchr/testify/assert"
@@ -53,7 +53,7 @@ func TestServerHappyPath(t *testing.T) {
 	}
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := app_server.New(log, cfg)
+	application := appserver.New(log, cfg)
 
 	handlerUnderTest := update.New(log, application)
 	client := http.Client{Timeout: 3 * time.Second}
@@ -126,7 +126,7 @@ func TestNegativeCasesMetrics(t *testing.T) {
 	}
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := app_server.New(log, cfg)
+	application := appserver.New(log, cfg)
 
 	handlerUnderTest := update.New(log, application)
 	client := http.Client{Timeout: 3 * time.Second}
@@ -208,7 +208,7 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 	}
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := app_server.New(log, cfg)
+	application := appserver.New(log, cfg)
 
 	handlerUnderTest := update.New(log, application)
 	client := http.Client{Timeout: 3 * time.Second}

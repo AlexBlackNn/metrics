@@ -1,4 +1,4 @@
-package app_server
+package appserver
 
 import (
 	"github.com/AlexBlackNn/metrics/internal/config"

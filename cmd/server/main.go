@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/AlexBlackNn/metrics/internal/app_server"
+	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/update"
 	"log/slog"
@@ -22,7 +22,7 @@ func main() {
 	// init logger
 	log := setupLogger(cfg.Env)
 	log.Info("starting application", slog.String("env", cfg.Env))
-	application := app_server.New(log, cfg)
+	application := appserver.New(log, cfg)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)

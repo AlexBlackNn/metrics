@@ -1,7 +1,7 @@
 package update
 
 import (
-	"github.com/AlexBlackNn/metrics/internal/app_server"
+	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/stretchr/testify/assert"
 	"log/slog"
@@ -50,7 +50,7 @@ func TestHappyPath(t *testing.T) {
 	}
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := app_server.New(log, cfg)
+	application := appserver.New(log, cfg)
 
 	handlerUnderTest := New(log, application)
 
@@ -119,7 +119,7 @@ func TestNegativeCasesMetrics(t *testing.T) {
 	}
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := app_server.New(log, cfg)
+	application := appserver.New(log, cfg)
 
 	handlerUnderTest := New(log, application)
 
@@ -197,7 +197,7 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 	}
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := app_server.New(log, cfg)
+	application := appserver.New(log, cfg)
 
 	handlerUnderTest := New(log, application)
 
