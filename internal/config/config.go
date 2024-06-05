@@ -12,6 +12,7 @@ type Config struct {
 	ServerAddr     string `yaml:"server_addr" env-default:":8080"`
 	PollInterval   int    `yaml:"poll_interval" env-default:"2"`
 	ReportInterval int    `yaml:"report_interval" env-default:"5"`
+	ClientTimeout  int    `yaml:"client_timeout" env-default:"5"`
 }
 
 // fetchConfigPath fetches config path from command line flag or env var

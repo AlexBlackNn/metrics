@@ -31,19 +31,18 @@ func New(
 
 func (ms *MetricsService) Start(stop chan struct{}) {
 	log := ms.log.With(
-		slog.String("info", "SERVICE LAYER: metrics_service.UpdateMetricValue"),
+		slog.String("info", "SERVICE LAYER: agentmetricservice.Start"),
 	)
-	log.Info("starts update metric value")
 
 	var rtm runtime.MemStats
-	interval := time.Duration(ms.cfg.PollInterval) * time.Second
-
 	ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: int64(0), Name: "PollCount"}
 	for {
 		select {
 		case <-stop:
+			log.Info("stop signal received")
 			return
 		default:
+			log.Info("starts metric pooling")
 			// Read full mem stats
 			runtime.ReadMemStats(&rtm)
 			t := reflect.TypeOf(rtm)
@@ -60,7 +59,7 @@ func (ms *MetricsService) Start(stop chan struct{}) {
 				ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: ms.Metrics["PollCount"].Value.(int64) + 1, Name: "PollCount"}
 				ms.Metrics["RandomValue"] = models.Metric{Type: "gauge", Value: rand.Int63(), Name: "RandomValue"}
 				ms.mutex.Unlock()
-				<-time.After(interval)
+				<-time.After(time.Duration(ms.cfg.PollInterval) * time.Second)
 			}
 		}
 	}
