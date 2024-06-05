@@ -12,24 +12,27 @@ import (
 )
 
 func main() {
+	var wg sync.WaitGroup
+
 	// init config
 	cfg, err := config.Load()
 	if err != nil {
 		panic(err)
 	}
+
 	// init logger
 	log := utils.SetupLogger(cfg.Env)
 	log.Info("starting application", slog.String("env", cfg.Env))
 
 	appHttp := app_agent.NewAppHttp(log, cfg)
-	stop := make(chan os.Signal, 1)
-	cancel := make(chan struct{})
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
-	var wg sync.WaitGroup
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	cancel := make(chan struct{})
 
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		<-stop
 		close(cancel)
 	}()
