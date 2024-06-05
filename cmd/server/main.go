@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/app_server"
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/http-server/handlers/metrics/update"
+	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/update"
 	"log/slog"
 	"net/http"
 	"os"
