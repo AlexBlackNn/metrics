@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/update"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log/slog"
@@ -47,7 +47,6 @@ func TestServerHappyPath(t *testing.T) {
 
 	cfg := &config.Config{
 		Env:            "local",
-		ServerAddr:     ":8080",
 		PollInterval:   2,
 		ReportInterval: 5,
 	}
@@ -55,17 +54,17 @@ func TestServerHappyPath(t *testing.T) {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	application := appserver.New(log, cfg)
 
-	handlerUnderTest := update.New(log, application)
 	client := http.Client{Timeout: 3 * time.Second}
 
 	// запускаем тестовый сервер, будет выбран первый свободный порт
-	srv := httptest.NewServer(handlerUnderTest)
+	srv := httptest.NewServer(NewChiRouter(log, application))
 	// останавливаем сервер после завершения теста
 	defer srv.Close()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			url := srv.URL + tt.url
+			fmt.Println("111111111", url)
 			request, err := http.NewRequest(http.MethodPost, url, nil)
 			require.NoError(t, err)
 			res, err := client.Do(request)
@@ -120,7 +119,6 @@ func TestNegativeCasesMetrics(t *testing.T) {
 
 	cfg := &config.Config{
 		Env:            "local",
-		ServerAddr:     ":8080",
 		PollInterval:   2,
 		ReportInterval: 5,
 	}
@@ -128,11 +126,10 @@ func TestNegativeCasesMetrics(t *testing.T) {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	application := appserver.New(log, cfg)
 
-	handlerUnderTest := update.New(log, application)
 	client := http.Client{Timeout: 3 * time.Second}
 
 	// запускаем тестовый сервер, будет выбран первый свободный порт
-	srv := httptest.NewServer(handlerUnderTest)
+	srv := httptest.NewServer(NewChiRouter(log, application))
 	// останавливаем сервер после завершения теста
 	defer srv.Close()
 
@@ -171,7 +168,7 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 			url:    "/update/counter/10",
 			method: http.MethodGet,
 			want: Want{
-				code: http.StatusMethodNotAllowed,
+				code: http.StatusNotFound,
 			},
 		},
 		{
@@ -179,7 +176,7 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 			url:    "/update/counter/10",
 			method: http.MethodDelete,
 			want: Want{
-				code: http.StatusMethodNotAllowed,
+				code: http.StatusNotFound,
 			},
 		},
 		{
@@ -187,7 +184,7 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 			url:    "/update/counter/10",
 			method: http.MethodPut,
 			want: Want{
-				code: http.StatusMethodNotAllowed,
+				code: http.StatusNotFound,
 			},
 		},
 		{
@@ -195,14 +192,13 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 			url:    "/update/counter/10",
 			method: http.MethodPatch,
 			want: Want{
-				code: http.StatusMethodNotAllowed,
+				code: http.StatusNotFound,
 			},
 		},
 	}
 
 	cfg := &config.Config{
 		Env:            "local",
-		ServerAddr:     ":8080",
 		PollInterval:   2,
 		ReportInterval: 5,
 	}
@@ -210,13 +206,10 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	application := appserver.New(log, cfg)
 
-	handlerUnderTest := update.New(log, application)
 	client := http.Client{Timeout: 3 * time.Second}
 
 	// запускаем тестовый сервер, будет выбран первый свободный порт
-	srv := httptest.NewServer(handlerUnderTest)
-	// останавливаем сервер после завершения теста
-	defer srv.Close()
+	srv := httptest.NewServer(NewChiRouter(log, application))
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

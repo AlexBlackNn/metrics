@@ -16,19 +16,7 @@ import (
 	"time"
 )
 
-func main() {
-	// init config
-	cfg, err := config.Load()
-	if err != nil {
-		panic(err)
-	}
-	// init logger
-	log := setupLogger(cfg.Env)
-	log.Info("starting application", slog.String("env", cfg.Env))
-	application := appserver.New(log, cfg)
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+func NewChiRouter(log *slog.Logger, application *appserver.App) chi.Router {
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -42,6 +30,22 @@ func main() {
 		r.Post("/{metric_type}/{metric_name}/{metric_value}", update.New(log, application))
 		//r.Get("/", expression.New(log, application))
 	})
+	return router
+}
+
+func main() {
+	// init config
+	cfg, err := config.Load()
+	if err != nil {
+		panic(err)
+	}
+	// init logger
+	log := setupLogger(cfg.Env)
+	log.Info("starting application", slog.String("env", cfg.Env))
+	application := appserver.New(log, cfg)
+	router := NewChiRouter(log, application)
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(cfg.ServerAddr),

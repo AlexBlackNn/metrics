@@ -50,7 +50,7 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 		// Get existing metric from storage
 		metricStorage, err := ms.metricsStorage.GetMetric(ctx, metric.Name)
 		if !errors.Is(err, memstorage.ErrMetricNotFound) {
-			metric.Value = metricStorage.Value.(int64) + metric.Value.(int64)
+			metric.Value = metricStorage.Value.(uint64) + metric.Value.(uint64)
 		}
 		err = ms.metricsStorage.UpdateMetric(ctx, metric)
 		if err != nil {
