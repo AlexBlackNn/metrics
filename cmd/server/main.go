@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/config"
+	projectLogger "github.com/AlexBlackNn/metrics/internal/http-server/middleware/logger"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/update"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net/http"
 	"os"
@@ -27,8 +30,19 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
-	router := http.NewServeMux()
-	router.HandleFunc(`/update/`, update.New(log, application))
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(projectLogger.New(log))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+
+	//router.Route(`/update/`, update.New(log, application))
+
+	router.Route("/update/", func(r chi.Router) {
+		r.Post("/{metric_type}/{metric_name}/{metric_value}", update.New(log, application))
+		//r.Get("/", expression.New(log, application))
+	})
+
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(cfg.ServerAddr),
 		Handler:      router,

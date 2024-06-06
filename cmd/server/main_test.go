@@ -223,11 +223,10 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 			request, err := http.NewRequest(tt.method, srv.URL+tt.url, nil)
 			require.NoError(t, err)
 			res, err := client.Do(request)
+			defer res.Body.Close()
 			require.NoError(t, err)
 			// проверяем код ответа
 			assert.Equal(t, tt.want.code, res.StatusCode)
-			// получаем и проверяем тело запроса
-			defer res.Body.Close()
 		})
 	}
 }
