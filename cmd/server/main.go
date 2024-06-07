@@ -5,6 +5,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	projectLogger "github.com/AlexBlackNn/metrics/internal/http-server/middleware/logger"
+	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/getallmetrics"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/getonemetric"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/update"
 	"github.com/go-chi/chi/v5"
@@ -35,6 +36,7 @@ func NewChiRouter(log *slog.Logger, application *appserver.App) chi.Router {
 		r.Get("/{metric_type}/{metric_name}", getonemetric.New(log, application))
 		//r.Get("/", expression.New(log, application))
 	})
+	router.Get("/", getallmetrics.New(log, application))
 	return router
 }
 

@@ -18,6 +18,9 @@ type MetricsStorageInterface interface {
 		ctx context.Context,
 		metricName string,
 	) (models.Metric, error)
+	GetAllMetrics(
+		ctx context.Context,
+	) ([]models.Metric, error)
 }
 
 type MetricService struct {
@@ -77,4 +80,17 @@ func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (mod
 	}
 	return metric, nil
 
+}
+
+func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.Metric, error) {
+	log := ms.log.With(
+		slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
+	)
+	log.Info("starts getting all metrics")
+
+	metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
+	if errors.Is(err, memstorage.ErrMetricNotFound) {
+		return []models.Metric{}, ErrMetricNotFound
+	}
+	return metrics, nil
 }

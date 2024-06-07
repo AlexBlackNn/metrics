@@ -31,3 +31,18 @@ func (s *Storage) GetMetric(
 	}
 	return metric, nil
 }
+
+func (s *Storage) GetAllMetrics(
+	ctx context.Context,
+) ([]models.Metric, error) {
+	var metrics []models.Metric
+
+	if len(s.db) == 0 {
+		return []models.Metric{}, ErrMetricNotFound
+	}
+	for _, oneMetric := range s.db {
+		metrics = append(metrics, oneMetric)
+	}
+
+	return metrics, nil
+}
