@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -18,9 +19,7 @@ func PathValidator(r *http.Request) (models.Metric, error) {
 	fmt.Println()
 	metricType := chi.URLParam(r, "metric_type")
 
-	fmt.Println("0000000000000000000", metricType, chi.URLParam(r, "metric_type"), chi.URLParam(r, "metric_name"), chi.URLParam(r, "metric_value"))
 	if metricType != "gauge" && metricType != "counter" {
-		fmt.Println("777777777777")
 		return models.Metric{}, ErrNotValidMetricType
 	}
 
@@ -28,26 +27,22 @@ func PathValidator(r *http.Request) (models.Metric, error) {
 	var value interface{} // Store the parsed value here
 	var err error
 
-	fmt.Println("11111111")
 	if metricType == "gauge" {
 		value, err = strconv.ParseFloat(metricValue, 64)
-		fmt.Println("222222")
 		if err != nil {
-			fmt.Println("333333333")
 			return models.Metric{}, ErrNotValidMetricValue
 		}
 	} else {
 		value, err = strconv.ParseUint(metricValue, 10, 64)
-		fmt.Println("444444444")
 		if err != nil {
-			fmt.Println("55555555")
 			return models.Metric{}, ErrNotValidMetricValue
 		}
 	}
-	fmt.Println("6666")
+	// TODO: bug found float64 saved without digits after dot.
+	fmt.Println("=====>>>>", value)
 	return models.Metric{
 		Type:  chi.URLParam(r, "metric_type"),
-		Name:  chi.URLParam(r, "metric_name"),
+		Name:  strings.ToLower(chi.URLParam(r, "metric_name")),
 		Value: value,
 	}, nil
 }

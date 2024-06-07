@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -20,7 +21,7 @@ func PathValidator(r *http.Request) (string, error) {
 		return "", ErrNotValidMetricType
 	}
 
-	return chi.URLParam(r, "metric_name"), nil
+	return strings.ToLower(chi.URLParam(r, "metric_name")), nil
 }
 
 func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
