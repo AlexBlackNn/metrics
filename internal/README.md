@@ -33,7 +33,7 @@ curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge
 ```
 
 ```bash
-curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge/Lookups/10.3
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge/Lookups/20.4
 ```
 
 

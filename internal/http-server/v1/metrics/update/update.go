@@ -55,11 +55,9 @@ func PathValidator(r *http.Request) (models.Metric, error) {
 func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			fmt.Println("qqqqqqqqqqqqqqqqqq")
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
-		fmt.Println("ppppppppppppppppppppppp", chi.URLParam(r, "metric_type"))
 
 		metric, err := PathValidator(r)
 

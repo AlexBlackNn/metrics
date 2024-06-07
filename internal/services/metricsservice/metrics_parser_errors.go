@@ -7,4 +7,5 @@ var (
 	ErrNotValidMetricValue  = errors.New("not valid metric value")
 	ErrNotValidMetricType   = errors.New("not valid metric type")
 	ErrCouldNotUpdateMetric = errors.New("could not update metric")
+	ErrMetricNotFound       = errors.New("metric not found")
 )

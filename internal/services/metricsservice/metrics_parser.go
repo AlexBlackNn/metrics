@@ -64,3 +64,17 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 	}
 	return nil
 }
+
+func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.Metric, error) {
+	log := ms.log.With(
+		slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
+	)
+	log.Info("starts getting metric value")
+
+	metric, err := ms.metricsStorage.GetMetric(ctx, key)
+	if errors.Is(err, memstorage.ErrMetricNotFound) {
+		return models.Metric{}, ErrMetricNotFound
+	}
+	return metric, nil
+
+}
