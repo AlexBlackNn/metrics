@@ -23,7 +23,7 @@ func NewChiRouter(log *slog.Logger, application *appserver.App) chi.Router {
 	router.Use(middleware.RequestID)
 	router.Use(projectLogger.New(log))
 	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
+	//router.Use(middleware.URLFormat)
 
 	//router.Route(`/update/`, update.New(log, application))
 

@@ -3,7 +3,6 @@ package update
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
@@ -16,7 +15,7 @@ import (
 )
 
 func PathValidator(r *http.Request) (models.Metric, error) {
-	fmt.Println()
+
 	metricType := chi.URLParam(r, "metric_type")
 
 	if metricType != "gauge" && metricType != "counter" {
@@ -24,6 +23,7 @@ func PathValidator(r *http.Request) (models.Metric, error) {
 	}
 
 	metricValue := chi.URLParam(r, "metric_value")
+
 	var value interface{} // Store the parsed value here
 	var err error
 
@@ -38,8 +38,7 @@ func PathValidator(r *http.Request) (models.Metric, error) {
 			return models.Metric{}, ErrNotValidMetricValue
 		}
 	}
-	// TODO: bug found float64 saved without digits after dot.
-	fmt.Println("=====>>>>", value)
+
 	return models.Metric{
 		Type:  chi.URLParam(r, "metric_type"),
 		Name:  strings.ToLower(chi.URLParam(r, "metric_name")),
