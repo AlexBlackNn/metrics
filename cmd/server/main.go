@@ -7,7 +7,7 @@ import (
 	projectLogger "github.com/AlexBlackNn/metrics/internal/http-server/middleware/logger"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/getallmetrics"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/getonemetric"
-	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/update"
+	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/updatemetric"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
@@ -29,7 +29,7 @@ func NewChiRouter(log *slog.Logger, application *appserver.App) chi.Router {
 	//router.Route(`/update/`, update.New(log, application))
 
 	router.Route("/update/", func(r chi.Router) {
-		r.Post("/{metric_type}/{metric_name}/{metric_value}", update.New(log, application))
+		r.Post("/{metric_type}/{metric_name}/{metric_value}", updatemetric.New(log, application))
 		//r.Get("/", expression.New(log, application))
 	})
 	router.Route("/value/", func(r chi.Router) {
