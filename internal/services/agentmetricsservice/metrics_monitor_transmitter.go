@@ -50,7 +50,7 @@ func (mhs *MetricsHTTPService) Transmit(stop chan struct{}) {
 					if err != nil {
 						log.Error("wrong type of metric value", "Metric", savedMetric)
 					} else {
-						url := fmt.Sprintf("http://localhost:8080/update/%s/%s/%s", savedMetric.Type, savedMetric.Name, savedMetricValue)
+						url := fmt.Sprintf("http://%s/update/%s/%s/%s", mhs.cfg.ServerAddr, savedMetric.Type, savedMetric.Name, savedMetricValue)
 						log.Info("sending data", "url", url)
 
 						req, err := http.NewRequest(http.MethodPost, url, nil) // (1)

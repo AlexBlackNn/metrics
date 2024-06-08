@@ -53,6 +53,6 @@ go build -o agent *.go
 ./metricstest -test.v -test.run=^TestIteration2 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server
 ./metricstest -test.v -test.run=^TestIteration2A -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=.
 ./metricstest -test.v -test.run=^TestIteration2B -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=.
-
+ ./metricstest -test.v -test.run=^TestIteration4 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. --server-port 8084
 ```
 
