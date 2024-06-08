@@ -18,31 +18,30 @@ type Config struct {
 // fetchConfigPath fetches config path from command line flag or env var
 // Priority: flag -> env -> default
 // Default value is empty string
-func fetchConfigPath() string {
-	var res string
-	// --config="path/to/config.yaml"
-	flag.StringVar(&res, "config", "", "path to config file")
-	flag.Parse()
-
-	if res == "" {
-		res = os.Getenv("CONFIG_PATH")
-	}
-	if res == "" {
-		res = "./cmd/server/config/demo.yaml"
-	}
-
-	return res
-}
 
 // Load loads config
 func Load() (*Config, error) {
-	configPath := fetchConfigPath()
+	cfg := &Config{}
+	var err error
+	var configPath string
+
+	flag.StringVar(&cfg.Env, "e", "local", "project environment")
+	flag.StringVar(&cfg.ServerAddr, "a", ":8080", "host address")
+	flag.IntVar(&cfg.ReportInterval, "r", 10, "metrics report interval")
+	flag.IntVar(&cfg.PollInterval, "p", 2, "metrics poll interval")
+	flag.IntVar(&cfg.ClientTimeout, "t", 3, "agent request timeout")
+	flag.StringVar(&configPath, "c", "", "path to config file")
+	flag.Parse()
+
 	if configPath == "" {
-		return &Config{}, ErrEmptyConfigPath
+		configPath = os.Getenv("CONFIG_PATH")
 	}
-	cfg, err := LoadByPath(configPath)
-	if err != nil {
-		return &Config{}, err
+	if configPath != "" {
+		cfg, err = LoadByPath(configPath)
+		if err != nil {
+			return &Config{}, err
+		}
+		return cfg, nil
 	}
 	return cfg, nil
 }
