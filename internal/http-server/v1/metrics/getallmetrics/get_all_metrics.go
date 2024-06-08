@@ -12,28 +12,6 @@ import (
 	"time"
 )
 
-//func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		if r.Method != http.MethodGet {
-//			w.WriteHeader(http.StatusMethodNotAllowed)
-//			return
-//		}
-//
-//		metrics, err := application.MetricsService.GetAllMetrics(context.Background())
-//
-//		if errors.Is(err, metricsservice.ErrMetricNotFound) {
-//			http.Error(w, err.Error(), http.StatusNotFound)
-//			return
-//		}
-//		fmt.Println(metrics)
-//		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
-//		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-//		w.WriteHeader(http.StatusOK)
-//
-//	}
-//}
-//
-
 func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -49,7 +27,7 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 		}
 
 		// Define Go template
-		tmpl, err := template.New("metrics").ParseFiles("/home/alex/Dev/GolandYandex/metrics/internal/http-server/v1/metrics/getallmetrics/metrics.tmpl")
+		tmpl, err := template.New("metrics").ParseFiles("./metrics.tmpl")
 		if err != nil {
 			fmt.Println("=>>>>>>>>>", err)
 			log.Error("Error parsing Go template")
@@ -78,7 +56,6 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		if err := tmpl.Execute(w, data); err != nil {
-			fmt.Println("111111111111111", err)
 			log.Error("Error executing Go template")
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return

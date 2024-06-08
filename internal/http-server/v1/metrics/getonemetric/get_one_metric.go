@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/appserver"
+	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
@@ -18,7 +19,7 @@ func PathValidator(r *http.Request) (string, error) {
 	metricType := chi.URLParam(r, "metric_type")
 
 	if metricType != "gauge" && metricType != "counter" {
-		return "", ErrNotValidMetricType
+		return "", metrics.ErrNotValidMetricType
 	}
 
 	return strings.ToLower(chi.URLParam(r, "metric_name")), nil
@@ -33,7 +34,7 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 
 		key, err := PathValidator(r)
 
-		if errors.Is(err, ErrNotValidMetricType) {
+		if errors.Is(err, metrics.ErrNotValidMetricType) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

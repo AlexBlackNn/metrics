@@ -1,4 +1,4 @@
-package updatemetric
+package metrics
 
 import "errors"
 
