@@ -63,9 +63,9 @@ func (ms *MetricsSuite) TestServerHappyPath() {
 			},
 		},
 	}
-	// запускаем тестовый сервер, будет выбран первый свободный порт
+	// starts server with first random port
 	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
-	// останавливаем сервер после завершения теста
+	// stop server when tests finished
 	defer srv.Close()
 
 	for _, tt := range tests {
@@ -75,9 +75,7 @@ func (ms *MetricsSuite) TestServerHappyPath() {
 			ms.NoError(err)
 			res, err := ms.client.Do(request)
 			ms.NoError(err)
-			// проверяем код ответа
 			ms.Equal(tt.want.code, res.StatusCode)
-			// получаем и проверяем тело запроса
 			defer res.Body.Close()
 			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
 		})
@@ -123,23 +121,17 @@ func (ms *MetricsSuite) TestNegativeCasesMetrics() {
 		},
 	}
 
-	// запускаем тестовый сервер, будет выбран первый свободный порт
 	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
-	// останавливаем сервер после завершения теста
 	defer srv.Close()
-
 	for _, tt := range tests {
 		ms.Run(tt.name, func() {
 			request, err := http.NewRequest(http.MethodPost, srv.URL+tt.url, nil)
 			ms.NoError(err)
 			res, err := ms.client.Do(request)
 			ms.NoError(err)
-			// проверяем код ответа
 			ms.Equal(tt.want.code, res.StatusCode)
-			// получаем и проверяем тело запроса
 			defer res.Body.Close()
 			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
-
 		})
 	}
 }
@@ -191,8 +183,6 @@ func (ms *MetricsSuite) TestNegativeCasesRequestMethods() {
 			},
 		},
 	}
-
-	// запускаем тестовый сервер, будет выбран первый свободный порт
 	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
 
 	for _, tt := range tests {
@@ -202,7 +192,6 @@ func (ms *MetricsSuite) TestNegativeCasesRequestMethods() {
 			res, err := ms.client.Do(request)
 			ms.NoError(err)
 			defer res.Body.Close()
-			// проверяем код ответа
 			ms.Equal(tt.want.code, res.StatusCode)
 		})
 	}
