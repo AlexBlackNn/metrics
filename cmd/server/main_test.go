@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +12,11 @@ import (
 	"time"
 )
 
-func TestServerHappyPath(t *testing.T) {
+type MetricsSuite struct {
+	suite.Suite
+}
+
+func (ms *MetricsSuite) TestServerHappyPath() {
 
 	type Want struct {
 		code        int
@@ -62,23 +64,22 @@ func TestServerHappyPath(t *testing.T) {
 	defer srv.Close()
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		ms.Run(tt.name, func() {
 			url := srv.URL + tt.url
-			fmt.Println("111111111", url)
 			request, err := http.NewRequest(http.MethodPost, url, nil)
-			require.NoError(t, err)
+			ms.NoError(err)
 			res, err := client.Do(request)
-			require.NoError(t, err)
+			ms.NoError(err)
 			// проверяем код ответа
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			ms.Equal(tt.want.code, res.StatusCode)
 			// получаем и проверяем тело запроса
 			defer res.Body.Close()
-			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
+			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
 		})
 	}
 }
 
-func TestNegativeCasesMetrics(t *testing.T) {
+func (ms *MetricsSuite) TestNegativeCasesMetrics() {
 
 	type Want struct {
 		code        int
@@ -134,22 +135,22 @@ func TestNegativeCasesMetrics(t *testing.T) {
 	defer srv.Close()
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		ms.Run(tt.name, func() {
 			request, err := http.NewRequest(http.MethodPost, srv.URL+tt.url, nil)
-			require.NoError(t, err)
+			ms.NoError(err)
 			res, err := client.Do(request)
-			require.NoError(t, err)
+			ms.NoError(err)
 			// проверяем код ответа
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			ms.Equal(tt.want.code, res.StatusCode)
 			// получаем и проверяем тело запроса
 			defer res.Body.Close()
-			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
+			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
 
 		})
 	}
 }
 
-func TestNegativeCasesRequestMethods(t *testing.T) {
+func (ms *MetricsSuite) TestNegativeCasesRequestMethods() {
 
 	type Want struct {
 		code        int
@@ -212,14 +213,18 @@ func TestNegativeCasesRequestMethods(t *testing.T) {
 	srv := httptest.NewServer(NewChiRouter(log, application))
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		ms.Run(tt.name, func() {
 			request, err := http.NewRequest(tt.method, srv.URL+tt.url, nil)
-			require.NoError(t, err)
+			ms.NoError(err)
 			res, err := client.Do(request)
-			require.NoError(t, err)
+			ms.NoError(err)
 			defer res.Body.Close()
 			// проверяем код ответа
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			ms.Equal(tt.want.code, res.StatusCode)
 		})
 	}
+}
+
+func TestSuite(t *testing.T) {
+	suite.Run(t, new(MetricsSuite))
 }
