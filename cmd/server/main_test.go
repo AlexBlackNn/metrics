@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/stretchr/testify/suite"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -79,6 +82,119 @@ func (ms *MetricsSuite) TestServerHappyPath() {
 			res, err := ms.client.Do(request)
 			ms.NoError(err)
 			ms.Equal(tt.want.code, res.StatusCode)
+			defer res.Body.Close()
+			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
+		})
+	}
+}
+
+func (ms *MetricsSuite) TestServerGetMetricHappyPath() {
+
+	type Want struct {
+		code        int
+		response    string
+		contentType string
+	}
+
+	tests := []struct {
+		name        string
+		url         string
+		metricType  string
+		metricName  string
+		metricValue float64
+		want        Want
+	}{
+		{
+			name:        "gauge with value 10.3",
+			url:         "/value/gauge/test_gauge",
+			metricType:  "gauge",
+			metricName:  "test_gauge",
+			metricValue: 10.3,
+			want: Want{
+				code:        http.StatusOK,
+				contentType: "text/plain; charset=utf-8",
+				response:    "10.3",
+			},
+		},
+		{
+			name:        "counter with value 10",
+			url:         "/value/counter/test_counter",
+			metricType:  "counter",
+			metricName:  "test_counter",
+			metricValue: 10,
+			want: Want{
+				code:        http.StatusOK,
+				contentType: "text/plain; charset=utf-8",
+				response:    "10",
+			},
+		},
+	}
+	// stop server when tests finished
+	defer ms.srv.Close()
+
+	for _, tt := range tests {
+		ms.Run(tt.name, func() {
+			metric := models.Metric{Type: tt.metricType, Name: tt.metricName, Value: tt.metricValue}
+			err := ms.application.MetricsService.UpdateMetricValue(context.Background(), metric)
+			ms.NoError(err)
+			url := ms.srv.URL + tt.url
+			request, err := http.NewRequest(http.MethodGet, url, nil)
+			ms.NoError(err)
+			res, err := ms.client.Do(request)
+			ms.NoError(err)
+			ms.Equal(tt.want.code, res.StatusCode)
+			bodyBytes, err := io.ReadAll(res.Body)
+			ms.NoError(err)
+			ms.Equal(tt.want.response, string(bodyBytes))
+			defer res.Body.Close()
+			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
+		})
+	}
+}
+
+func (ms *MetricsSuite) TestServerGetAllMetricsHappyPath() {
+
+	type Want struct {
+		code        int
+		response    string
+		contentType string
+	}
+
+	tests := []struct {
+		name        string
+		url         string
+		testMetrics []models.Metric
+		want        Want
+	}{
+		{
+			name:        "gauge with value 10.3",
+			url:         "/",
+			testMetrics: []models.Metric{{"gauge", "test_gauge", 10.3}, {"counter", "test_counter", 10}},
+			want: Want{
+				code:        http.StatusOK,
+				contentType: "text/html; charset=utf-8",
+				response:    "10.3",
+			},
+		},
+	}
+	// stop server when tests finished
+	defer ms.srv.Close()
+
+	for _, tt := range tests {
+		ms.Run(tt.name, func() {
+			for _, oneMetic := range tt.testMetrics {
+				err := ms.application.MetricsService.UpdateMetricValue(context.Background(), oneMetic)
+				ms.NoError(err)
+			}
+			url := ms.srv.URL + tt.url
+			request, err := http.NewRequest(http.MethodGet, url, nil)
+			ms.NoError(err)
+			res, err := ms.client.Do(request)
+			ms.NoError(err)
+			ms.Equal(tt.want.code, res.StatusCode)
+			//bodyBytes, err := io.ReadAll(res.Body)
+			//ms.NoError(err)
+			//ms.Equal(tt.want.response, string(bodyBytes))
 			defer res.Body.Close()
 			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
 		})
