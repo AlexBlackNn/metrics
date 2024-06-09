@@ -25,13 +25,11 @@ func NewChiRouter(log *slog.Logger, application *appserver.App) chi.Router {
 	router.Use(projectLogger.New(log))
 	router.Use(middleware.Recoverer)
 
-	router.Route("/", func(r chi.Router) {
+	return router.Route("/", func(r chi.Router) {
 		r.Get("/", getallmetrics.New(log, application))
 		r.Post("/update/{metric_type}/{metric_name}/{metric_value}", updatemetric.New(log, application))
 		r.Get("/value/{metric_type}/{metric_name}", getonemetric.New(log, application))
 	})
-
-	return router
 }
 
 func main() {
@@ -42,7 +40,7 @@ func main() {
 	}
 	// init logger
 	log := setupLogger(cfg.Env)
-	log.Info("starting application", slog.String("env", cfg.Env))
+	log.Info("starting application", slog.String("cfg", cfg.String()))
 	application := appserver.New(log, cfg)
 	router := NewChiRouter(log, application)
 	stop := make(chan os.Signal, 1)

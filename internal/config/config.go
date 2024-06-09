@@ -17,6 +17,12 @@ type Config struct {
 	ClientTimeout  int    `yaml:"client_timeout" env-default:"5" env:"CLIENT_TIMEOUT"`
 }
 
+func (c *Config) String() string {
+	return fmt.Sprintf("Env: %s, ServerAddr: %s, PollInterval: %d, ReportInterval: %d, ClientTimeout: %d",
+		c.Env, c.ServerAddr, c.PollInterval, c.ReportInterval, c.ClientTimeout,
+	)
+}
+
 // fetchConfigPath fetches config path from command line flag or env var
 // Priority: flag -> env -> default
 // Default value is empty string
