@@ -42,8 +42,7 @@ func (c *Config) String() string {
 }
 
 // fetchConfigPath fetches config path from command line flag or env var
-// Priority: flag -> env -> default
-// Default value is empty string
+// Priority: env -> yml -> flag -> default
 
 // Load loads config
 func Load() (*Config, error) {

@@ -59,6 +59,7 @@ func (ms *MetricsService) Start(stop chan struct{}) {
 				ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: ms.Metrics["PollCount"].Value.(int64) + 1, Name: "PollCount"}
 				ms.Metrics["RandomValue"] = models.Metric{Type: "gauge", Value: rand.Int63(), Name: "RandomValue"}
 				ms.mutex.Unlock()
+				log.Info("metric pooling finished")
 				<-time.After(time.Duration(ms.cfg.PollInterval) * time.Second)
 			}
 		}
