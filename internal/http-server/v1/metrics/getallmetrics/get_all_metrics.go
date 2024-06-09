@@ -27,7 +27,8 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 		}
 
 		// Define Go template
-		tmpl, err := template.New("metrics").ParseFiles("./metrics.tmpl")
+		// TODO: absolute path to relative
+		tmpl, err := template.New("metrics").ParseFiles("/home/alex/Dev/GolandYandex/metrics/internal/http-server/v1/metrics/getallmetrics/metrics.tmpl")
 		if err != nil {
 			fmt.Println("=>>>>>>>>>", err)
 			log.Error("Error parsing Go template")
