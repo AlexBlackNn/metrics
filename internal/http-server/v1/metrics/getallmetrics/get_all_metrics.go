@@ -9,6 +9,8 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -26,9 +28,14 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 			return
 		}
 
-		// Define Go template
-		// TODO: absolute path to relative
-		tmpl, err := template.New("metrics").ParseFiles("/home/alex/Dev/GolandYandex/metrics/internal/http-server/v1/metrics/getallmetrics/metrics.tmpl")
+		path, err := os.Getwd()
+		if err != nil {
+			log.Error("Error getting current work dir")
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/http-server/v1/metrics/getallmetrics/metrics.tmpl")
+
+		tmpl, err := template.New("metrics").ParseFiles(pathToTemplate)
 		if err != nil {
 			fmt.Println("=>>>>>>>>>", err)
 			log.Error("Error parsing Go template")
