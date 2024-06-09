@@ -169,7 +169,7 @@ func (ms *MetricsSuite) TestServerGetAllMetricsHappyPath() {
 		{
 			name:        "gauge with value 10.3",
 			url:         "/",
-			testMetrics: []models.Metric{{"gauge", "test_gauge", 10.3}, {"counter", "test_counter", 10}},
+			testMetrics: []models.Metric{{Type: "gauge", Name: "test_gauge", Value: 10.3}, {Type: "counter", Name: "test_counter", Value: 10}},
 			want: Want{
 				code:        http.StatusOK,
 				contentType: "text/html; charset=utf-8",
