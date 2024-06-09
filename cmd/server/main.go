@@ -8,6 +8,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/getallmetrics"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/getonemetric"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/updatemetric"
+	"github.com/AlexBlackNn/metrics/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
@@ -39,7 +40,7 @@ func main() {
 		panic(err)
 	}
 	// init logger
-	log := setupLogger(cfg.Env)
+	log := utils.SetupLogger(cfg.Env)
 	log.Info("starting application", slog.String("cfg", cfg.String()))
 	application := appserver.New(log, cfg)
 	router := NewChiRouter(log, application)
@@ -69,45 +70,4 @@ func main() {
 			signalType.String()),
 	)
 
-}
-
-const (
-	envLocal = "local"
-	envDemo  = "demo"
-	envProd  = "prod"
-)
-
-func setupLogger(env string) *slog.Logger {
-	var log *slog.Logger
-
-	switch env {
-	case envLocal:
-		log = slog.New(
-			slog.NewTextHandler(
-				os.Stdout, &slog.HandlerOptions{
-					Level:     slog.LevelDebug,
-					AddSource: true,
-				},
-			),
-		)
-	case envDemo:
-		log = slog.New(
-			slog.NewJSONHandler(
-				os.Stdout, &slog.HandlerOptions{
-					Level:     slog.LevelDebug,
-					AddSource: true,
-				},
-			),
-		)
-	case envProd:
-		log = slog.New(
-			slog.NewJSONHandler(
-				os.Stdout, &slog.HandlerOptions{
-					Level:     slog.LevelInfo,
-					AddSource: true,
-				},
-			),
-		)
-	}
-	return log
 }
