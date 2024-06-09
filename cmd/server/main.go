@@ -49,9 +49,9 @@ func main() {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(cfg.ServerAddr),
 		Handler:      router,
-		ReadTimeout:  time.Duration(10 * time.Second),
-		WriteTimeout: time.Duration(10 * time.Second),
-		IdleTimeout:  time.Duration(10 * time.Second),
+		ReadTimeout:  time.Duration(cfg.ServerReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(cfg.ServerWriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(cfg.ServerIdleTimeout) * time.Second,
 	}
 
 	go func() {

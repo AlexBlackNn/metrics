@@ -10,16 +10,34 @@ import (
 
 // Config consists project settings
 type Config struct {
-	Env            string `yaml:"env" env-default:"local" env:"ENV"`
-	ServerAddr     string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
-	PollInterval   int    `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
-	ReportInterval int    `yaml:"report_interval" env-default:"5" env:"REPORT_INTERVAL"`
-	ClientTimeout  int    `yaml:"client_timeout" env-default:"5" env:"CLIENT_TIMEOUT"`
+	Env                string `yaml:"env" env-default:"local" env:"ENV"`
+	ServerAddr         string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
+	PollInterval       int    `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
+	ReportInterval     int    `yaml:"report_interval" env-default:"5" env:"REPORT_INTERVAL"`
+	ClientTimeout      int    `yaml:"client_timeout" env-default:"5" env:"CLIENT_TIMEOUT"`
+	ServerReadTimeout  int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	ServerWriteTimeout int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	ServerIdleTimeout  int    `yaml:"server_idle_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Env: %s, ServerAddr: %s, PollInterval: %d, ReportInterval: %d, ClientTimeout: %d",
-		c.Env, c.ServerAddr, c.PollInterval, c.ReportInterval, c.ClientTimeout,
+	return fmt.Sprintf(
+		"Env: %s,"+
+			" ServerAddr: %s, "+
+			"PollInterval: %d,"+
+			" ReportInterval: %d,"+
+			" ClientTimeout: %d,"+
+			"ServerReadTimeout: %d,"+
+			"ServerWriteTimeout: %d,"+
+			"ServerIdleTimeout: %d,",
+		c.Env,
+		c.ServerAddr,
+		c.PollInterval,
+		c.ReportInterval,
+		c.ClientTimeout,
+		c.ServerReadTimeout,
+		c.ServerWriteTimeout,
+		c.ServerIdleTimeout,
 	)
 }
 
@@ -54,11 +72,8 @@ func Load() (*Config, error) {
 
 	err = env.Parse(cfg)
 	if err != nil {
-		fmt.Println("1111111111111111", err)
 		return cfg, err
 	}
-	fmt.Println("2222222222222", cfg)
-
 	return cfg, nil
 }
 
