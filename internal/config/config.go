@@ -2,17 +2,19 @@ package config
 
 import (
 	"flag"
+	"fmt"
+	"github.com/caarlos0/env/v6"
 	"github.com/ilyakaznacheev/cleanenv"
 	"os"
 )
 
 // Config consists project settings
 type Config struct {
-	Env            string `yaml:"env" env-default:"local"`
-	ServerAddr     string `yaml:"server_addr" env-default:":8080"`
-	PollInterval   int    `yaml:"poll_interval" env-default:"2"`
-	ReportInterval int    `yaml:"report_interval" env-default:"5"`
-	ClientTimeout  int    `yaml:"client_timeout" env-default:"5"`
+	Env            string `yaml:"env" env-default:"local" env:"ENV"`
+	ServerAddr     string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
+	PollInterval   int    `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
+	ReportInterval int    `yaml:"report_interval" env-default:"5" env:"REPORT_INTERVAL"`
+	ClientTimeout  int    `yaml:"client_timeout" env-default:"5" env:"CLIENT_TIMEOUT"`
 }
 
 // fetchConfigPath fetches config path from command line flag or env var
@@ -43,6 +45,14 @@ func Load() (*Config, error) {
 		}
 		return cfg, nil
 	}
+
+	err = env.Parse(cfg)
+	if err != nil {
+		fmt.Println("1111111111111111", err)
+		return cfg, err
+	}
+	fmt.Println("2222222222222", cfg)
+
 	return cfg, nil
 }
 
