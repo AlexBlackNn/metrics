@@ -7,7 +7,7 @@ import (
 	"log/slog"
 )
 
-// App service consists all service layers
+// App service consists all services needed to work
 type App struct {
 	MetricsService *metricsservice.MetricService
 }
@@ -19,6 +19,7 @@ func New(
 ) *App {
 
 	//init storage
+	// err is now skipped, but when migrating to postgres/sqlite/etc... err will be checked
 	memStorage, _ := memstorage.New()
 
 	// init services
