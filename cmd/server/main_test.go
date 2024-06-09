@@ -14,6 +14,23 @@ import (
 
 type MetricsSuite struct {
 	suite.Suite
+	cfg         *config.Config
+	log         *slog.Logger
+	application *appserver.App
+	client      http.Client
+}
+
+func (ms *MetricsSuite) SetupTest() {
+	ms.cfg = &config.Config{
+		Env:            "local",
+		PollInterval:   2,
+		ReportInterval: 5,
+	}
+
+	ms.log = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	ms.application = appserver.New(ms.log, ms.cfg)
+	ms.client = http.Client{Timeout: 3 * time.Second}
+
 }
 
 func (ms *MetricsSuite) TestServerHappyPath() {
@@ -46,20 +63,8 @@ func (ms *MetricsSuite) TestServerHappyPath() {
 			},
 		},
 	}
-
-	cfg := &config.Config{
-		Env:            "local",
-		PollInterval:   2,
-		ReportInterval: 5,
-	}
-
-	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := appserver.New(log, cfg)
-
-	client := http.Client{Timeout: 3 * time.Second}
-
 	// запускаем тестовый сервер, будет выбран первый свободный порт
-	srv := httptest.NewServer(NewChiRouter(log, application))
+	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
 	// останавливаем сервер после завершения теста
 	defer srv.Close()
 
@@ -68,7 +73,7 @@ func (ms *MetricsSuite) TestServerHappyPath() {
 			url := srv.URL + tt.url
 			request, err := http.NewRequest(http.MethodPost, url, nil)
 			ms.NoError(err)
-			res, err := client.Do(request)
+			res, err := ms.client.Do(request)
 			ms.NoError(err)
 			// проверяем код ответа
 			ms.Equal(tt.want.code, res.StatusCode)
@@ -118,19 +123,8 @@ func (ms *MetricsSuite) TestNegativeCasesMetrics() {
 		},
 	}
 
-	cfg := &config.Config{
-		Env:            "local",
-		PollInterval:   2,
-		ReportInterval: 5,
-	}
-
-	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := appserver.New(log, cfg)
-
-	client := http.Client{Timeout: 3 * time.Second}
-
 	// запускаем тестовый сервер, будет выбран первый свободный порт
-	srv := httptest.NewServer(NewChiRouter(log, application))
+	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
 	// останавливаем сервер после завершения теста
 	defer srv.Close()
 
@@ -138,7 +132,7 @@ func (ms *MetricsSuite) TestNegativeCasesMetrics() {
 		ms.Run(tt.name, func() {
 			request, err := http.NewRequest(http.MethodPost, srv.URL+tt.url, nil)
 			ms.NoError(err)
-			res, err := client.Do(request)
+			res, err := ms.client.Do(request)
 			ms.NoError(err)
 			// проверяем код ответа
 			ms.Equal(tt.want.code, res.StatusCode)
@@ -198,25 +192,14 @@ func (ms *MetricsSuite) TestNegativeCasesRequestMethods() {
 		},
 	}
 
-	cfg := &config.Config{
-		Env:            "local",
-		PollInterval:   2,
-		ReportInterval: 5,
-	}
-
-	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	application := appserver.New(log, cfg)
-
-	client := http.Client{Timeout: 3 * time.Second}
-
 	// запускаем тестовый сервер, будет выбран первый свободный порт
-	srv := httptest.NewServer(NewChiRouter(log, application))
+	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
 
 	for _, tt := range tests {
 		ms.Run(tt.name, func() {
 			request, err := http.NewRequest(tt.method, srv.URL+tt.url, nil)
 			ms.NoError(err)
-			res, err := client.Do(request)
+			res, err := ms.client.Do(request)
 			ms.NoError(err)
 			defer res.Body.Close()
 			// проверяем код ответа
