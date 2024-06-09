@@ -18,6 +18,7 @@ type MetricsSuite struct {
 	log         *slog.Logger
 	application *appserver.App
 	client      http.Client
+	srv         *httptest.Server
 }
 
 func (ms *MetricsSuite) SetupTest() {
@@ -30,7 +31,11 @@ func (ms *MetricsSuite) SetupTest() {
 	ms.log = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	ms.application = appserver.New(ms.log, ms.cfg)
 	ms.client = http.Client{Timeout: 3 * time.Second}
+}
 
+func (ms *MetricsSuite) BeforeTest(suiteName, testName string) {
+	// starts server with first random port
+	ms.srv = httptest.NewServer(NewChiRouter(ms.log, ms.application))
 }
 
 func (ms *MetricsSuite) TestServerHappyPath() {
@@ -63,14 +68,12 @@ func (ms *MetricsSuite) TestServerHappyPath() {
 			},
 		},
 	}
-	// starts server with first random port
-	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
 	// stop server when tests finished
-	defer srv.Close()
+	defer ms.srv.Close()
 
 	for _, tt := range tests {
 		ms.Run(tt.name, func() {
-			url := srv.URL + tt.url
+			url := ms.srv.URL + tt.url
 			request, err := http.NewRequest(http.MethodPost, url, nil)
 			ms.NoError(err)
 			res, err := ms.client.Do(request)
@@ -121,11 +124,10 @@ func (ms *MetricsSuite) TestNegativeCasesMetrics() {
 		},
 	}
 
-	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
-	defer srv.Close()
+	defer ms.srv.Close()
 	for _, tt := range tests {
 		ms.Run(tt.name, func() {
-			request, err := http.NewRequest(http.MethodPost, srv.URL+tt.url, nil)
+			request, err := http.NewRequest(http.MethodPost, ms.srv.URL+tt.url, nil)
 			ms.NoError(err)
 			res, err := ms.client.Do(request)
 			ms.NoError(err)
@@ -183,11 +185,9 @@ func (ms *MetricsSuite) TestNegativeCasesRequestMethods() {
 			},
 		},
 	}
-	srv := httptest.NewServer(NewChiRouter(ms.log, ms.application))
-
 	for _, tt := range tests {
 		ms.Run(tt.name, func() {
-			request, err := http.NewRequest(tt.method, srv.URL+tt.url, nil)
+			request, err := http.NewRequest(tt.method, ms.srv.URL+tt.url, nil)
 			ms.NoError(err)
 			res, err := ms.client.Do(request)
 			ms.NoError(err)
