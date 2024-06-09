@@ -1,3 +1,0 @@
-env: "demo" #demo, prod
-poll_interval: 2
-report_interval: 10

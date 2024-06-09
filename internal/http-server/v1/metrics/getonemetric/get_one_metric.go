@@ -15,7 +15,6 @@ import (
 )
 
 func PathValidator(r *http.Request) (string, error) {
-	fmt.Println()
 	metricType := chi.URLParam(r, "metric_type")
 
 	if metricType != "gauge" && metricType != "counter" {

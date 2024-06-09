@@ -3,7 +3,6 @@ package getallmetrics
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"html/template"
@@ -30,14 +29,13 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 
 		path, err := os.Getwd()
 		if err != nil {
-			log.Error("Error getting current work dir")
+			log.Error("Error getting current work dir", "err", err.Error())
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}
 		pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/http-server/v1/metrics/getallmetrics/metrics.tmpl")
 
 		tmpl, err := template.New("metrics").ParseFiles(pathToTemplate)
 		if err != nil {
-			fmt.Println("=>>>>>>>>>", err)
 			log.Error("Error parsing Go template")
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
