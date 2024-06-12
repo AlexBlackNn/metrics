@@ -67,5 +67,7 @@ func (ms *MetricsService) Start(stop chan struct{}) {
 }
 
 func (ms *MetricsService) GetMetrics() map[string]models.Metric {
+	ms.mutex.RLock()
+	defer ms.mutex.RUnlock()
 	return ms.Metrics
 }
