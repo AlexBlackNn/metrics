@@ -10,6 +10,7 @@ import (
 // App service consists all services needed to work
 type App struct {
 	MetricsService *metricsservice.MetricService
+	Cfg            *config.Config
 }
 
 // New creates App collecting service layer with predefine storage layer
@@ -26,5 +27,5 @@ func New(
 		cfg,
 		memStorage,
 	)
-	return &App{MetricsService: metricsService}
+	return &App{MetricsService: metricsService, Cfg: cfg}
 }

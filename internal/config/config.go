@@ -14,7 +14,7 @@ type Config struct {
 	ServerAddr         string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
 	PollInterval       int    `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
 	ReportInterval     int    `yaml:"report_interval" env-default:"5" env:"REPORT_INTERVAL"`
-	ClientTimeout      int    `yaml:"client_timeout" env-default:"5" env:"CLIENT_TIMEOUT"`
+	ClientTimeout      int    `yaml:"client_timeout" env:"CLIENT_TIMEOUT"`
 	ServerReadTimeout  int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerWriteTimeout int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerIdleTimeout  int    `yaml:"server_idle_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
@@ -54,7 +54,7 @@ func Load() (*Config, error) {
 	flag.StringVar(&cfg.ServerAddr, "a", ":8080", "host address")
 	flag.IntVar(&cfg.ReportInterval, "r", 10, "metrics report interval")
 	flag.IntVar(&cfg.PollInterval, "p", 2, "metrics poll interval")
-	flag.IntVar(&cfg.ClientTimeout, "t", 3, "agent request timeout")
+	flag.IntVar(&cfg.ClientTimeout, "t", 100, "agent request timeout")
 	flag.StringVar(&configPath, "c", "", "path to config file")
 	flag.Parse()
 

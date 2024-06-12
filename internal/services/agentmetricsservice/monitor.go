@@ -30,7 +30,7 @@ func New(
 }
 
 // Start starts collecting runtime metrics
-func (ms *MetricsService) Start(stop chan struct{}) {
+func (ms *MetricsService) Start(stop <-chan struct{}) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: agentmetricservice.Start"),
 	)

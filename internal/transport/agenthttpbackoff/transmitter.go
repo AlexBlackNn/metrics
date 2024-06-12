@@ -1,4 +1,4 @@
-package agenthttp
+package agenthttpbackoff
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func New(
 	}
 }
 
-func (mhs *HTTPService) Transmit(stop <-chan struct{}) {
+func (mhs *HTTPService) Transmit(stop chan struct{}) {
 
 	log := mhs.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),

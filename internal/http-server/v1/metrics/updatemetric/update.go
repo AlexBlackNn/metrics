@@ -3,6 +3,7 @@ package updatemetric
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/appserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics"
@@ -64,13 +65,20 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		err = application.MetricsService.UpdateMetricValue(context.Background(), metric)
+		if application.Cfg.ClientTimeout == 0 {
+			application.Cfg.ClientTimeout = 10
+		}
+		timeout := time.Duration(application.Cfg.ClientTimeout) * time.Second
+		fmt.Println("111111111111111111", timeout)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		err = application.MetricsService.UpdateMetricValue(ctx, metric)
 		if errors.Is(err, metricsservice.ErrNotValidURL) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 

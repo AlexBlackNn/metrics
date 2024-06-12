@@ -7,8 +7,8 @@ import (
 )
 
 type AgentServiceInterface interface {
-	Start(chan struct{})
-	Transmit(chan struct{})
+	Start(<-chan struct{})
+	Transmit(<-chan struct{})
 }
 
 // AppHTTP service consists all service layers
