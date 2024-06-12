@@ -30,20 +30,18 @@ func main() {
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 	cancel := make(chan struct{})
 
-	wg.Add(1)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		<-stop
 		close(cancel)
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		appHTTP.MetricsService.Start(cancel)
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		appHTTP.MetricsService.Transmit(cancel)
