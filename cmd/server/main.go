@@ -34,14 +34,15 @@ func NewChiRouter(log *slog.Logger, application *appserver.App) chi.Router {
 }
 
 func main() {
-	// init config
+
 	cfg, err := config.Load()
 	if err != nil {
 		panic(err)
 	}
-	// init logger
+
 	log := utils.SetupLogger(cfg.Env)
 	log.Info("starting application", slog.String("cfg", cfg.String()))
+
 	application := appserver.New(log, cfg)
 	router := NewChiRouter(log, application)
 	stop := make(chan os.Signal, 1)

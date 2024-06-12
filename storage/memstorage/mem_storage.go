@@ -11,10 +11,12 @@ type Storage struct {
 	db    map[string]models.Metric
 }
 
+// New inits mem storage (map structure)
 func New() (*Storage, error) {
 	return &Storage{db: make(map[string]models.Metric)}, nil
 }
 
+// Update updates metric value in mem storage
 func (s *Storage) UpdateMetric(
 	ctx context.Context,
 	metric models.Metric,
@@ -25,6 +27,7 @@ func (s *Storage) UpdateMetric(
 	return nil
 }
 
+// GetMetric gets metric value from mem storage
 func (s *Storage) GetMetric(
 	ctx context.Context,
 	name string,
@@ -38,6 +41,7 @@ func (s *Storage) GetMetric(
 	return metric, nil
 }
 
+// GetAllMetrics gets metric value from mem storage
 func (s *Storage) GetAllMetrics(
 	ctx context.Context,
 ) ([]models.Metric, error) {

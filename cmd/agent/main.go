@@ -14,13 +14,11 @@ import (
 func main() {
 	var wg sync.WaitGroup
 
-	// init config
 	cfg, err := config.Load()
 	if err != nil {
 		panic(err)
 	}
 
-	// init logger
 	log := utils.SetupLogger(cfg.Env)
 	log.Info("starting application", slog.String("env", cfg.Env))
 

@@ -29,6 +29,7 @@ func New(
 	}
 }
 
+// Start starts collecting runtime metrics
 func (ms *MetricsService) Start(stop chan struct{}) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: agentmetricservice.Start"),
@@ -66,6 +67,7 @@ func (ms *MetricsService) Start(stop chan struct{}) {
 	}
 }
 
+// GetMetrics return collected metrics as thread safe map
 func (ms *MetricsService) GetMetrics() map[string]models.Metric {
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()

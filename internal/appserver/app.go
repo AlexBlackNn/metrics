@@ -12,17 +12,15 @@ type App struct {
 	MetricsService *metricsservice.MetricService
 }
 
-// New create App
+// New creates App collecting service layer with predefine storage layer
 func New(
 	log *slog.Logger,
 	cfg *config.Config,
 ) *App {
 
-	//init storage
 	// err is now skipped, but when migrating to postgres/sqlite/etc... err will be checked
 	memStorage, _ := memstorage.New()
 
-	// init services
 	metricsService := metricsservice.New(
 		log,
 		cfg,

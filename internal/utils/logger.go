@@ -11,6 +11,7 @@ const (
 	envProd  = "prod"
 )
 
+// SetupLogger creates logger with predefine setting (depends on environment)
 func SetupLogger(env string) *slog.Logger {
 	var log *slog.Logger
 

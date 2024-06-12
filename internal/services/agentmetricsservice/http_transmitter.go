@@ -9,24 +9,24 @@ import (
 	"time"
 )
 
-type MetricsHTTPService struct {
+type HTTPService struct {
 	log *slog.Logger
 	cfg *config.Config
 	*MetricsService
 }
 
-func NewMetricsHTTPService(
+func NewHTTPService(
 	log *slog.Logger,
 	cfg *config.Config,
-) *MetricsHTTPService {
-	return &MetricsHTTPService{
+) *HTTPService {
+	return &HTTPService{
 		log,
 		cfg,
 		New(log, cfg),
 	}
 }
 
-func (mhs *MetricsHTTPService) Transmit(stop chan struct{}) {
+func (mhs *HTTPService) Transmit(stop chan struct{}) {
 
 	log := mhs.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
@@ -36,14 +36,12 @@ func (mhs *MetricsHTTPService) Transmit(stop chan struct{}) {
 		CheckRedirect: func(req *http.Request, via []*http.Request) error { // в 1 инкрименте "Редиректы не поддерживаются."
 			return http.ErrUseLastResponse
 		}}
-
 	for {
 		select {
 		case <-stop:
 			return
 		default:
-			metrics := mhs.GetMetrics()
-			for _, savedMetric := range metrics {
+			for _, savedMetric := range mhs.GetMetrics() {
 				go func(savedMetric models.Metric) {
 					savedMetricValue, err := savedMetric.ConvertValueToString()
 					// TODO: need refactoring to better work with error
@@ -77,8 +75,8 @@ func (mhs *MetricsHTTPService) Transmit(stop chan struct{}) {
 						}
 					}
 				}(savedMetric)
-				<-time.After(time.Duration(mhs.cfg.ReportInterval) * time.Second)
 			}
+			<-time.After(time.Duration(mhs.cfg.ReportInterval) * time.Second)
 		}
 	}
 }

@@ -6,19 +6,23 @@ import (
 	"log/slog"
 )
 
-// AppHTTP service consists all service layers
-type AppHTTP struct {
-	MetricsService *agentmetricsservice.MetricsHTTPService
+type AgentServiceInterface interface {
+	Start(chan struct{})
+	Transmit(chan struct{})
 }
 
-// NewAppHTTP create App
+// AppHTTP service consists all service layers
+type AppHTTP struct {
+	MetricsService AgentServiceInterface
+}
+
+// NewAppHTTP creates App
 func NewAppHTTP(
 	log *slog.Logger,
 	cfg *config.Config,
 ) *AppHTTP {
 
-	// init services
-	metricsService := agentmetricsservice.NewMetricsHTTPService(
+	metricsService := agentmetricsservice.NewHTTPService(
 		log,
 		cfg,
 	)
