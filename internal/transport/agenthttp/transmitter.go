@@ -1,9 +1,10 @@
-package agentmetricsservice
+package agenthttp
 
 import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"log/slog"
 	"net/http"
 	"time"
@@ -12,17 +13,17 @@ import (
 type HTTPService struct {
 	log *slog.Logger
 	cfg *config.Config
-	*MetricsService
+	*agentmetricsservice.MetricsService
 }
 
-func NewHTTPService(
+func New(
 	log *slog.Logger,
 	cfg *config.Config,
 ) *HTTPService {
 	return &HTTPService{
 		log,
 		cfg,
-		New(log, cfg),
+		agentmetricsservice.New(log, cfg),
 	}
 }
 

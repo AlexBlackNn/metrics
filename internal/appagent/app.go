@@ -2,7 +2,7 @@ package appagent
 
 import (
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
+	"github.com/AlexBlackNn/metrics/internal/transport/agenthttp"
 	"log/slog"
 )
 
@@ -22,7 +22,7 @@ func NewAppHTTP(
 	cfg *config.Config,
 ) *AppHTTP {
 
-	metricsService := agentmetricsservice.NewHTTPService(
+	metricsService := agenthttp.New(
 		log,
 		cfg,
 	)
