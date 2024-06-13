@@ -22,7 +22,7 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 		}
 
 		err := models.CheckModelType(chi.URLParam(r, "metric_type"))
-		if errors.Is(err, models.ErrNotValidMetricType) {
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -33,6 +33,10 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 
 		if errors.Is(err, metricsservice.ErrMetricNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
