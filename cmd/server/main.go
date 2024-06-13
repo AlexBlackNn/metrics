@@ -9,7 +9,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/getonemetric"
 	"github.com/AlexBlackNn/metrics/internal/http-server/v1/metrics/updatemetric"
 	"github.com/AlexBlackNn/metrics/internal/utils"
-	"github.com/go-chi/chi/v5"
+	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net/http"

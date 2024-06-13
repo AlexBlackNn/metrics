@@ -1,9 +1,15 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
+	"strings"
 )
+
+var ErrNotValidMetricValue = errors.New("invalid metric value")
+var ErrNotValidMetricType = errors.New("invalid metric type")
 
 // Metric works with collected by an agent metrics
 type Metric struct {
@@ -26,4 +32,29 @@ func (m *Metric) ConvertValueToString() (string, error) {
 	default:
 		return "", fmt.Errorf("unsupported type: %T", m.Value)
 	}
+}
+
+// Load loads data to metric
+func Load(metricType string, metricName string, metricValue string) (Metric, error) {
+	var value interface{}
+	var err error
+
+	if metricType == "gauge" {
+		value, err = strconv.ParseFloat(metricValue, 64)
+		if err != nil {
+			return Metric{}, ErrNotValidMetricValue
+		}
+	} else if metricType == "counter" {
+		value, err = strconv.ParseUint(metricValue, 10, 64)
+		if err != nil {
+			return Metric{}, ErrNotValidMetricValue
+		}
+	} else {
+		return Metric{}, ErrNotValidMetricType
+	}
+	return Metric{
+		Type:  metricType,
+		Name:  strings.ToLower(metricName),
+		Value: value,
+	}, nil
 }
