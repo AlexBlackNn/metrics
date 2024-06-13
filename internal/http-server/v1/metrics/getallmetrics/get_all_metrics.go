@@ -64,7 +64,6 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 			})
 		}
 
-		// Execute the template
 		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
