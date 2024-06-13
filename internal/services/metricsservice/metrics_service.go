@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/AlexBlackNn/metrics/storage/memstorage"
+	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 	"log/slog"
 )
 
