@@ -34,6 +34,13 @@ func (m *Metric) ConvertValueToString() (string, error) {
 	}
 }
 
+func CheckModelType(metricType string) error {
+	if metricType != "gauge" && metricType != "counter" {
+		return ErrNotValidMetricType
+	}
+	return nil
+}
+
 // Load loads data to metric
 func Load(metricType string, metricName string, metricValue string) (Metric, error) {
 	var value interface{}
