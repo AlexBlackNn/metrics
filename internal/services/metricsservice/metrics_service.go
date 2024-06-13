@@ -84,6 +84,7 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 			ms.log.Error(err.Error())
 			return ErrCouldNotUpdateMetric
 		}
+		log.Info("finish updating metric value")
 		return nil
 	}
 }
@@ -106,22 +107,30 @@ func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (mod
 		if err != nil {
 			return models.Metric{}, ErrCouldNotUpdateMetric
 		}
+		log.Info("finish getting metric value")
 		return metric, nil
 	}
 }
 
 func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.Metric, error) {
-	log := ms.log.With(
-		slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
-	)
-	log.Info("starts getting all metrics")
+	select {
+	case <-ctx.Done():
+		ms.log.Error("Deadline exceeded while getting all metrics")
+		return []models.Metric{}, ctx.Err()
+	default:
+		log := ms.log.With(
+			slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
+		)
+		log.Info("starts getting all metrics")
 
-	metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
-	if errors.Is(err, memstorage.ErrMetricNotFound) {
-		return []models.Metric{}, ErrMetricNotFound
+		metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
+		if errors.Is(err, memstorage.ErrMetricNotFound) {
+			return []models.Metric{}, ErrMetricNotFound
+		}
+		if err != nil {
+			return []models.Metric{}, ErrCouldNotUpdateMetric
+		}
+		log.Info("finish getting all metrics")
+		return metrics, nil
 	}
-	if err != nil {
-		return []models.Metric{}, ErrCouldNotUpdateMetric
-	}
-	return metrics, nil
 }
