@@ -24,14 +24,11 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 			chi.URLParam(r, "metric_name"),
 			chi.URLParam(r, "metric_value"),
 		)
-		if errors.Is(err, models.ErrNotValidMetricType) {
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if errors.Is(err, models.ErrNotValidMetricValue) {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
+
 		// TODO: in some tests somehow ClientTimeout gets 0, which creates DEADLINE ERROR
 		if application.Cfg.ClientTimeout == 0 {
 			application.Cfg.ClientTimeout = 10
