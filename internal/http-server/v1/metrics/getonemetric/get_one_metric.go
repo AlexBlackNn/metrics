@@ -27,8 +27,15 @@ func New(log *slog.Logger, application *appserver.App) http.HandlerFunc {
 			return
 		}
 
+		// TODO: in some tests somehow ClientTimeout gets 0, which creates DEADLINE ERROR
+		if application.Cfg.ClientTimeout == 0 {
+			application.Cfg.ClientTimeout = 10
+		}
+		timeout := time.Duration(application.Cfg.ClientTimeout) * time.Second
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
 		metric, err := application.MetricsService.GetOneMetricValue(
-			context.Background(), strings.ToLower(chi.URLParam(r, "metric_name")),
+			ctx, strings.ToLower(chi.URLParam(r, "metric_name")),
 		)
 
 		if errors.Is(err, metricsservice.ErrMetricNotFound) {

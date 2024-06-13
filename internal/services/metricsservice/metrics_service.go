@@ -89,20 +89,25 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 }
 
 func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.Metric, error) {
-	log := ms.log.With(
-		slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
-	)
-	log.Info("starts getting metric value")
+	select {
+	case <-ctx.Done():
+		ms.log.Error("Deadline exceeded while getting metric", "name", key)
+		return models.Metric{}, ctx.Err()
+	default:
+		log := ms.log.With(
+			slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
+		)
+		log.Info("starts getting metric value")
 
-	metric, err := ms.metricsStorage.GetMetric(ctx, key)
-	if errors.Is(err, memstorage.ErrMetricNotFound) {
-		return models.Metric{}, ErrMetricNotFound
+		metric, err := ms.metricsStorage.GetMetric(ctx, key)
+		if errors.Is(err, memstorage.ErrMetricNotFound) {
+			return models.Metric{}, ErrMetricNotFound
+		}
+		if err != nil {
+			return models.Metric{}, ErrCouldNotUpdateMetric
+		}
+		return metric, nil
 	}
-	if err != nil {
-		return models.Metric{}, ErrCouldNotUpdateMetric
-	}
-	return metric, nil
-
 }
 
 func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.Metric, error) {
