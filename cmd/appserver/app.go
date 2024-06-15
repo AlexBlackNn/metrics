@@ -19,7 +19,7 @@ func New(
 	cfg *config.Config,
 ) *App {
 
-	// err is now skipped, but when migrating to postgres/sqlite/etc... err will be checked
+	// err is now skipped, but when migratings to postgres/sqlite/etc... err will be checked
 	memStorage, _ := memstorage.New()
 
 	metricsService := metricsservice.New(
@@ -27,5 +27,6 @@ func New(
 		cfg,
 		memStorage,
 	)
+
 	return &App{MetricsService: metricsService, Cfg: cfg}
 }

@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/internal/appserver"
+	"github.com/AlexBlackNn/metrics/cmd/appserver"
+	"github.com/AlexBlackNn/metrics/cmd/router"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/internal/http-server/metrics/v1"
 	"github.com/stretchr/testify/suite"
 	"io"
 	"log/slog"
@@ -17,11 +19,12 @@ import (
 
 type MetricsSuite struct {
 	suite.Suite
-	cfg         *config.Config
-	log         *slog.Logger
-	application *appserver.App
-	client      http.Client
-	srv         *httptest.Server
+	cfg             *config.Config
+	log             *slog.Logger
+	application     *appserver.App
+	client          http.Client
+	metricsHandlers v1.Metrics
+	srv             *httptest.Server
 }
 
 func (ms *MetricsSuite) SetupTest() {
@@ -33,12 +36,14 @@ func (ms *MetricsSuite) SetupTest() {
 
 	ms.log = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	ms.application = appserver.New(ms.log, ms.cfg)
+	ms.metricsHandlers = v1.New(ms.log, ms.application)
 	ms.client = http.Client{Timeout: 3 * time.Second}
 }
 
 func (ms *MetricsSuite) BeforeTest(suiteName, testName string) {
 	// starts server with first random port
-	ms.srv = httptest.NewServer(NewChiRouter(ms.log, ms.application))
+
+	ms.srv = httptest.NewServer(router.NewChiRouter(ms.log, ms.metricsHandlers))
 }
 
 func (ms *MetricsSuite) TestServerHappyPath() {

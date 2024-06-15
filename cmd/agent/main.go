@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/AlexBlackNn/metrics/internal/appagent"
+	"github.com/AlexBlackNn/metrics/cmd/appagent"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/utils"
 	"log/slog"
