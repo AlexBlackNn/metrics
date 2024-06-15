@@ -17,7 +17,7 @@ import (
 
 func main() {
 
-	cfg, err := config.Load()
+	cfg, err := config.New()
 	if err != nil {
 		panic(err)
 	}

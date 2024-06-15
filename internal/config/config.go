@@ -44,8 +44,8 @@ func (c *Config) String() string {
 // fetchConfigPath fetches config path from command line flag or env var
 // Priority: env -> yml -> flag -> default
 
-// Load loads config
-func Load() (*Config, error) {
+// New loads config
+func New() (*Config, error) {
 	cfg := &Config{}
 	var err error
 	var configPath string

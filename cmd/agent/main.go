@@ -14,7 +14,7 @@ import (
 func main() {
 	var wg sync.WaitGroup
 
-	cfg, err := config.Load()
+	cfg, err := config.New()
 	if err != nil {
 		panic(err)
 	}
