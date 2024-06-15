@@ -6,14 +6,14 @@ import (
 	"log/slog"
 )
 
-type AgentServiceInterface interface {
+type AgentService interface {
 	Start(<-chan struct{})
 	Transmit(<-chan struct{})
 }
 
 // AppHTTP service consists all service layers
 type AppHTTP struct {
-	MetricsService AgentServiceInterface
+	MetricsService AgentService
 }
 
 // NewAppHTTP creates App

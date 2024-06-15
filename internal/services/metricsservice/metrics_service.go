@@ -9,7 +9,7 @@ import (
 	"log/slog"
 )
 
-type MetricsStorageInterface interface {
+type MetricsStorage interface {
 	UpdateMetric(
 		ctx context.Context,
 		metric models.Metric,
@@ -26,14 +26,14 @@ type MetricsStorageInterface interface {
 type MetricService struct {
 	log            *slog.Logger
 	cfg            *config.Config
-	metricsStorage MetricsStorageInterface
+	metricsStorage MetricsStorage
 }
 
 // New returns a new instance of MonitoringService
 func New(
 	log *slog.Logger,
 	cfg *config.Config,
-	metricsStorage MetricsStorageInterface,
+	metricsStorage MetricsStorage,
 ) *MetricService {
 	return &MetricService{
 		log:            log,
