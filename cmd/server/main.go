@@ -6,7 +6,7 @@ import (
 	"github.com/AlexBlackNn/metrics/cmd/router"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/http-server/metrics/v1"
-	"github.com/AlexBlackNn/metrics/internal/utils"
+	"github.com/AlexBlackNn/metrics/internal/logger"
 	"log/slog"
 	"net/http"
 	"os"
@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}
 
-	log := utils.SetupLogger(cfg.Env)
+	log := logger.New(cfg.Env)
 	log.Info("starting application", slog.String("cfg", cfg.String()))
 
 	application := appserver.New(log, cfg)

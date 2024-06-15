@@ -1,4 +1,4 @@
-package utils
+package logger
 
 import (
 	"log/slog"
@@ -12,7 +12,7 @@ const (
 )
 
 // SetupLogger creates logger with predefine setting (depends on environment)
-func SetupLogger(env string) *slog.Logger {
+func New(env string) *slog.Logger {
 	var log *slog.Logger
 
 	switch env {

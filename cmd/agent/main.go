@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/AlexBlackNn/metrics/cmd/appagent"
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/utils"
+	"github.com/AlexBlackNn/metrics/internal/logger"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -19,7 +19,7 @@ func main() {
 		panic(err)
 	}
 
-	log := utils.SetupLogger(cfg.Env)
+	log := logger.New(cfg.Env)
 	log.Info("starting application", slog.String("env", cfg.Env))
 
 	appHTTP := appagent.NewAppHTTP(log, cfg)
