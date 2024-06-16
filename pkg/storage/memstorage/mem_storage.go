@@ -8,18 +8,18 @@ import (
 
 type Storage struct {
 	mutex sync.RWMutex
-	db    map[string]models.Metric
+	db    map[string]models.MetricInteraction
 }
 
 // New inits mem storage (map structure)
 func New() (*Storage, error) {
-	return &Storage{db: make(map[string]models.Metric)}, nil
+	return &Storage{db: make(map[string]models.MetricInteraction)}, nil
 }
 
 // UpdateMetric updates metric value in mem storage
 func (s *Storage) UpdateMetric(
 	ctx context.Context,
-	metric models.Metric,
+	metric models.MetricInteraction,
 ) error {
 	select {
 	case <-ctx.Done():
@@ -27,7 +27,7 @@ func (s *Storage) UpdateMetric(
 	default:
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
-		s.db[metric.Name] = metric
+		s.db[metric.GetName()] = metric
 		return nil
 	}
 }
@@ -36,16 +36,16 @@ func (s *Storage) UpdateMetric(
 func (s *Storage) GetMetric(
 	ctx context.Context,
 	name string,
-) (models.Metric, error) {
+) (models.MetricInteraction, error) {
 	select {
 	case <-ctx.Done():
-		return models.Metric{}, ctx.Err()
+		return &models.Metric[float64]{}, ctx.Err()
 	default:
 		s.mutex.RLock()
 		defer s.mutex.RUnlock()
 		metric, ok := s.db[name]
 		if !ok {
-			return models.Metric{}, ErrMetricNotFound
+			return &models.Metric[float64]{}, ErrMetricNotFound
 		}
 		return metric, nil
 	}
@@ -54,14 +54,14 @@ func (s *Storage) GetMetric(
 // GetAllMetrics gets metric value from mem storage
 func (s *Storage) GetAllMetrics(
 	ctx context.Context,
-) ([]models.Metric, error) {
-	var metrics []models.Metric
+) ([]models.MetricInteraction, error) {
+	var metrics []models.MetricInteraction
 	select {
 	case <-ctx.Done():
 		return metrics, ctx.Err()
 	default:
 		if len(s.db) == 0 {
-			return []models.Metric{}, ErrMetricNotFound
+			return []models.MetricInteraction{}, ErrMetricNotFound
 		}
 		s.mutex.RLock()
 		defer s.mutex.RUnlock()

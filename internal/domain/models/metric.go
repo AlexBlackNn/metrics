@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
-	"reflect"
+	"golang.org/x/exp/constraints"
 	"strconv"
 	"strings"
 )
@@ -11,27 +11,65 @@ import (
 var ErrNotValidMetricValue = errors.New("invalid metric value")
 var ErrNotValidMetricType = errors.New("invalid metric type")
 
-// Metric works with collected by an agent metrics
-type Metric struct {
-	Type  string
-	Name  string
-	Value any
+type MetricInteraction interface {
+	GetType() string
+	GetName() string
+	GetValue() any
+	AddValue(metric MetricInteraction) error
+	GetStringValue() string
 }
 
-// ConvertValueToString converts metric Value to string or returns error
-func (m *Metric) ConvertValueToString() (string, error) {
-	switch reflect.TypeOf(m.Value).Kind() {
-	case reflect.Float64:
-		return fmt.Sprintf("%f", m.Value), nil
-	case reflect.Uint32:
-		return fmt.Sprintf("%d", m.Value), nil
-	case reflect.Uint64:
-		return fmt.Sprintf("%d", m.Value), nil
-	case reflect.Int64:
-		return fmt.Sprintf("%d", m.Value), nil
+// Metric works with metrics collected by an agent
+type Metric[T constraints.Integer | constraints.Float] struct {
+	Type  string
+	Name  string
+	Value T
+}
+
+func (m *Metric[T]) GetType() string {
+	return m.Type
+}
+
+func (m *Metric[T]) GetName() string {
+	return m.Name
+}
+
+func (m *Metric[T]) GetValue() any {
+	return m.Value
+}
+
+func (m *Metric[T]) GetStringValue() string {
+
+	switch m.GetValue().(type) {
+	case uint64, uint32:
+		return fmt.Sprintf("%d", m.GetValue())
 	default:
-		return "", fmt.Errorf("unsupported type: %T", m.Value)
+		return fmt.Sprintf("%f", m.GetValue())
 	}
+}
+
+// AddValue adds the value of another Metric to the current Metric
+func (m *Metric[T]) AddValue(other MetricInteraction) error {
+	if m.GetType() != other.GetType() {
+		return errors.New("cannot add values of different metric types")
+	}
+	if m.GetName() != other.GetName() {
+		return errors.New("cannot add values of different metric names")
+	}
+
+	// Since T is constrained to be either constraints.Float or constraints.Integer, we can use them here
+	if mValue, ok := any(m.Value).(float64); ok {
+		if oValue, ok := other.GetValue().(float64); ok {
+			m.Value = T(mValue + oValue)
+		}
+	}
+	if mValue, ok := any(m.Value).(uint64); ok {
+		if oValue, ok := other.GetValue().(uint64); ok {
+			m.Value = T(mValue + oValue)
+			return nil
+		}
+	}
+	return errors.New("cannot cast metric to required type")
 }
 
 func CheckModelType(metricType string) error {
@@ -41,27 +79,30 @@ func CheckModelType(metricType string) error {
 	return nil
 }
 
-// Load loads data to metric
-func Load(metricType string, metricName string, metricValue string) (Metric, error) {
-	var value interface{}
-	var err error
+func Load(metricType string, metricName string, metricValue string) (MetricInteraction, error) {
 
 	if metricType == "gauge" {
-		value, err = strconv.ParseFloat(metricValue, 64)
+		value, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
-			return Metric{}, ErrNotValidMetricValue
+			return &Metric[float64]{}, ErrNotValidMetricValue
 		}
-	} else if metricType == "counter" {
-		value, err = strconv.ParseUint(metricValue, 10, 64)
-		if err != nil {
-			return Metric{}, ErrNotValidMetricValue
-		}
-	} else {
-		return Metric{}, ErrNotValidMetricType
+		return &Metric[float64]{
+			Type:  metricType,
+			Name:  strings.ToLower(metricName),
+			Value: value,
+		}, nil
 	}
-	return Metric{
-		Type:  metricType,
-		Name:  strings.ToLower(metricName),
-		Value: value,
-	}, nil
+
+	if metricType == "counter" {
+		value, err := strconv.ParseUint(metricValue, 10, 64)
+		if err != nil {
+			return &Metric[uint64]{}, ErrNotValidMetricValue
+		}
+		return &Metric[uint64]{
+			Type:  metricType,
+			Name:  strings.ToLower(metricName),
+			Value: value,
+		}, nil
+	}
+	return &Metric[float64]{}, ErrNotValidMetricType
 }

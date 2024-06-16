@@ -4,9 +4,9 @@ import (
 	"context"
 	"github.com/AlexBlackNn/metrics/cmd/appserver"
 	"github.com/AlexBlackNn/metrics/cmd/router"
+	"github.com/AlexBlackNn/metrics/internal/api/metrics/v1"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/AlexBlackNn/metrics/internal/http-server/metrics/v1"
 	"github.com/stretchr/testify/suite"
 	"io"
 	"log/slog"
@@ -139,7 +139,7 @@ func (ms *MetricsSuite) TestServerGetMetricHappyPath() {
 
 	for _, tt := range tests {
 		ms.Run(tt.name, func() {
-			metric := models.Metric{Type: tt.metricType, Name: tt.metricName, Value: tt.metricValue}
+			metric := &models.Metric[float64]{Type: tt.metricType, Name: tt.metricName, Value: tt.metricValue}
 			err := ms.application.MetricsService.UpdateMetricValue(context.Background(), metric)
 			ms.NoError(err)
 			url := ms.srv.URL + tt.url
@@ -168,13 +168,16 @@ func (ms *MetricsSuite) TestServerGetAllMetricsHappyPath() {
 	tests := []struct {
 		name        string
 		url         string
-		testMetrics []models.Metric
+		testMetrics []models.MetricInteraction
 		want        Want
 	}{
 		{
-			name:        "gauge with value 10.3",
-			url:         "/",
-			testMetrics: []models.Metric{{Type: "gauge", Name: "test_gauge", Value: 10.3}, {Type: "counter", Name: "test_counter", Value: 10}},
+			name: "gauge with value 10.3",
+			url:  "/",
+			testMetrics: []models.MetricInteraction{
+				&models.Metric[float64]{Type: "gauge", Name: "test_gauge", Value: 10.3},
+				&models.Metric[uint64]{Type: "counter", Name: "test_counter", Value: 10},
+			},
 			want: Want{
 				code:        http.StatusOK,
 				contentType: "text/html; charset=utf-8",

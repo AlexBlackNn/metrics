@@ -43,37 +43,33 @@ func (mhs *HTTPService) Transmit(stop <-chan struct{}) {
 			return
 		default:
 			for _, savedMetric := range mhs.GetMetrics() {
-				go func(savedMetric models.Metric) {
-					savedMetricValue, err := savedMetric.ConvertValueToString()
+				go func(savedMetric models.MetricInteraction) {
+					savedMetricValue := savedMetric.GetStringValue()
+
+					url := fmt.Sprintf("http://%s/update/%s/%s/%s", mhs.cfg.ServerAddr, savedMetric.GetType(), savedMetric.GetName(), savedMetricValue)
+					log.Info("sending data", "url", url)
+
+					req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
+
 					// TODO: need refactoring to better work with error
 					if err != nil {
-						log.Error("wrong type of metric value", "Metric", savedMetric)
+						log.Error("error creating http request")
+					}
+
+					//// TODO: find out why without it EOF?
+					////https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi
+					//req.Close = true
+
+					// would be better to add backoff, but in next task client itself can do it
+					//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
+					response, err := client.Do(req)
+
+					// TODO: need refactoring to better work with error
+					if err != nil {
+						log.Error("error doing http request", "err", err.Error())
 					} else {
-						url := fmt.Sprintf("http://%s/update/%s/%s/%s", mhs.cfg.ServerAddr, savedMetric.Type, savedMetric.Name, savedMetricValue)
-						log.Info("sending data", "url", url)
-
-						req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
-
-						// TODO: need refactoring to better work with error
-						if err != nil {
-							log.Error("error creating http request")
-						}
-
-						// TODO: find out why without it EOF?
-						//https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi
-						req.Close = true
-
-						// would be better to add backoff, but in next task client itself can do it
-						//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
-						response, err := client.Do(req)
-
-						// TODO: need refactoring to better work with error
-						if err != nil {
-							log.Error("error doing http request", "err", err.Error())
-						} else {
-							log.Info("sending data", "url", url, "status_code", response.StatusCode)
-							response.Body.Close()
-						}
+						log.Info("sending data", "url", url, "status_code", response.StatusCode)
+						response.Body.Close()
 					}
 				}(savedMetric)
 			}

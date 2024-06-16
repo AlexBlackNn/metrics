@@ -14,7 +14,7 @@ import (
 type MetricsService struct {
 	log     *slog.Logger
 	cfg     *config.Config
-	Metrics map[string]models.Metric
+	Metrics map[string]models.MetricInteraction
 	mutex   sync.RWMutex
 }
 
@@ -23,7 +23,7 @@ func New(
 	cfg *config.Config,
 ) *MetricsService {
 	return &MetricsService{
-		Metrics: make(map[string]models.Metric),
+		Metrics: make(map[string]models.MetricInteraction),
 		log:     log,
 		cfg:     cfg,
 	}
@@ -36,7 +36,7 @@ func (ms *MetricsService) Start(stop <-chan struct{}) {
 	)
 
 	var rtm runtime.MemStats
-	ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: int64(0), Name: "PollCount"}
+	ms.Metrics["PollCount"] = &models.Metric[uint64]{Type: "counter", Value: uint64(0), Name: "PollCount"}
 	for {
 		select {
 		case <-stop:
@@ -53,12 +53,18 @@ func (ms *MetricsService) Start(stop <-chan struct{}) {
 					metricName := t.Field(i).Name
 					metricValue := reflect.ValueOf(rtm).FieldByName(metricName).Interface()
 					metricType := reflect.TypeOf(metricValue).String()
-					if metricType == "float64" || metricType == "uint32" || metricType == "uint64" {
-						ms.Metrics[metricName] = models.Metric{Type: "gauge", Value: metricValue, Name: metricName}
+					if metricType == "float64" {
+						ms.Metrics[metricName] = &models.Metric[float64]{Type: "gauge", Value: metricValue.(float64), Name: metricName}
+					}
+					if metricType == "uint32" {
+						ms.Metrics[metricName] = &models.Metric[uint32]{Type: "gauge", Value: metricValue.(uint32), Name: metricName}
+					}
+					if metricType == "uint64" {
+						ms.Metrics[metricName] = &models.Metric[uint64]{Type: "gauge", Value: metricValue.(uint64), Name: metricName}
 					}
 				}
-				ms.Metrics["PollCount"] = models.Metric{Type: "counter", Value: ms.Metrics["PollCount"].Value.(int64) + 1, Name: "PollCount"}
-				ms.Metrics["RandomValue"] = models.Metric{Type: "gauge", Value: rand.Int63(), Name: "RandomValue"}
+				ms.Metrics["PollCount"] = &models.Metric[uint64]{Type: "counter", Value: ms.Metrics["PollCount"].GetValue().(uint64) + 1, Name: "PollCount"}
+				ms.Metrics["RandomValue"] = &models.Metric[uint64]{Type: "gauge", Value: rand.Uint64(), Name: "RandomValue"}
 				ms.mutex.Unlock()
 				log.Info("metric pooling finished")
 				<-time.After(time.Duration(ms.cfg.PollInterval) * time.Second)
@@ -68,7 +74,7 @@ func (ms *MetricsService) Start(stop <-chan struct{}) {
 }
 
 // GetMetrics return collected metrics as thread safe map
-func (ms *MetricsService) GetMetrics() map[string]models.Metric {
+func (ms *MetricsService) GetMetrics() map[string]models.MetricInteraction {
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()
 	return ms.Metrics

@@ -51,7 +51,7 @@ func (m *Metrics) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		m.log.Error("Error getting current work dir", "err", err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
-	pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/http-server/metrics/v1/metrics.tmpl")
+	pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/api/metrics/v1/metrics.tmpl")
 
 	tmpl, err := template.New("metrics").ParseFiles(pathToTemplate)
 	if err != nil {
@@ -63,19 +63,12 @@ func (m *Metrics) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	// Prepare data for template
 	var data []interface{}
 	for _, metric := range metrics {
-		valueStr, err := metric.ConvertValueToString()
-		if err != nil {
-			m.log.Error("Error converting metric value to string")
-			continue // Skip this metric if conversion fails
-		}
-
 		data = append(data, map[string]interface{}{
-			"Type":  metric.Type,
-			"Name":  metric.Name,
-			"Value": valueStr,
+			"Type":  metric.GetType(),
+			"Name":  metric.GetName(),
+			"Value": metric.GetStringValue(),
 		})
 	}
-
 	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -121,7 +114,7 @@ func (m *Metrics) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("%v", metric.Value)))
+	w.Write([]byte(fmt.Sprintf("%v", metric.GetValue())))
 }
 
 func (m *Metrics) UpdateMetric(w http.ResponseWriter, r *http.Request) {

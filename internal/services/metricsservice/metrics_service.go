@@ -12,15 +12,15 @@ import (
 type MetricsStorage interface {
 	UpdateMetric(
 		ctx context.Context,
-		metric models.Metric,
+		metric models.MetricInteraction,
 	) error
 	GetMetric(
 		ctx context.Context,
 		metricName string,
-	) (models.Metric, error)
+	) (models.MetricInteraction, error)
 	GetAllMetrics(
 		ctx context.Context,
-	) ([]models.Metric, error)
+	) ([]models.MetricInteraction, error)
 }
 
 type MetricService struct {
@@ -42,7 +42,7 @@ func New(
 	}
 }
 
-func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Metric) error {
+func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.MetricInteraction) error {
 
 	select {
 	case <-ctx.Done():
@@ -54,9 +54,9 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 		)
 		log.Info("starts update metric value")
 
-		if metric.Type == "counter" {
+		if metric.GetType() == "counter" {
 
-			metricStorage, err := ms.metricsStorage.GetMetric(ctx, metric.Name)
+			metricStorage, err := ms.metricsStorage.GetMetric(ctx, metric.GetName())
 			if errors.Is(err, memstorage.ErrMetricNotFound) {
 				err = ms.metricsStorage.UpdateMetric(ctx, metric)
 				if err != nil {
@@ -65,13 +65,15 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 				}
 				return nil
 			}
-
 			if err != nil {
 				ms.log.Error(err.Error())
 				return ErrCouldNotUpdateMetric
 			}
-
-			metric.Value = metricStorage.Value.(uint64) + metric.Value.(uint64)
+			err = metric.AddValue(metricStorage)
+			if err != nil {
+				ms.log.Error(err.Error())
+				return ErrCouldNotUpdateMetric
+			}
 			err = ms.metricsStorage.UpdateMetric(ctx, metric)
 			if err != nil {
 				ms.log.Error(err.Error())
@@ -89,11 +91,11 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 	}
 }
 
-func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.Metric, error) {
+func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.MetricInteraction, error) {
 	select {
 	case <-ctx.Done():
 		ms.log.Error("Deadline exceeded while getting metric", "name", key)
-		return models.Metric{}, ctx.Err()
+		return &models.Metric[float64]{}, ctx.Err()
 	default:
 		log := ms.log.With(
 			slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
@@ -102,21 +104,21 @@ func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (mod
 
 		metric, err := ms.metricsStorage.GetMetric(ctx, key)
 		if errors.Is(err, memstorage.ErrMetricNotFound) {
-			return models.Metric{}, ErrMetricNotFound
+			return &models.Metric[float64]{}, ErrMetricNotFound
 		}
 		if err != nil {
-			return models.Metric{}, ErrCouldNotUpdateMetric
+			return &models.Metric[float64]{}, ErrCouldNotUpdateMetric
 		}
 		log.Info("finish getting metric value")
 		return metric, nil
 	}
 }
 
-func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.Metric, error) {
+func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricInteraction, error) {
 	select {
 	case <-ctx.Done():
 		ms.log.Error("Deadline exceeded while getting all metrics")
-		return []models.Metric{}, ctx.Err()
+		return []models.MetricInteraction{}, ctx.Err()
 	default:
 		log := ms.log.With(
 			slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
@@ -125,10 +127,10 @@ func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.Metric, er
 
 		metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
 		if errors.Is(err, memstorage.ErrMetricNotFound) {
-			return []models.Metric{}, ErrMetricNotFound
+			return []models.MetricInteraction{}, ErrMetricNotFound
 		}
 		if err != nil {
-			return []models.Metric{}, ErrCouldNotUpdateMetric
+			return []models.MetricInteraction{}, ErrCouldNotUpdateMetric
 		}
 		log.Info("finish getting all metrics")
 		return metrics, nil

@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/AlexBlackNn/metrics/internal/http-server/metrics/v1"
-	projectLogger "github.com/AlexBlackNn/metrics/internal/http-server/middleware/logger"
+	"github.com/AlexBlackNn/metrics/internal/api/metrics/v1"
+	projectLogger "github.com/AlexBlackNn/metrics/internal/api/middleware/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
