@@ -6,18 +6,18 @@ import (
 	"sync"
 )
 
-type Storage struct {
+type MemStorage struct {
 	mutex sync.RWMutex
 	db    map[string]models.MetricInteraction
 }
 
 // New inits mem storage (map structure)
-func New() (*Storage, error) {
-	return &Storage{db: make(map[string]models.MetricInteraction)}, nil
+func New() (*MemStorage, error) {
+	return &MemStorage{db: make(map[string]models.MetricInteraction)}, nil
 }
 
 // UpdateMetric updates metric value in mem storage
-func (s *Storage) UpdateMetric(
+func (s *MemStorage) UpdateMetric(
 	ctx context.Context,
 	metric models.MetricInteraction,
 ) error {
@@ -33,7 +33,7 @@ func (s *Storage) UpdateMetric(
 }
 
 // GetMetric gets metric value from mem storage
-func (s *Storage) GetMetric(
+func (s *MemStorage) GetMetric(
 	ctx context.Context,
 	name string,
 ) (models.MetricInteraction, error) {
@@ -52,7 +52,7 @@ func (s *Storage) GetMetric(
 }
 
 // GetAllMetrics gets metric value from mem storage
-func (s *Storage) GetAllMetrics(
+func (s *MemStorage) GetAllMetrics(
 	ctx context.Context,
 ) ([]models.MetricInteraction, error) {
 	var metrics []models.MetricInteraction
