@@ -95,7 +95,7 @@ func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (mod
 	select {
 	case <-ctx.Done():
 		ms.log.Error("Deadline exceeded while getting metric", "name", key)
-		return &models.Metric[float64]{}, ctx.Err()
+		return nil, ctx.Err()
 	default:
 		log := ms.log.With(
 			slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
@@ -104,10 +104,10 @@ func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (mod
 
 		metric, err := ms.metricsStorage.GetMetric(ctx, key)
 		if errors.Is(err, memstorage.ErrMetricNotFound) {
-			return &models.Metric[float64]{}, ErrMetricNotFound
+			return nil, ErrMetricNotFound
 		}
 		if err != nil {
-			return &models.Metric[float64]{}, ErrCouldNotUpdateMetric
+			return nil, ErrCouldNotUpdateMetric
 		}
 		log.Info("finish getting metric value")
 		return metric, nil
@@ -118,7 +118,7 @@ func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricInte
 	select {
 	case <-ctx.Done():
 		ms.log.Error("Deadline exceeded while getting all metrics")
-		return []models.MetricInteraction{}, ctx.Err()
+		return nil, ctx.Err()
 	default:
 		log := ms.log.With(
 			slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
@@ -127,10 +127,10 @@ func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricInte
 
 		metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
 		if errors.Is(err, memstorage.ErrMetricNotFound) {
-			return []models.MetricInteraction{}, ErrMetricNotFound
+			return nil, ErrMetricNotFound
 		}
 		if err != nil {
-			return []models.MetricInteraction{}, ErrCouldNotUpdateMetric
+			return nil, ErrCouldNotUpdateMetric
 		}
 		log.Info("finish getting all metrics")
 		return metrics, nil

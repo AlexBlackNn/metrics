@@ -84,7 +84,7 @@ func Load(metricType string, metricName string, metricValue string) (MetricInter
 	if metricType == "gauge" {
 		value, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
-			return &Metric[float64]{}, ErrNotValidMetricValue
+			return nil, ErrNotValidMetricValue
 		}
 		return &Metric[float64]{
 			Type:  metricType,
@@ -96,7 +96,7 @@ func Load(metricType string, metricName string, metricValue string) (MetricInter
 	if metricType == "counter" {
 		value, err := strconv.ParseUint(metricValue, 10, 64)
 		if err != nil {
-			return &Metric[uint64]{}, ErrNotValidMetricValue
+			return nil, ErrNotValidMetricValue
 		}
 		return &Metric[uint64]{
 			Type:  metricType,
@@ -104,5 +104,5 @@ func Load(metricType string, metricName string, metricValue string) (MetricInter
 			Value: value,
 		}, nil
 	}
-	return &Metric[float64]{}, ErrNotValidMetricType
+	return nil, ErrNotValidMetricType
 }
