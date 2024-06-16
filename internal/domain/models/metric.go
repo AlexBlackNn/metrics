@@ -10,6 +10,9 @@ import (
 
 var ErrNotValidMetricValue = errors.New("invalid metric value")
 var ErrNotValidMetricType = errors.New("invalid metric type")
+var ErrAddDifferentMetricType = errors.New("different metric types")
+var ErrAddDifferentMetricName = errors.New("different metric names")
+var ErrAddMetricValueCast = errors.New("cannot cast metric to required type")
 
 type MetricInteraction interface {
 	GetType() string
@@ -51,10 +54,10 @@ func (m *Metric[T]) GetStringValue() string {
 // AddValue adds the value of another Metric to the current Metric
 func (m *Metric[T]) AddValue(other MetricInteraction) error {
 	if m.GetType() != other.GetType() {
-		return errors.New("cannot add values of different metric types")
+		return ErrAddDifferentMetricType
 	}
 	if m.GetName() != other.GetName() {
-		return errors.New("cannot add values of different metric names")
+		return ErrAddDifferentMetricName
 	}
 
 	// Since T is constrained to be either constraints.Float or constraints.Integer, we can use them here
@@ -69,7 +72,7 @@ func (m *Metric[T]) AddValue(other MetricInteraction) error {
 			return nil
 		}
 	}
-	return errors.New("cannot cast metric to required type")
+	return ErrAddMetricValueCast
 }
 
 func CheckModelType(metricType string) error {
