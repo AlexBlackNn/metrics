@@ -14,7 +14,7 @@ import (
 type Sender struct {
 	log *slog.Logger
 	cfg *config.Config
-	*agentmetricsservice.MetricsService
+	*agentmetricsservice.MonitorService
 }
 
 func New(

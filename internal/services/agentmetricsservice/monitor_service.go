@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type MetricsService struct {
+type MonitorService struct {
 	log     *slog.Logger
 	cfg     *config.Config
 	Metrics map[string]models.MetricInteraction
@@ -22,8 +22,8 @@ type MetricsService struct {
 func New(
 	log *slog.Logger,
 	cfg *config.Config,
-) *MetricsService {
-	return &MetricsService{
+) *MonitorService {
+	return &MonitorService{
 		Metrics: make(map[string]models.MetricInteraction),
 		log:     log,
 		cfg:     cfg,
@@ -31,7 +31,7 @@ func New(
 }
 
 // Start starts collecting runtime metrics
-func (ms *MetricsService) Start(ctx context.Context) {
+func (ms *MonitorService) Start(ctx context.Context) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: agentmetricservice.Start"),
 	)
@@ -75,7 +75,7 @@ func (ms *MetricsService) Start(ctx context.Context) {
 }
 
 // GetMetrics return collected metrics as thread safe map
-func (ms *MetricsService) GetMetrics() map[string]models.MetricInteraction {
+func (ms *MonitorService) GetMetrics() map[string]models.MetricInteraction {
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()
 	return ms.Metrics
