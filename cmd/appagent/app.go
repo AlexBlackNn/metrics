@@ -2,13 +2,13 @@ package appagent
 
 import (
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/transport/agenthttp"
+	"github.com/AlexBlackNn/metrics/internal/sender/restagentsender"
 	"log/slog"
 )
 
 type AgentService interface {
 	Start(<-chan struct{})
-	Transmit(<-chan struct{})
+	Send(<-chan struct{})
 }
 
 // AppHTTP service consists all service layers
@@ -22,7 +22,7 @@ func NewAppHTTP(
 	cfg *config.Config,
 ) *AppHTTP {
 
-	metricsService := agenthttp.New(
+	metricsService := restagentsender.New(
 		log,
 		cfg,
 	)

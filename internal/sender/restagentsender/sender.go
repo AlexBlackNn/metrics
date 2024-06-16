@@ -1,4 +1,4 @@
-package agenthttp
+package restagentsender
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type HTTPService struct {
+type Sender struct {
 	log *slog.Logger
 	cfg *config.Config
 	*agentmetricsservice.MetricsService
@@ -19,15 +19,15 @@ type HTTPService struct {
 func New(
 	log *slog.Logger,
 	cfg *config.Config,
-) *HTTPService {
-	return &HTTPService{
+) *Sender {
+	return &Sender{
 		log,
 		cfg,
 		agentmetricsservice.New(log, cfg),
 	}
 }
 
-func (mhs *HTTPService) Transmit(stop <-chan struct{}) {
+func (mhs *Sender) Send(stop <-chan struct{}) {
 
 	log := mhs.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),

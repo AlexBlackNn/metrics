@@ -42,7 +42,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		appHTTP.MetricsService.Transmit(cancel)
+		appHTTP.MetricsService.Send(cancel)
 	}()
 	wg.Wait()
 }
