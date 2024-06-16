@@ -42,38 +42,17 @@ func New(
 	}
 }
 
+// UpdateMetricValue updates metric value or create new metric
 func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.MetricInteraction) error {
+	log := ms.log.With(
+		slog.String("info", "SERVICE LAYER: metrics_service.UpdateMetricValue"),
+	)
+	log.Info("starts update metric value")
 
-	select {
-	case <-ctx.Done():
-		ms.log.Error("Deadline exceeded while updating metric", "metric", metric)
-		return ctx.Err()
-	default:
-		log := ms.log.With(
-			slog.String("info", "SERVICE LAYER: metrics_service.UpdateMetricValue"),
-		)
-		log.Info("starts update metric value")
+	if metric.GetType() == "counter" {
 
-		if metric.GetType() == "counter" {
-
-			metricStorage, err := ms.metricsStorage.GetMetric(ctx, metric.GetName())
-			if errors.Is(err, memstorage.ErrMetricNotFound) {
-				err = ms.metricsStorage.UpdateMetric(ctx, metric)
-				if err != nil {
-					ms.log.Error(err.Error())
-					return ErrCouldNotUpdateMetric
-				}
-				return nil
-			}
-			if err != nil {
-				ms.log.Error(err.Error())
-				return ErrCouldNotUpdateMetric
-			}
-			err = metric.AddValue(metricStorage)
-			if err != nil {
-				ms.log.Error(err.Error())
-				return ErrCouldNotUpdateMetric
-			}
+		metricStorage, err := ms.metricsStorage.GetMetric(ctx, metric.GetName())
+		if errors.Is(err, memstorage.ErrMetricNotFound) {
 			err = ms.metricsStorage.UpdateMetric(ctx, metric)
 			if err != nil {
 				ms.log.Error(err.Error())
@@ -81,58 +60,64 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 			}
 			return nil
 		}
-		err := ms.metricsStorage.UpdateMetric(ctx, metric)
 		if err != nil {
 			ms.log.Error(err.Error())
 			return ErrCouldNotUpdateMetric
 		}
-		log.Info("finish updating metric value")
+		err = metric.AddValue(metricStorage)
+		if err != nil {
+			ms.log.Error(err.Error())
+			return ErrCouldNotUpdateMetric
+		}
+		err = ms.metricsStorage.UpdateMetric(ctx, metric)
+		if err != nil {
+			ms.log.Error(err.Error())
+			return ErrCouldNotUpdateMetric
+		}
 		return nil
 	}
+	err := ms.metricsStorage.UpdateMetric(ctx, metric)
+	if err != nil {
+		ms.log.Error(err.Error())
+		return ErrCouldNotUpdateMetric
+	}
+	log.Info("finish updating metric value")
+	return nil
 }
 
+// GetOneMetricValue extracts metric
 func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.MetricInteraction, error) {
-	select {
-	case <-ctx.Done():
-		ms.log.Error("Deadline exceeded while getting metric", "name", key)
-		return nil, ctx.Err()
-	default:
-		log := ms.log.With(
-			slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
-		)
-		log.Info("starts getting metric value")
 
-		metric, err := ms.metricsStorage.GetMetric(ctx, key)
-		if errors.Is(err, memstorage.ErrMetricNotFound) {
-			return nil, ErrMetricNotFound
-		}
-		if err != nil {
-			return nil, ErrCouldNotUpdateMetric
-		}
-		log.Info("finish getting metric value")
-		return metric, nil
+	log := ms.log.With(
+		slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
+	)
+	log.Info("starts getting metric value")
+
+	metric, err := ms.metricsStorage.GetMetric(ctx, key)
+	if errors.Is(err, memstorage.ErrMetricNotFound) {
+		return nil, ErrMetricNotFound
 	}
+	if err != nil {
+		return nil, ErrCouldNotUpdateMetric
+	}
+	log.Info("finish getting metric value")
+	return metric, nil
 }
 
+// GetAllMetrics extracts all metric
 func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricInteraction, error) {
-	select {
-	case <-ctx.Done():
-		ms.log.Error("Deadline exceeded while getting all metrics")
-		return nil, ctx.Err()
-	default:
-		log := ms.log.With(
-			slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
-		)
-		log.Info("starts getting all metrics")
+	log := ms.log.With(
+		slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
+	)
+	log.Info("starts getting all metrics")
 
-		metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
-		if errors.Is(err, memstorage.ErrMetricNotFound) {
-			return nil, ErrMetricNotFound
-		}
-		if err != nil {
-			return nil, ErrCouldNotUpdateMetric
-		}
-		log.Info("finish getting all metrics")
-		return metrics, nil
+	metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
+	if errors.Is(err, memstorage.ErrMetricNotFound) {
+		return nil, ErrMetricNotFound
 	}
+	if err != nil {
+		return nil, ErrCouldNotUpdateMetric
+	}
+	log.Info("finish getting all metrics")
+	return metrics, nil
 }
