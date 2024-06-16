@@ -1,14 +1,15 @@
 package appagent
 
 import (
+	"context"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/sender/restagentsender"
 	"log/slog"
 )
 
 type AgentService interface {
-	Start(<-chan struct{})
-	Send(<-chan struct{})
+	Start(ctx context.Context)
+	Send(ctx context.Context)
 }
 
 // AppHTTP service consists all service layers

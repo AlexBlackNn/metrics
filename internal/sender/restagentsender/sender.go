@@ -1,6 +1,7 @@
 package restagentsender
 
 import (
+	"context"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -27,7 +28,7 @@ func New(
 	}
 }
 
-func (mhs *Sender) Send(stop <-chan struct{}) {
+func (mhs *Sender) Send(ctx context.Context) {
 
 	log := mhs.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
@@ -39,7 +40,7 @@ func (mhs *Sender) Send(stop <-chan struct{}) {
 		}}
 	for {
 		select {
-		case <-stop:
+		case <-ctx.Done():
 			return
 		default:
 			for _, savedMetric := range mhs.GetMetrics() {

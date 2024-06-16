@@ -1,6 +1,7 @@
 package agentmetricsservice
 
 import (
+	"context"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"log/slog"
@@ -30,7 +31,7 @@ func New(
 }
 
 // Start starts collecting runtime metrics
-func (ms *MetricsService) Start(stop <-chan struct{}) {
+func (ms *MetricsService) Start(ctx context.Context) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: agentmetricservice.Start"),
 	)
@@ -39,7 +40,7 @@ func (ms *MetricsService) Start(stop <-chan struct{}) {
 	ms.Metrics["PollCount"] = &models.Metric[uint64]{Type: "counter", Value: uint64(0), Name: "PollCount"}
 	for {
 		select {
-		case <-stop:
+		case <-ctx.Done():
 			log.Info("stop signal received")
 			return
 		default:

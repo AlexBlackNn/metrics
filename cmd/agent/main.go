@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/AlexBlackNn/metrics/cmd/appagent"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/logger"
@@ -24,25 +25,27 @@ func main() {
 
 	appHTTP := appagent.NewAppHTTP(log, cfg)
 
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-	cancel := make(chan struct{})
 
 	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		<-stop
-		close(cancel)
+		cancel()
 	}()
 
 	go func() {
 		defer wg.Done()
-		appHTTP.MetricsService.Start(cancel)
+		appHTTP.MetricsService.Start(ctx)
 	}()
 
 	go func() {
 		defer wg.Done()
-		appHTTP.MetricsService.Send(cancel)
+		appHTTP.MetricsService.Send(ctx)
 	}()
 	wg.Wait()
 }
