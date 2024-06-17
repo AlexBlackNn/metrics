@@ -82,7 +82,7 @@ func CheckModelType(metricType string) error {
 	return nil
 }
 
-func Load(metricType string, metricName string, metricValue string) (MetricInteraction, error) {
+func New(metricType string, metricName string, metricValue string) (MetricInteraction, error) {
 
 	if metricType == "gauge" {
 		value, err := strconv.ParseFloat(metricValue, 64)

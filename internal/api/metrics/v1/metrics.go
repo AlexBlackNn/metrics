@@ -111,7 +111,7 @@ func (m *Metrics) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, err := models.Load(
+	metric, err := models.New(
 		chi.URLParam(r, "metric_type"),
 		chi.URLParam(r, "metric_name"),
 		chi.URLParam(r, "metric_value"),
