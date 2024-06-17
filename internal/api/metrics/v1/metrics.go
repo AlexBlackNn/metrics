@@ -32,13 +32,7 @@ func (m *Metrics) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: in some tests somehow ClientTimeout gets 0, which creates DEADLINE ERROR
-	if m.application.Cfg.ClientTimeout == 0 {
-		m.application.Cfg.ClientTimeout = 10
-	}
-	timeout := time.Duration(m.application.Cfg.ClientTimeout) * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	ctx := context.Background()
 	metrics, err := m.application.MetricsService.GetAllMetrics(ctx)
 
 	if errors.Is(err, metricsservice.ErrMetricNotFound) {
@@ -91,13 +85,7 @@ func (m *Metrics) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: in some tests somehow ClientTimeout gets 0, which creates DEADLINE ERROR
-	if m.application.Cfg.ClientTimeout == 0 {
-		m.application.Cfg.ClientTimeout = 10
-	}
-	timeout := time.Duration(m.application.Cfg.ClientTimeout) * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	ctx := context.Background()
 	metric, err := m.application.MetricsService.GetOneMetricValue(
 		ctx, strings.ToLower(chi.URLParam(r, "metric_name")),
 	)
@@ -133,13 +121,7 @@ func (m *Metrics) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: in some tests somehow ClientTimeout gets 0, which creates DEADLINE ERROR
-	if m.application.Cfg.ClientTimeout == 0 {
-		m.application.Cfg.ClientTimeout = 10
-	}
-	timeout := time.Duration(m.application.Cfg.ClientTimeout) * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	ctx := context.Background()
 	err = m.application.MetricsService.UpdateMetricValue(ctx, metric)
 	if errors.Is(err, metricsservice.ErrNotValidURL) {
 		http.Error(w, err.Error(), http.StatusNotFound)
