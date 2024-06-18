@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/AlexBlackNn/metrics/internal/handlers"
-	projectLogger "github.com/AlexBlackNn/metrics/internal/middleware/logger"
+	projectLogger "github.com/AlexBlackNn/metrics/internal/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
