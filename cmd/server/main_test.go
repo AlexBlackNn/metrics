@@ -5,7 +5,6 @@ import (
 	"github.com/AlexBlackNn/metrics/app/server"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/AlexBlackNn/metrics/internal/handlers"
 	"github.com/stretchr/testify/suite"
 	"io"
 	"net/http"
@@ -16,10 +15,9 @@ import (
 
 type MetricsSuite struct {
 	suite.Suite
-	application     *server.App
-	client          http.Client
-	metricsHandlers handlers.MetricHandlers
-	srv             *httptest.Server
+	application *server.App
+	client      http.Client
+	srv         *httptest.Server
 }
 
 func (ms *MetricsSuite) SetupSuite() {
@@ -28,13 +26,12 @@ func (ms *MetricsSuite) SetupSuite() {
 	if err != nil {
 		ms.T().Fatal(err)
 	}
-	ms.metricsHandlers = handlers.New(ms.application)
 	ms.client = http.Client{Timeout: 3 * time.Second}
 }
 
 func (ms *MetricsSuite) BeforeTest(suiteName, testName string) {
 	// starts server with first random port
-	ms.srv = httptest.NewServer(router.NewChiRouter(ms.application.Log, ms.metricsHandlers))
+	ms.srv = httptest.NewServer(router.NewChiRouter(ms.application.Log, ms.application.Handlers))
 }
 
 func (ms *MetricsSuite) AfterTest(suiteName, testName string) {

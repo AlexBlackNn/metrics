@@ -23,7 +23,7 @@ type MetricsStorage interface {
 	) ([]models.MetricInteraction, error)
 }
 
-type Monitor struct {
+type MetricService struct {
 	log            *slog.Logger
 	cfg            *config.Config
 	metricsStorage MetricsStorage
@@ -34,8 +34,8 @@ func New(
 	log *slog.Logger,
 	cfg *config.Config,
 	metricsStorage MetricsStorage,
-) *Monitor {
-	return &Monitor{
+) *MetricService {
+	return &MetricService{
 		log:            log,
 		cfg:            cfg,
 		metricsStorage: metricsStorage,
@@ -43,7 +43,7 @@ func New(
 }
 
 // UpdateMetricValue updates metric value or create new metric
-func (ms *Monitor) UpdateMetricValue(ctx context.Context, metric models.MetricInteraction) error {
+func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.MetricInteraction) error {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.UpdateMetricValue"),
 	)
@@ -86,7 +86,7 @@ func (ms *Monitor) UpdateMetricValue(ctx context.Context, metric models.MetricIn
 }
 
 // GetOneMetricValue extracts metric
-func (ms *Monitor) GetOneMetricValue(ctx context.Context, key string) (models.MetricInteraction, error) {
+func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.MetricInteraction, error) {
 
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
@@ -105,7 +105,7 @@ func (ms *Monitor) GetOneMetricValue(ctx context.Context, key string) (models.Me
 }
 
 // GetAllMetrics extracts all metric
-func (ms *Monitor) GetAllMetrics(ctx context.Context) ([]models.MetricInteraction, error) {
+func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricInteraction, error) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
 	)
