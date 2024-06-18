@@ -9,7 +9,7 @@ import (
 
 // App service consists all services needed to work
 type App struct {
-	MetricsService *metricsservice.MetricService
+	MetricsService *metricsservice.Monitor
 	Cfg            *config.Config
 }
 
