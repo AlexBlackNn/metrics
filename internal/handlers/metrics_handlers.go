@@ -53,19 +53,10 @@ func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare data for template
-	var data []interface{}
-	for _, metric := range metrics {
-		data = append(data, map[string]interface{}{
-			"Type":  metric.GetType(),
-			"Name":  metric.GetName(),
-			"Value": metric.GetStringValue(),
-		})
-	}
 	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := tmpl.Execute(w, metrics); err != nil {
 		m.log.Error("Error executing Go template")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
