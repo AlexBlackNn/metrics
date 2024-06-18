@@ -4,46 +4,42 @@ import (
 	"context"
 	"github.com/AlexBlackNn/metrics/app/server"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
-	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/handlers"
 	"github.com/stretchr/testify/suite"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 )
 
 type MetricsSuite struct {
 	suite.Suite
-	cfg             *config.Config
-	log             *slog.Logger
 	application     *server.App
 	client          http.Client
 	metricsHandlers handlers.MetricHandlers
 	srv             *httptest.Server
 }
 
-func (ms *MetricsSuite) SetupTest() {
-	ms.cfg = &config.Config{
-		Env:            "local",
-		PollInterval:   2,
-		ReportInterval: 5,
+func (ms *MetricsSuite) SetupSuite() {
+	var err error
+	ms.application, err = server.New()
+	if err != nil {
+		ms.T().Fatal(err)
 	}
-
-	ms.log = slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	ms.application = server.New(ms.log, ms.cfg)
-	ms.metricsHandlers = handlers.New(ms.log, ms.application)
+	ms.metricsHandlers = handlers.New(ms.application)
 	ms.client = http.Client{Timeout: 3 * time.Second}
 }
 
 func (ms *MetricsSuite) BeforeTest(suiteName, testName string) {
 	// starts server with first random port
+	ms.srv = httptest.NewServer(router.NewChiRouter(ms.application.Log, ms.metricsHandlers))
+}
 
-	ms.srv = httptest.NewServer(router.NewChiRouter(ms.log, ms.metricsHandlers))
+func (ms *MetricsSuite) AfterTest(suiteName, testName string) {
+	// starts server with first random port
+	ms.srv = nil
 }
 
 func (ms *MetricsSuite) TestServerHappyPath() {
@@ -93,8 +89,7 @@ func (ms *MetricsSuite) TestServerHappyPath() {
 	}
 }
 
-func (ms *MetricsSuite) TestServerGetMetricHappyPath() {
-
+func (ms *MetricsSuite) TestServerGetMetricHappyPathGauge() {
 	type Want struct {
 		code        int
 		response    string
@@ -122,10 +117,61 @@ func (ms *MetricsSuite) TestServerGetMetricHappyPath() {
 			},
 		},
 		{
+			name:        "gauge with value 20.3",
+			url:         "/value/gauge/test_gauge",
+			metricType:  "gauge",
+			metricName:  "test_gauge",
+			metricValue: -20.3,
+			want: Want{
+				code:        http.StatusOK,
+				contentType: "text/plain; charset=utf-8",
+				response:    "-20.3",
+			},
+		},
+	}
+	// stop server when tests finished
+	defer ms.srv.Close()
+
+	for _, tt := range tests {
+		ms.Run(tt.name, func() {
+			metric := &models.Metric[float64]{Type: tt.metricType, Name: tt.metricName, Value: tt.metricValue}
+			err := ms.application.MetricsService.UpdateMetricValue(context.Background(), metric)
+			ms.NoError(err)
+			url := ms.srv.URL + tt.url
+			request, err := http.NewRequest(http.MethodGet, url, nil)
+			ms.NoError(err)
+			res, err := ms.client.Do(request)
+			ms.NoError(err)
+			ms.Equal(tt.want.code, res.StatusCode)
+			bodyBytes, err := io.ReadAll(res.Body)
+			ms.NoError(err)
+			ms.Equal(tt.want.response, string(bodyBytes))
+			defer res.Body.Close()
+			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
+		})
+	}
+}
+
+func (ms *MetricsSuite) TestServerGetMetricHappyPathCounter() {
+	type Want struct {
+		code        int
+		response    string
+		contentType string
+	}
+
+	tests := []struct {
+		name        string
+		url         string
+		metricType  string
+		metricName  string
+		metricValue uint64
+		want        Want
+	}{
+		{
 			name:        "counter with value 10",
-			url:         "/value/counter/test_counter",
-			metricType:  "counter",
-			metricName:  "test_counter",
+			url:         "/value/gauge/test_counter",
+			metricType:  "gauge",
+			metricName:  "test_gauge",
 			metricValue: 10,
 			want: Want{
 				code:        http.StatusOK,
@@ -139,7 +185,7 @@ func (ms *MetricsSuite) TestServerGetMetricHappyPath() {
 
 	for _, tt := range tests {
 		ms.Run(tt.name, func() {
-			metric := &models.Metric[float64]{Type: tt.metricType, Name: tt.metricName, Value: tt.metricValue}
+			metric := &models.Metric[uint64]{Type: tt.metricType, Name: tt.metricName, Value: tt.metricValue}
 			err := ms.application.MetricsService.UpdateMetricValue(context.Background(), metric)
 			ms.NoError(err)
 			url := ms.srv.URL + tt.url

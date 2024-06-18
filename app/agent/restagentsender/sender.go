@@ -57,10 +57,6 @@ func (mhs *Sender) Send(ctx context.Context) {
 						log.Error("error creating http request")
 					}
 
-					//// TODO: find out why without it EOF?
-					////https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi
-					//req.Close = true
-
 					// would be better to add backoff, but in next task client itself can do it
 					//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
 					response, err := client.Do(req)

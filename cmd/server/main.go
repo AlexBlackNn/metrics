@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/app/server"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
-	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/handlers"
-	"github.com/AlexBlackNn/metrics/internal/logger"
 	"log/slog"
 	"net/http"
 	"os"
@@ -17,25 +15,20 @@ import (
 
 func main() {
 
-	cfg, err := config.New()
+	application, err := server.New()
 	if err != nil {
 		panic(err)
 	}
-
-	log := logger.New(cfg.Env)
-	log.Info("starting application", slog.String("cfg", cfg.String()))
-
-	application := server.New(log, cfg)
-	metricsHandlers := handlers.New(log, application)
+	metricsHandlers := handlers.New(application)
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(cfg.ServerAddr),
-		Handler:      router.NewChiRouter(log, metricsHandlers),
-		ReadTimeout:  time.Duration(cfg.ServerReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(cfg.ServerWriteTimeout) * time.Second,
-		IdleTimeout:  time.Duration(cfg.ServerIdleTimeout) * time.Second,
+		Addr:         fmt.Sprintf(application.Cfg.ServerAddr),
+		Handler:      router.NewChiRouter(application.Log, metricsHandlers),
+		ReadTimeout:  time.Duration(application.Cfg.ServerReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(application.Cfg.ServerWriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(application.Cfg.ServerIdleTimeout) * time.Second,
 	}
 
 	go func() {
@@ -44,10 +37,10 @@ func main() {
 		}
 	}()
 
-	log.Info("server started")
+	application.Log.Info("server started")
 
 	signalType := <-stop
-	log.Info(
+	application.Log.Info(
 		"application stopped",
 		slog.String("signalType",
 			signalType.String()),

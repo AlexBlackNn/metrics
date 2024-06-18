@@ -2,8 +2,8 @@ package agent
 
 import (
 	"context"
+	"github.com/AlexBlackNn/metrics/app/agent/restagentsender"
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/sender/restagentsender"
 	"log/slog"
 )
 
@@ -12,20 +12,20 @@ type AgentService interface {
 	Send(ctx context.Context)
 }
 
-// AppHTTP service consists all service layers
-type AppHTTP struct {
+// AppMonitor service consists all service layers
+type AppMonitor struct {
 	MetricsService AgentService
 }
 
-// NewAppHTTP creates App
-func NewAppHTTP(
+// NewAppMonitor creates App
+func NewAppMonitor(
 	log *slog.Logger,
 	cfg *config.Config,
-) *AppHTTP {
+) *AppMonitor {
 
 	metricsService := restagentsender.New(
 		log,
 		cfg,
 	)
-	return &AppHTTP{MetricsService: metricsService}
+	return &AppMonitor{MetricsService: metricsService}
 }

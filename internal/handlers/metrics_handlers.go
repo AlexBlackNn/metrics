@@ -9,7 +9,6 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/go-chi/chi/v5"
 	"html/template"
-	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,12 +17,11 @@ import (
 )
 
 type MetricHandlers struct {
-	log         *slog.Logger
 	application *server.App
 }
 
-func New(log *slog.Logger, application *server.App) MetricHandlers {
-	return MetricHandlers{log: log, application: application}
+func New(application *server.App) MetricHandlers {
+	return MetricHandlers{application: application}
 }
 
 func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
@@ -42,14 +40,14 @@ func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 
 	path, err := os.Getwd()
 	if err != nil {
-		m.log.Error("Error getting current work dir", "err", err.Error())
+		m.application.Log.Error("Error getting current work dir", "err", err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 	pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/handlers/metrics.tmpl")
 
 	tmpl, err := template.New("metrics").ParseFiles(pathToTemplate)
 	if err != nil {
-		m.log.Error("ParseFiles Error:", "err", err.Error(), "path:", pathToTemplate)
+		m.application.Log.Error("ParseFiles Error:", "err", err.Error(), "path:", pathToTemplate)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -67,7 +65,7 @@ func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	if err := tmpl.Execute(w, data); err != nil {
-		m.log.Error("Error executing Go template")
+		m.application.Log.Error("Error executing Go template")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

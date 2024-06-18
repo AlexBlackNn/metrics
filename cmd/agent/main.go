@@ -23,7 +23,7 @@ func main() {
 	log := logger.New(cfg.Env)
 	log.Info("starting application", slog.String("env", cfg.Env))
 
-	appHTTP := agent.NewAppHTTP(log, cfg)
+	appHTTP := agent.NewAppMonitor(log, cfg)
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
