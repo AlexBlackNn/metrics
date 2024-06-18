@@ -29,8 +29,8 @@ func New(
 	}
 }
 
-// Start starts collecting runtime metrics
-func (ms *MonitorService) Start(ctx context.Context) {
+// Collect starts collecting runtime metrics
+func (ms *MonitorService) Collect(ctx context.Context) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: agentmetricservice.Start"),
 	)

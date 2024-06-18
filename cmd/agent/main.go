@@ -23,7 +23,7 @@ func main() {
 	log := logger.New(cfg.Env)
 	log.Info("starting application", slog.String("env", cfg.Env))
 
-	appHTTP := agent.NewAppMonitor(log, cfg)
+	appMonitor := agent.NewAppMonitor(log, cfg)
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -40,12 +40,12 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		appHTTP.MetricsService.Start(ctx)
+		appMonitor.MetricsService.Collect(ctx)
 	}()
 
 	go func() {
 		defer wg.Done()
-		appHTTP.MetricsService.Send(ctx)
+		appMonitor.MetricsService.Send(ctx)
 	}()
 	wg.Wait()
 }

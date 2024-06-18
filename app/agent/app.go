@@ -7,14 +7,14 @@ import (
 	"log/slog"
 )
 
-type AgentService interface {
-	Start(ctx context.Context)
+type CollectSender interface {
+	Collect(ctx context.Context)
 	Send(ctx context.Context)
 }
 
 // AppMonitor service consists all service layers
 type AppMonitor struct {
-	MetricsService AgentService
+	MetricsService CollectSender
 }
 
 // NewAppMonitor creates App
