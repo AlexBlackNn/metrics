@@ -1,10 +1,10 @@
-package v1
+package handlers
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/AlexBlackNn/metrics/cmd/appserver"
+	"github.com/AlexBlackNn/metrics/app/server"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/go-chi/chi/v5"
@@ -17,16 +17,16 @@ import (
 	"time"
 )
 
-type Metrics struct {
+type MetricHandlers struct {
 	log         *slog.Logger
-	application *appserver.App
+	application *server.App
 }
 
-func New(log *slog.Logger, application *appserver.App) Metrics {
-	return Metrics{log: log, application: application}
+func New(log *slog.Logger, application *server.App) MetricHandlers {
+	return MetricHandlers{log: log, application: application}
 }
 
-func (m *Metrics) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
+func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -45,7 +45,7 @@ func (m *Metrics) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		m.log.Error("Error getting current work dir", "err", err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
-	pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/api/metrics/v1/metrics.tmpl")
+	pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/handlers/metrics.tmpl")
 
 	tmpl, err := template.New("metrics").ParseFiles(pathToTemplate)
 	if err != nil {
@@ -73,7 +73,7 @@ func (m *Metrics) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (m *Metrics) GetOneMetric(w http.ResponseWriter, r *http.Request) {
+func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -105,7 +105,7 @@ func (m *Metrics) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("%v", metric.GetValue())))
 }
 
-func (m *Metrics) UpdateMetric(w http.ResponseWriter, r *http.Request) {
+func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return

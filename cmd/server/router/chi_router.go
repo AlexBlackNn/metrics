@@ -1,14 +1,14 @@
 package router
 
 import (
-	"github.com/AlexBlackNn/metrics/internal/api/metrics/v1"
-	projectLogger "github.com/AlexBlackNn/metrics/internal/api/middleware/logger"
+	"github.com/AlexBlackNn/metrics/internal/handlers"
+	projectLogger "github.com/AlexBlackNn/metrics/internal/middleware/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 )
 
-func NewChiRouter(log *slog.Logger, m v1.Metrics) chi.Router {
+func NewChiRouter(log *slog.Logger, m handlers.MetricHandlers) chi.Router {
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)

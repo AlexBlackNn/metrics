@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/cmd/appserver"
-	"github.com/AlexBlackNn/metrics/cmd/router"
-	"github.com/AlexBlackNn/metrics/internal/api/metrics/v1"
+	"github.com/AlexBlackNn/metrics/app/server"
+	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/internal/handlers"
 	"github.com/stretchr/testify/suite"
 	"io"
 	"log/slog"
@@ -21,9 +21,9 @@ type MetricsSuite struct {
 	suite.Suite
 	cfg             *config.Config
 	log             *slog.Logger
-	application     *appserver.App
+	application     *server.App
 	client          http.Client
-	metricsHandlers v1.Metrics
+	metricsHandlers handlers.MetricHandlers
 	srv             *httptest.Server
 }
 
@@ -35,8 +35,8 @@ func (ms *MetricsSuite) SetupTest() {
 	}
 
 	ms.log = slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	ms.application = appserver.New(ms.log, ms.cfg)
-	ms.metricsHandlers = v1.New(ms.log, ms.application)
+	ms.application = server.New(ms.log, ms.cfg)
+	ms.metricsHandlers = handlers.New(ms.log, ms.application)
 	ms.client = http.Client{Timeout: 3 * time.Second}
 }
 
@@ -200,9 +200,6 @@ func (ms *MetricsSuite) TestServerGetAllMetricsHappyPath() {
 			res, err := ms.client.Do(request)
 			ms.NoError(err)
 			ms.Equal(tt.want.code, res.StatusCode)
-			//bodyBytes, err := io.ReadAll(res.Body)
-			//ms.NoError(err)
-			//ms.Equal(tt.want.response, string(bodyBytes))
 			defer res.Body.Close()
 			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
 		})

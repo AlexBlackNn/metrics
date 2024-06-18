@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/AlexBlackNn/metrics/cmd/appserver"
-	"github.com/AlexBlackNn/metrics/cmd/router"
-	"github.com/AlexBlackNn/metrics/internal/api/metrics/v1"
+	"github.com/AlexBlackNn/metrics/app/server"
+	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/handlers"
 	"github.com/AlexBlackNn/metrics/internal/logger"
 	"log/slog"
 	"net/http"
@@ -25,8 +25,8 @@ func main() {
 	log := logger.New(cfg.Env)
 	log.Info("starting application", slog.String("cfg", cfg.String()))
 
-	application := appserver.New(log, cfg)
-	metricsHandlers := v1.New(log, application)
+	application := server.New(log, cfg)
+	metricsHandlers := handlers.New(log, application)
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 

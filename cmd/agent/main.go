@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/cmd/appagent"
+	"github.com/AlexBlackNn/metrics/app/agent"
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/logger"
 	"log/slog"
@@ -23,7 +23,7 @@ func main() {
 	log := logger.New(cfg.Env)
 	log.Info("starting application", slog.String("env", cfg.Env))
 
-	appHTTP := appagent.NewAppHTTP(log, cfg)
+	appHTTP := agent.NewAppHTTP(log, cfg)
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
