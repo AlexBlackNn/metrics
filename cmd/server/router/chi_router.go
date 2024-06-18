@@ -8,7 +8,7 @@ import (
 	"log/slog"
 )
 
-func NewChiRouter(log *slog.Logger, m handlers.MetricHandlers) chi.Router {
+func NewChiRouter(log *slog.Logger, m handlers.MetricHandlers) *chi.Mux {
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
