@@ -44,7 +44,7 @@ func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		m.log.Error("Error getting current work dir", "err", err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
-	pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/handlers/metrics.tmpl")
+	pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/handlers/v1/metrics.tmpl")
 
 	tmpl, err := template.New("metrics").ParseFiles(pathToTemplate)
 	if err != nil {
