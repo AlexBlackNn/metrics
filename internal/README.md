@@ -59,9 +59,16 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"tes
 
 
 ```bash
-curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter","delta":10}' http://localhost:8080/update
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter","delta":10}' http://localhost:8080/update/
 ```
 
+
+```bash
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testGauge","type":"gauge","value":465529.39165260154}' http://localhost:8080/update/
+```
+```bash
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testGauge","type":"gauge"}' http://localhost:8080/value/
+```
 
 
 how to install golint

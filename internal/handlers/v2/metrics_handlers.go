@@ -128,7 +128,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		metric, err = models.New(
 			reqMetrics.MType,
 			reqMetrics.ID,
-			fmt.Sprintf("%f", *reqMetrics.Value),
+			fmt.Sprintf("%g", *reqMetrics.Value),
 		)
 	}
 	if err != nil {
