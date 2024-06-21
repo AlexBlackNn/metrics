@@ -53,10 +53,14 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"Loo
 curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/counter/testCounter1/10
 ```
 ```bash
-curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter"}' http://localhost:8080/value
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter"}' http://localhost:8080/value/
 ```
 
 
+
+```bash
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter","delta":10}' http://localhost:8080/update
+```
 
 
 

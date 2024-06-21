@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/config"
-	"github.com/AlexBlackNn/metrics/internal/handlers"
+	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
+	v2 "github.com/AlexBlackNn/metrics/internal/handlers/v2"
 	"github.com/AlexBlackNn/metrics/internal/logger"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
@@ -16,7 +17,8 @@ import (
 // App service consists all entities needed to work
 type App struct {
 	MetricsService *metricsservice.MetricService
-	Handlers       handlers.MetricHandlers
+	HandlersV1     v1.MetricHandlers
+	HandlersV2     v2.MetricHandlers
 	Cfg            *config.Config
 	Log            *slog.Logger
 	Srv            *http.Server
@@ -41,11 +43,12 @@ func New() (*App, error) {
 		memStorage,
 	)
 
-	projectHandlers := handlers.New(log, metricsService)
+	projectHandlersV1 := v1.New(log, metricsService)
+	projectHandlersV2 := v2.New(log, metricsService)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(cfg.ServerAddr),
-		Handler:      router.NewChiRouter(log, projectHandlers),
+		Handler:      router.NewChiRouter(log, projectHandlersV1, projectHandlersV2),
 		ReadTimeout:  time.Duration(cfg.ServerReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(cfg.ServerWriteTimeout) * time.Second,
 		IdleTimeout:  time.Duration(cfg.ServerIdleTimeout) * time.Second,
@@ -53,7 +56,8 @@ func New() (*App, error) {
 
 	return &App{
 		MetricsService: metricsService,
-		Handlers:       projectHandlers,
+		HandlersV1:     projectHandlersV1,
+		HandlersV2:     projectHandlersV2,
 		Srv:            srv,
 		Cfg:            cfg,
 		Log:            log,

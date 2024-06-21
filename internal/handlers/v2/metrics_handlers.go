@@ -7,7 +7,6 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/lib/response"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"io"
@@ -38,32 +37,26 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-
-	fmt.Println("1111")
 	var reqMetrics Metrics
 	err := render.DecodeJSON(r.Body, &reqMetrics)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body
-			fmt.Println("2222 err")
+
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("empty request"))
 			return
 		}
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, response.Error("failed to decode request"))
-		fmt.Println("333 err")
 		return
 	}
-	fmt.Println("44444")
 	if err := validator.New().Struct(reqMetrics); err != nil {
-		fmt.Println("555 err")
 		validateErr := err.(validator.ValidationErrors)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, response.ValidationError(validateErr))
 		return
 	}
-	fmt.Println("6666")
 	ctx := context.Background()
 	metric, err := m.metricsService.GetOneMetricValue(
 		ctx, strings.ToLower(reqMetrics.ID),
@@ -102,11 +95,42 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, err := models.New(
-		chi.URLParam(r, "metric_type"),
-		chi.URLParam(r, "metric_name"),
-		chi.URLParam(r, "metric_value"),
-	)
+	var reqMetrics Metrics
+	err := render.DecodeJSON(r.Body, &reqMetrics)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			// Post with empty body
+
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, response.Error("empty request"))
+			return
+		}
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, response.Error("failed to decode request"))
+		return
+	}
+	if err := validator.New().Struct(reqMetrics); err != nil {
+		validateErr := err.(validator.ValidationErrors)
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, response.ValidationError(validateErr))
+		return
+	}
+
+	var metric models.MetricInteraction
+
+	if reqMetrics.MType == "counter" {
+		metric, err = models.New(
+			reqMetrics.MType,
+			reqMetrics.ID,
+			fmt.Sprintf("%d", *reqMetrics.Delta),
+		)
+	} else {
+		metric, err = models.New(
+			reqMetrics.MType,
+			reqMetrics.ID,
+			fmt.Sprintf("%f", *reqMetrics.Value),
+		)
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
