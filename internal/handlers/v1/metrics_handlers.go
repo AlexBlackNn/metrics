@@ -26,7 +26,7 @@ func New(log *slog.Logger, metricsService *metricsservice.MetricService) MetricH
 }
 
 func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
