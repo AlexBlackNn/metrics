@@ -12,18 +12,7 @@ type Response struct {
 	Result float64 `json:"result,omitempty"`
 }
 
-const (
-	StatusOK        = "Ok"
-	StatusInProcess = "InProcess "
-	StatusError     = "Error"
-	StatusResult    = "Result"
-)
-
-func OK() Response {
-	return Response{
-		Status: StatusOK,
-	}
-}
+const StatusError = "Error"
 
 func Error(msg string) Response {
 	return Response{
@@ -32,20 +21,7 @@ func Error(msg string) Response {
 	}
 }
 
-func InProcess(msg string) Response {
-	return Response{
-		Status: StatusInProcess,
-	}
-}
-
-func Result(result float64) Response {
-	return Response{
-		Status: StatusResult,
-		Result: result,
-	}
-}
-
-func ValidationError(errs validator.ValidationErrors) Response {
+func ValidationError(errs validator.ValidationErrors) string {
 	var errMsgs []string
 
 	for _, err := range errs {
@@ -57,8 +33,5 @@ func ValidationError(errs validator.ValidationErrors) Response {
 		}
 	}
 
-	return Response{
-		Status: StatusError,
-		Error:  strings.Join(errMsgs, ", "),
-	}
+	return strings.Join(errMsgs, ", ")
 }

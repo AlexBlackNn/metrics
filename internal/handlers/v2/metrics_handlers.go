@@ -17,60 +17,13 @@ import (
 )
 
 type Metrics struct {
-	ID    string   `json:"id"`                                  // имя метрики
-	MType string   `json:"type" validate:"oneof=gauge counter"` // параметр, принимающий значение gauge или counter
-	Delta *int64   `json:"delta,omitempty"`                     // значение метрики в случае передачи counter
-	Value *float64 `json:"value,omitempty"`                     // значение метрики в случае передачи gauge
+	ID    string   `json:"id"`                                  // metrics name
+	MType string   `json:"type" validate:"oneof=gauge counter"` // mType = counter || gauge
+	Delta *int64   `json:"delta,omitempty"`                     // exists if mType = counter
+	Value *float64 `json:"value,omitempty"`                     // exists if mType = gauge
 }
 
-type MetricHandlers struct {
-	log            *slog.Logger
-	metricsService *metricsservice.MetricService
-}
-
-func New(log *slog.Logger, metricsService *metricsservice.MetricService) MetricHandlers {
-	return MetricHandlers{log: log, metricsService: metricsService}
-}
-
-func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	var reqMetrics Metrics
-	err := render.DecodeJSON(r.Body, &reqMetrics)
-	if err != nil {
-		if errors.Is(err, io.EOF) {
-			// Post with empty body
-
-			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, response.Error("empty request"))
-			return
-		}
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, response.Error("failed to decode request"))
-		return
-	}
-	if err := validator.New().Struct(reqMetrics); err != nil {
-		validateErr := err.(validator.ValidationErrors)
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, response.ValidationError(validateErr))
-		return
-	}
-	ctx := context.Background()
-	metric, err := m.metricsService.GetOneMetricValue(
-		ctx, strings.ToLower(reqMetrics.ID),
-	)
-
-	if err != nil {
-		if errors.Is(err, metricsservice.ErrMetricNotFound) {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+func responseOK(w http.ResponseWriter, r *http.Request, metric models.MetricInteraction) {
 	if metric.GetType() == "counter" {
 		metricValue := int64(metric.GetValue().(uint64))
 		render.JSON(w, r, Metrics{
@@ -86,12 +39,63 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		MType: metric.GetType(),
 		Value: &metricValue,
 	})
-	return
+}
+
+func responseError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
+	render.Status(r, statusCode)
+	render.JSON(w, r, response.Error(message))
+}
+
+type MetricHandlers struct {
+	log            *slog.Logger
+	metricsService *metricsservice.MetricService
+}
+
+func New(log *slog.Logger, metricsService *metricsservice.MetricService) MetricHandlers {
+	return MetricHandlers{log: log, metricsService: metricsService}
+}
+
+func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+	var reqMetrics Metrics
+	err := render.DecodeJSON(r.Body, &reqMetrics)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			// Post with empty body
+			responseError(w, r, http.StatusBadRequest, "empty request")
+			return
+		}
+		responseError(w, r, http.StatusBadRequest, "failed to decode request")
+		return
+	}
+	if err := validator.New().Struct(reqMetrics); err != nil {
+		validateErr := err.(validator.ValidationErrors)
+		errorText := response.ValidationError(validateErr)
+		responseError(w, r, http.StatusBadRequest, errorText)
+		return
+	}
+	ctx := context.Background()
+	metric, err := m.metricsService.GetOneMetricValue(
+		ctx, strings.ToLower(reqMetrics.ID),
+	)
+
+	if err != nil {
+		if errors.Is(err, metricsservice.ErrMetricNotFound) {
+			responseError(w, r, http.StatusNotFound, "metric not found")
+			return
+		}
+		responseError(w, r, http.StatusInternalServerError, "internal server error")
+		return
+	}
+	responseOK(w, r, metric)
 }
 
 func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
@@ -100,19 +104,16 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body
-
-			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, response.Error("empty request"))
+			responseError(w, r, http.StatusBadRequest, "empty request")
 			return
 		}
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, response.Error("failed to decode request"))
+		responseError(w, r, http.StatusBadRequest, "failed to decode request")
 		return
 	}
 	if err := validator.New().Struct(reqMetrics); err != nil {
 		validateErr := err.(validator.ValidationErrors)
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, response.ValidationError(validateErr))
+		errorText := response.ValidationError(validateErr)
+		responseError(w, r, http.StatusBadRequest, errorText)
 		return
 	}
 

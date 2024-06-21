@@ -10,6 +10,7 @@ LOG_FILE="test_log_file.txt"
 ./metricstest -test.v -test.run=^TestIteration4 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. --server-port 8000 >> "$LOG_FILE" 2>&1
 ./metricstest -test.v -test.run=^TestIteration5 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. --server-port 8001 >> "$LOG_FILE" 2>&1
 ./metricstest -test.v -test.run=^TestIteration6 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. >> "$LOG_FILE" 2>&1
+./metricstest -test.v -test.run=^TestIteration7 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. >> "$LOG_FILE" 2>&1
 
 # Process the log file to find failed tests
 while read line; do
