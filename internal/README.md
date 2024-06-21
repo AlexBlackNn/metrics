@@ -61,6 +61,9 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"tes
 ```bash
 curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter","delta":10}' http://localhost:8080/update/
 ```
+```bash
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter"}' http://localhost:8080/value/
+```
 
 
 ```bash

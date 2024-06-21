@@ -13,7 +13,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type Metrics struct {
@@ -21,29 +20,6 @@ type Metrics struct {
 	MType string   `json:"type" validate:"oneof=gauge counter"` // mType = counter || gauge
 	Delta *int64   `json:"delta,omitempty"`                     // exists if mType = counter
 	Value *float64 `json:"value,omitempty"`                     // exists if mType = gauge
-}
-
-func responseOK(w http.ResponseWriter, r *http.Request, metric models.MetricInteraction) {
-	if metric.GetType() == "counter" {
-		metricValue := int64(metric.GetValue().(uint64))
-		render.JSON(w, r, Metrics{
-			ID:    metric.GetName(),
-			MType: metric.GetType(),
-			Delta: &metricValue,
-		})
-		return
-	}
-	metricValue := metric.GetValue().(float64)
-	render.JSON(w, r, Metrics{
-		ID:    metric.GetName(),
-		MType: metric.GetType(),
-		Value: &metricValue,
-	})
-}
-
-func responseError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	render.Status(r, statusCode)
-	render.JSON(w, r, response.Error(message))
 }
 
 type MetricHandlers struct {
@@ -119,6 +95,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 
 	var metric models.MetricInteraction
 
+	// TODO must be in service layer
 	if reqMetrics.MType == "counter" {
 		metric, err = models.New(
 			reqMetrics.MType,
@@ -133,22 +110,19 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		)
 	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		responseError(w, r, http.StatusBadRequest, "metric value conversion error")
 		return
 	}
 
 	ctx := context.Background()
 	err = m.metricsService.UpdateMetricValue(ctx, metric)
-	if errors.Is(err, metricsservice.ErrNotValidURL) {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if errors.Is(err, metricsservice.ErrNotValidURL) {
+			responseError(w, r, http.StatusNotFound, err.Error())
+			return
+		}
+		responseError(w, r, http.StatusInternalServerError, "internal server error")
 		return
 	}
-
-	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	responseOK(w, r, metric)
 }
