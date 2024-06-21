@@ -1,4 +1,4 @@
-package handlers
+package v1
 
 import (
 	"context"
@@ -26,7 +26,7 @@ func New(log *slog.Logger, metricsService *metricsservice.MetricService) MetricH
 }
 
 func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}

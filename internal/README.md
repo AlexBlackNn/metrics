@@ -33,12 +33,31 @@ curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge
 ```
 
 ```bash
-curl -v -H "Content-Type: text/plain" -X POST http://localhost:8000/update/gauge/Lookups/20.4
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge/Lookups/20.4
 ```
 
 ```bash
 curl http://localhost:8080/value/gauge/Lookups
 ```
+
+---------V2-----------
+```bash
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge/Lookups/21.4
+```
+```bash
+curl --header "Content-Type: application/json" --request POST --data '{"id":"Lookups","type":"counter"}' http://localhost:8080/value
+```
+
+
+```bash
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/counter/testCounter1/10
+```
+```bash
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter"}' http://localhost:8080/value
+```
+
+
+
 
 
 how to install golint
