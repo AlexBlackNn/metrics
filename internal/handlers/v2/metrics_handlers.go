@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/AlexBlackNn/metrics/internal/lib/response"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
@@ -14,13 +13,6 @@ import (
 	"net/http"
 	"strings"
 )
-
-type Metrics struct {
-	ID    string   `json:"id"`                                  // metrics name
-	MType string   `json:"type" validate:"oneof=gauge counter"` // mType = counter || gauge
-	Delta *int64   `json:"delta,omitempty"`                     // exists if mType = counter
-	Value *float64 `json:"value,omitempty"`                     // exists if mType = gauge
-}
 
 type MetricHandlers struct {
 	log            *slog.Logger
@@ -49,7 +41,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := validator.New().Struct(reqMetrics); err != nil {
 		validateErr := err.(validator.ValidationErrors)
-		errorText := response.ValidationError(validateErr)
+		errorText := ValidationError(validateErr)
 		responseError(w, r, http.StatusBadRequest, errorText)
 		return
 	}
@@ -88,7 +80,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := validator.New().Struct(reqMetrics); err != nil {
 		validateErr := err.(validator.ValidationErrors)
-		errorText := response.ValidationError(validateErr)
+		errorText := ValidationError(validateErr)
 		responseError(w, r, http.StatusBadRequest, errorText)
 		return
 	}

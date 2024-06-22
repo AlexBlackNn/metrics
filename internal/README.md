@@ -86,10 +86,9 @@ iter 2
 go build -o agent *.go
 ```
 
-```bash
-./metricstest -test.v -test.run=^TestIteration2 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server
-./metricstest -test.v -test.run=^TestIteration2A -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=.
-./metricstest -test.v -test.run=^TestIteration2B -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=.
- ./metricstest -test.v -test.run=^TestIteration4 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. --server-port 8084
-```
+
+
+sudo apt install golang-easyjson
+easyjson -all /home/alex/Dev/GolandYandex/metrics/internal/handlers/v2/metrics_handlers.go 
+
 
