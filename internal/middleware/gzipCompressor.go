@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"compress/gzip"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -26,20 +25,18 @@ func (w *gzipWriter) Header() http.Header {
 
 func (w *gzipWriter) WriteHeader(statusCode int) {
 	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") && !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
-		fmt.Println(11111)
 		w.ResWriter.WriteHeader(statusCode)
+		return
 	}
-	fmt.Println(222222)
 	w.ResWriter.Header().Set("Content-Encoding", "gzip")
 	w.ResWriter.WriteHeader(statusCode)
 }
 
 func (w *gzipWriter) Write(b []byte) (int, error) {
+
 	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") && !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
-		fmt.Println(33333)
 		return w.ResWriter.Write(b)
 	}
-	fmt.Println(4444)
 	return w.Writer.Write(b)
 }
 

@@ -96,7 +96,6 @@ curl -v --header "Accept-Encoding: gzip" --request GET  http://localhost:8080/ -
 
 
 
-
 how to install golint
 https://command-not-found.com/golint
 
