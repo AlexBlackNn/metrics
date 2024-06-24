@@ -15,6 +15,7 @@ func NewChiRouter(log *slog.Logger, metricHandlerV1 v1.MetricHandlers, metricHan
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(customMiddleware.Logger(log))
+	router.Use(customMiddleware.GzipCompressor(log))
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {

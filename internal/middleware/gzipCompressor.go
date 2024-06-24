@@ -21,23 +21,25 @@ type gzipWriter struct {
 }
 
 func (w *gzipWriter) Header() http.Header {
-	if !strings.Contains(strings.Join(compressibleContentTypes, " "), w.ResWriter.Header().Get("Content-Type")) {
-		fmt.Println("1111111111", strings.Contains(strings.Join(compressibleContentTypes, " "), w.ResWriter.Header().Get("Content-Type")))
-		return w.ResWriter.Header()
-	}
-	w.ResWriter.Header().Set("Content-Encoding", "gzip")
-	fmt.Println("2222222222", strings.Contains(strings.Join(compressibleContentTypes, " "), w.ResWriter.Header().Get("Content-Type")))
 	return w.ResWriter.Header()
 }
 
 func (w *gzipWriter) WriteHeader(statusCode int) {
+	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") && !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
+		fmt.Println(11111)
+		w.ResWriter.WriteHeader(statusCode)
+	}
+	fmt.Println(222222)
+	w.ResWriter.Header().Set("Content-Encoding", "gzip")
 	w.ResWriter.WriteHeader(statusCode)
 }
 
 func (w *gzipWriter) Write(b []byte) (int, error) {
-	if !strings.Contains(strings.Join(compressibleContentTypes, " "), w.ResWriter.Header().Get("Content-Type")) {
+	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") && !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
+		fmt.Println(33333)
 		return w.ResWriter.Write(b)
 	}
+	fmt.Println(4444)
 	return w.Writer.Write(b)
 }
 
