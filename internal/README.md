@@ -86,11 +86,11 @@ curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/jso
 ```
 
 ```bash
-curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter"}' http://localhost:8080/value/ --compressed
+curl -v --request GET  http://localhost:8080/
 ```
 
 ```bash
-curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter"}' http://localhost:8080/value/ --compressed
+curl -v --header "Accept-Encoding: gzip" --request GET  http://localhost:8080/ --compressed
 ```
 
 
