@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -16,7 +17,7 @@ var compressibleContentTypes = []string{
 
 type gzipWriter struct {
 	ResWriter http.ResponseWriter
-	Writer    io.WriteCloser
+	Writer    *gzip.Writer
 }
 
 func (w *gzipWriter) Header() http.Header {
@@ -37,7 +38,12 @@ func (w *gzipWriter) Write(b []byte) (int, error) {
 	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") && !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
 		return w.ResWriter.Write(b)
 	}
-	defer w.Writer.Close()
+	defer func(Writer *gzip.Writer) {
+		err := Writer.Flush()
+		if err != nil {
+			fmt.Println("11123123123123213123123", err.Error())
+		}
+	}(w.Writer)
 	return w.Writer.Write(b)
 }
 
