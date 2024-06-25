@@ -45,7 +45,7 @@ curl http://localhost:8080/value/gauge/Lookups
 curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/update/gauge/Lookups/21.4
 ```
 ```bash
-curl --header "Content-Type: application/json" --request POST --data '{"id":"Lookups","type":"counter"}' http://localhost:8080/value
+curl --header "Content-Type: application/json" --request POST --data '{"id":"Lookups","type":"gauge"}' http://localhost:8080/value/
 ```
 
 
