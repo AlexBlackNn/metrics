@@ -16,7 +16,7 @@ var compressibleContentTypes = []string{
 
 type gzipWriter struct {
 	ResWriter http.ResponseWriter
-	Writer    io.Writer
+	Writer    io.WriteCloser
 }
 
 func (w *gzipWriter) Header() http.Header {
@@ -37,7 +37,12 @@ func (w *gzipWriter) Write(b []byte) (int, error) {
 	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") && !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
 		return w.ResWriter.Write(b)
 	}
+	defer w.Writer.Close()
 	return w.Writer.Write(b)
+}
+
+func (w *gzipWriter) Close() error {
+	return w.Writer.Close()
 }
 
 func GzipCompressor(log *slog.Logger) func(next http.Handler) http.Handler {
@@ -60,7 +65,6 @@ func GzipCompressor(log *slog.Logger) func(next http.Handler) http.Handler {
 				io.WriteString(w, err.Error())
 				return
 			}
-			defer gzipWr.Close()
 
 			next.ServeHTTP(&gzipWriter{ResWriter: w, Writer: gzipWr}, r)
 		}
