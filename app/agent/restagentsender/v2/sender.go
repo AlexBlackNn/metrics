@@ -42,44 +42,38 @@ func (mhs *Sender) Send(ctx context.Context) {
 				go func(savedMetric models.MetricInteraction) {
 					restyClient := resty.New()
 					restyClient.
-						SetRetryCount(3).
-						SetRetryWaitTime(30 * time.Second).
-						SetRetryMaxWaitTime(90 * time.Second)
+						SetRetryCount(mhs.cfg.AgentRetryCount).
+						SetRetryWaitTime(time.Duration(mhs.cfg.AgentRetryWaitTime) * time.Second).
+						SetRetryMaxWaitTime(time.Duration(mhs.cfg.AgentRetryMaxWaitTime) * time.Second)
 
-					var resp *resty.Response
-					var err error
+					var body string
+					if savedMetric.GetType() == "counter" {
+						body = fmt.Sprintf(`{"id":"%s", "type":"%s", "delta": %d}`,
+							savedMetric.GetName(),
+							savedMetric.GetType(),
+							savedMetric.GetValue(),
+						)
+					} else {
+						body = fmt.Sprintf(`{"id":"%s", "type":"%s", "value": %v}`,
+							savedMetric.GetName(),
+							savedMetric.GetType(),
+							savedMetric.GetValue(),
+						)
+					}
 					url := fmt.Sprintf("http://%s/update/", mhs.cfg.ServerAddr)
 					log.Info("sending data", "url", url)
-					if savedMetric.GetType() == "counter" {
-						body := fmt.Sprintf(`{"id":"%s", "type":"%s", "delta": %d}`,
-							savedMetric.GetName(),
-							savedMetric.GetType(),
-							savedMetric.GetValue(),
-						)
-						fmt.Println("1111111111111111111111", body)
-						resp, err = restyClient.R().
-							SetHeader("Content-Type", "application/json").
-							SetBody(body).
-							Post(url)
-					} else {
-						fmt.Println(savedMetric.GetName(), savedMetric.GetType())
-						body := fmt.Sprintf(`{"id":"%s", "type":"%s", "value": %v}`,
-							savedMetric.GetName(),
-							savedMetric.GetType(),
-							savedMetric.GetValue(),
-						)
-						fmt.Println("222222222222222222222222", body)
-						resp, err = restyClient.R().
-							SetHeader("Content-Type", "application/json").
-							SetBody(body).
-							Post(url)
-					}
+					resp, err := restyClient.R().
+						SetHeader("Content-Type", "application/json").
+						SetBody(body).
+						Post(url)
 					if err != nil {
 						log.Error("error creating http request")
 					}
-					log.Info("http request finished successfully", "url", url)
-					fmt.Println(resp)
-					fmt.Println(resp.StatusCode())
+					log.Info("http request finished successfully",
+						"url", url,
+						"statusCode", resp.StatusCode(),
+						"body", string(resp.Body()),
+					)
 				}(savedMetric)
 			}
 			<-time.After(time.Duration(mhs.cfg.ReportInterval) * time.Second)
