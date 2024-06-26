@@ -52,7 +52,12 @@ func GzipDecompressor(log *slog.Logger) func(next http.Handler) http.Handler {
 					return
 				}
 				r.Body = cr
-				defer cr.Close()
+				defer func(cr *compressReader) {
+					err := cr.Close()
+					if err != nil {
+						log.Error("error closing gzip reader", "err", err.Error())
+					}
+				}(cr)
 			}
 			next.ServeHTTP(w, r)
 		}
