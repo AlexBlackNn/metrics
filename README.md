@@ -31,4 +31,5 @@ git fetch template && git checkout template/main .github
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
 
-
+RESTY USEFUL
+https://www.alldevstack.com/ru/go-resty-tutorial/go-resty-quickstart.html
