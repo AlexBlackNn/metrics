@@ -10,14 +10,17 @@ import (
 
 // Config consists project settings
 type Config struct {
-	Env                string `yaml:"env" env-default:"local" env:"ENV"`
-	ServerAddr         string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
-	PollInterval       int    `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
-	ReportInterval     int    `yaml:"report_interval" env-default:"5" env:"REPORT_INTERVAL"`
-	ClientTimeout      int    `yaml:"client_timeout" env:"CLIENT_TIMEOUT"`
-	ServerReadTimeout  int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
-	ServerWriteTimeout int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
-	ServerIdleTimeout  int    `yaml:"server_idle_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	Env                   string `yaml:"env" env-default:"local" env:"ENV"`
+	ServerAddr            string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
+	PollInterval          int    `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
+	ReportInterval        int    `yaml:"report_interval" env-default:"5" env:"REPORT_INTERVAL"`
+	ClientTimeout         int    `yaml:"client_timeout" env:"CLIENT_TIMEOUT"`
+	ServerReadTimeout     int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	ServerWriteTimeout    int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	ServerIdleTimeout     int    `yaml:"server_idle_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	AgentRetryCount       int    `yaml:"agent_retry_count" env-default:"3" env:"AGENT_RETRY_COUNT" envDefault:"3"`
+	AgentRetryWaitTime    int    `yaml:"agent_retry_wait_time" env-default:"30" env:"AGENT_RETRY_WAIT_TIME" envDefault:"30"`
+	AgentRetryMaxWaitTime int    `yaml:"agent_retry_max_wait_time" env-default:"90" env:"AGENT_RETRY_MAX_WAIT_TIME" envDefault:"90"`
 }
 
 func (c *Config) String() string {
