@@ -1,4 +1,4 @@
-package restagentsender
+package v1
 
 import (
 	"context"
