@@ -1,9 +1,9 @@
 package router
 
 import (
+	"compress/gzip"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v2"
-
 	customMiddleware "github.com/AlexBlackNn/metrics/internal/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -15,7 +15,9 @@ func NewChiRouter(log *slog.Logger, metricHandlerV1 v1.MetricHandlers, metricHan
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(customMiddleware.Logger(log))
-	router.Use(customMiddleware.GzipCompressor(log))
+	router.Use(customMiddleware.GzipDecompressor(log))
+	router.Use(customMiddleware.GzipCompressor(log, gzip.BestCompression))
+
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {

@@ -5,11 +5,11 @@
 go run ./cmd/server/main.go  --config="./cmd/server/config/demo.yaml"
 
 ```bash
-curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8076/update/gauge/param1/2
+curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8080/update/gauge/param1/2
 ```
 
 ```bash
-curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8076/update/gauge1/param1/2
+curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8080/update/gauge1/param1/2
 ```
 
 ## Tests
@@ -75,6 +75,10 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"tes
 
 
 ----------------
+```bash
+curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8080/update/gauge/param1/2
+```
+
 ```bash
 curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter","delta":10}' http://localhost:8080/update/
 ```
