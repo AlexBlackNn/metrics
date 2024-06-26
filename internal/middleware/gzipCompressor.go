@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"compress/gzip"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 // content type to compress data
@@ -15,16 +15,34 @@ var compressibleContentTypes = []string{
 	"text/html",
 }
 
-type gzipWriter struct {
-	ResWriter http.ResponseWriter
-	Writer    *gzip.Writer
+var GzipSingleton = make(map[string]*GzipWriter)
+var lock = &sync.Mutex{}
+
+type GzipWriter struct {
+	ResWriter       http.ResponseWriter
+	Writer          *gzip.Writer
+	GzipWriterMutex sync.Mutex
 }
 
-func (w *gzipWriter) Header() http.Header {
+func New(resWriter http.ResponseWriter, level int) (*GzipWriter, error) {
+	lock.Lock()
+	defer lock.Unlock()
+	if gzipWriter, ok := GzipSingleton["gzip"]; ok {
+		return gzipWriter, nil
+	}
+	gzipWr, err := gzip.NewWriterLevel(resWriter, level)
+	if err != nil {
+		io.WriteString(resWriter, err.Error())
+		return nil, err
+	}
+	return &GzipWriter{ResWriter: resWriter, Writer: gzipWr}, nil
+}
+
+func (w *GzipWriter) Header() http.Header {
 	return w.ResWriter.Header()
 }
 
-func (w *gzipWriter) WriteHeader(statusCode int) {
+func (w *GzipWriter) WriteHeader(statusCode int) {
 	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") && !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
 		w.ResWriter.WriteHeader(statusCode)
 		return
@@ -33,7 +51,7 @@ func (w *gzipWriter) WriteHeader(statusCode int) {
 	w.ResWriter.WriteHeader(statusCode)
 }
 
-func (w *gzipWriter) Write(b []byte) (int, error) {
+func (w *GzipWriter) Write(b []byte) (int, error) {
 
 	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") && !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
 		return w.ResWriter.Write(b)
@@ -41,13 +59,13 @@ func (w *gzipWriter) Write(b []byte) (int, error) {
 	defer func(Writer *gzip.Writer) {
 		err := Writer.Flush()
 		if err != nil {
-			fmt.Println("11123123123123213123123", err.Error())
+			io.WriteString(w, err.Error())
 		}
 	}(w.Writer)
 	return w.Writer.Write(b)
 }
 
-func (w *gzipWriter) Close() error {
+func (w *GzipWriter) Close() error {
 	return w.Writer.Close()
 }
 
@@ -58,7 +76,6 @@ func GzipCompressor(log *slog.Logger) func(next http.Handler) http.Handler {
 		)
 
 		log.Info("gzip middleware enabled")
-
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if !strings.Contains(strings.Join(r.Header.Values("Accept-Encoding"), " "), "gzip") {
 				// if gzip is not supported then return uncompressed page
@@ -66,13 +83,12 @@ func GzipCompressor(log *slog.Logger) func(next http.Handler) http.Handler {
 				return
 			}
 			log.Info("gzip is supported")
-			gzipWr, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
+			gzipWr, err := New(w, gzip.BestSpeed)
 			if err != nil {
 				io.WriteString(w, err.Error())
 				return
 			}
-
-			next.ServeHTTP(&gzipWriter{ResWriter: w, Writer: gzipWr}, r)
+			next.ServeHTTP(gzipWr, r)
 		}
 
 		return http.HandlerFunc(fn)
