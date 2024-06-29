@@ -35,7 +35,7 @@ func New() (*App, error) {
 	log := logger.New(cfg.Env)
 
 	// err is now skipped, but when migratings to postgres/sqlite/etc... err will be checked
-	memStorage, _ := memstorage.New()
+	memStorage, _ := memstorage.New(cfg)
 
 	metricsService := metricsservice.New(
 		log,
