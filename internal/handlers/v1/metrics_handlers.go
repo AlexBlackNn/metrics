@@ -33,7 +33,7 @@ func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 	metrics, err := m.metricsService.GetAllMetrics(ctx)
-
+	fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!", metrics)
 	if errors.Is(err, metricsservice.ErrMetricNotFound) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

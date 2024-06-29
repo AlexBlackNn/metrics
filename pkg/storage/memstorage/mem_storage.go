@@ -60,7 +60,7 @@ func (s *MemStorage) RestoreMetrics() error {
 	}
 	err = s.db.decode(tmpBuffer)
 	if err != nil {
-		fmt.Println("FINISH RESTORE METRICS 2")
+		fmt.Println("FINISH RESTORE METRICS 2", err)
 		return ErrFailedToRestoreMetrics
 	}
 	fmt.Println("FINISH RESTORE METRICS 3")
