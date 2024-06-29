@@ -53,6 +53,7 @@ func (db *DataBase) UnmarshalJSON(data []byte) (err error) {
 	// чтобы избежать рекурсии при json.Unmarshal, объявляем новый тип
 	type DataBaseAlias DataBase
 
+	fmt.Println("1111111111111111111", string(data))
 	aliasValue := &struct {
 		*DataBaseAlias
 	}{
@@ -67,7 +68,9 @@ func (db *DataBase) UnmarshalJSON(data []byte) (err error) {
 
 func (db *DataBase) decode(data []byte) error {
 	tempDB := make(map[string]MetricData)
+	var realDB DataBase
 	err := json.Unmarshal(data, &tempDB)
+	err = json.Unmarshal(data, &realDB)
 	if err != nil {
 		return err
 	}
