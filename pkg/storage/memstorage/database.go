@@ -49,6 +49,17 @@ func (db *DataBase) encode() ([]byte, error) {
 	return jsonData, nil
 }
 
+func (db DataBase) MarshalJSON() ([]byte, error) {
+	// чтобы избежать рекурсии при json.Unmarshal, объявляем новый тип
+	fmt.Println("[[[[[[[[[[[[[[[[[[[[[[[[[")
+	var dataMetric []models.MetricInteraction
+	for _, v := range db {
+		dataMetric = append(dataMetric, v)
+	}
+	fmt.Println("++++++++++", dataMetric)
+	return json.Marshal(dataMetric)
+}
+
 func (db *DataBase) UnmarshalJSON(data []byte) (err error) {
 	// чтобы избежать рекурсии при json.Unmarshal, объявляем новый тип
 	type DataBaseAlias DataBase
