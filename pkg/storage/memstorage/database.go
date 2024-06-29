@@ -12,31 +12,14 @@ type MetricData struct {
 	Value any    `json:"Value"`
 }
 
-func (m *MetricData) GetType() string {
-	return m.Type
-}
-
-func (m *MetricData) GetName() string {
-	return m.Name
-}
-
-func (m *MetricData) GetValue() any {
-	return m.Value
-}
-
 func (m *MetricData) GetStringValue() string {
 
-	switch m.GetValue().(type) {
-	case uint64, uint32:
-		return fmt.Sprintf("%d", m.GetValue())
+	switch m.Type {
+	case "counter":
+		return fmt.Sprintf("%d", m.Value)
 	default:
-		return fmt.Sprintf("%f", m.GetValue())
+		return fmt.Sprintf("%f", m.Value)
 	}
-}
-
-// AddValue adds the value of another Metric to the current Metric
-func (m *MetricData) AddValue(other models.MetricInteraction) error {
-	return nil
 }
 
 type DataBase map[string]models.MetricInteraction
@@ -51,43 +34,39 @@ func (db *DataBase) encode() ([]byte, error) {
 
 func (db DataBase) MarshalJSON() ([]byte, error) {
 	// чтобы избежать рекурсии при json.Unmarshal, объявляем новый тип
-	fmt.Println("[[[[[[[[[[[[[[[[[[[[[[[[[")
 	var dataMetric []models.MetricInteraction
 	for _, v := range db {
 		dataMetric = append(dataMetric, v)
 	}
-	fmt.Println("++++++++++", dataMetric)
 	return json.Marshal(dataMetric)
 }
 
-func (db *DataBase) UnmarshalJSON(data []byte) (err error) {
-	// чтобы избежать рекурсии при json.Unmarshal, объявляем новый тип
-	type DataBaseAlias DataBase
+func (db *DataBase) UnmarshalJSON(data []byte) error {
+	var dataMetric []MetricData
 
-	fmt.Println("1111111111111111111", string(data))
-	aliasValue := &struct {
-		*DataBaseAlias
-	}{
-		DataBaseAlias: (*DataBaseAlias)(db),
+	if err := json.Unmarshal(data, &dataMetric); err != nil {
+		fmt.Println("***********", err)
+		return err
 	}
-	// вызываем стандартный Unmarshal
-	if err = json.Unmarshal(data, aliasValue); err != nil {
-		return
+	for _, v := range dataMetric {
+		v := v
+		fmt.Println("---------", v.Type, v.Name, v.GetStringValue())
+		metric, err := models.New(v.Type, v.Name, v.GetStringValue())
+		if err != nil {
+			fmt.Println("(((((((((((((", err)
+			return err
+		}
+		fmt.Println(")))))))))))", metric)
+		(*db)[v.Name] = metric
 	}
-	return
+	return nil
 }
 
 func (db *DataBase) decode(data []byte) error {
-	tempDB := make(map[string]MetricData)
 	var realDB DataBase
-	err := json.Unmarshal(data, &tempDB)
-	err = json.Unmarshal(data, &realDB)
+	err := json.Unmarshal(data, &realDB)
 	if err != nil {
 		return err
-	}
-	for k, v := range tempDB {
-		v := v
-		(*db)[k] = &v
 	}
 	return nil
 }
