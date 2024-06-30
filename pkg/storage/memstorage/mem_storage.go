@@ -44,7 +44,12 @@ func New(cfg *config.Config) (*MemStorage, error) {
 func (s *MemStorage) RestoreMetrics() error {
 	fmt.Println("START RESTORE METRICS")
 	file, err := os.OpenFile(s.cfg.ServerFileStoragePath, os.O_RDONLY, 0777)
-	defer file.Close()
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
 
 	reader := bufio.NewReader(file)
 
@@ -62,7 +67,12 @@ func (s *MemStorage) RestoreMetrics() error {
 func (s *MemStorage) SaveMetrics() error {
 
 	file, err := os.OpenFile(s.cfg.ServerFileStoragePath, os.O_WRONLY|os.O_CREATE, 0777)
-	defer file.Close()
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
 	writer := bufio.NewWriter(file)
 	defer writer.Flush()
 
