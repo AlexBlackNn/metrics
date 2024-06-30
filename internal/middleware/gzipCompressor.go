@@ -41,7 +41,6 @@ func (w *GzipWriter) Write(b []byte) (int, error) {
 		}
 
 	}(w.Writer)
-
 	return w.Writer.Write(b)
 }
 
@@ -64,12 +63,6 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 			log.Info("gzip is supported")
 
 			gzipWr, err := gzip.NewWriterLevel(w, compressorLevel)
-			defer func(gzipWr *gzip.Writer) {
-				err := gzipWr.Close()
-				if err != nil {
-					log.Error("error closing gzip writer", "err", err.Error())
-				}
-			}(gzipWr)
 			if err != nil {
 				io.WriteString(w, err.Error())
 				return

@@ -30,6 +30,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	}
 	var reqMetrics Metrics
 	err := render.DecodeJSON(r.Body, &reqMetrics)
+	fmt.Println("1111111111 GetOneMetric 1111111", reqMetrics)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body
@@ -62,6 +63,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("1111111111 UpdateMetric 1111111")
 	if r.Method != http.MethodPost {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -69,6 +71,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 
 	var reqMetrics Metrics
 	err := render.DecodeJSON(r.Body, &reqMetrics)
+	fmt.Println("1111111111 UpdateMetric 1111111", reqMetrics)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body
