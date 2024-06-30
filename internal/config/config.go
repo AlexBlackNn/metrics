@@ -12,8 +12,8 @@ import (
 type Config struct {
 	Env                   string `yaml:"env" env-default:"local" env:"ENV"`
 	ServerAddr            string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
-	PollInterval          int    `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
-	ReportInterval        int    `yaml:"report_interval" env-default:"5" env:"REPORT_INTERVAL"`
+	PollInterval          int    `yaml:"poll_interval" env-default:"1" env:"POLL_INTERVAL"`
+	ReportInterval        int    `yaml:"report_interval" env-default:"1" env:"REPORT_INTERVAL"`
 	ClientTimeout         int    `yaml:"client_timeout" env:"CLIENT_TIMEOUT"`
 	ServerReadTimeout     int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerWriteTimeout    int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
@@ -58,8 +58,8 @@ func New() (*Config, error) {
 
 	flag.StringVar(&cfg.Env, "e", "local", "project environment")
 	flag.StringVar(&cfg.ServerAddr, "a", ":8080", "host address")
-	flag.IntVar(&cfg.ReportInterval, "r", 10, "metrics report interval")
-	flag.IntVar(&cfg.PollInterval, "p", 2, "metrics poll interval")
+	flag.IntVar(&cfg.ReportInterval, "r", 2, "metrics report interval")
+	flag.IntVar(&cfg.PollInterval, "p", 5, "metrics poll interval")
 	flag.IntVar(&cfg.ClientTimeout, "t", 100, "agent request timeout")
 	flag.IntVar(&cfg.ServerStoreInterval, "i", 300, "metrics store interval")
 	flag.StringVar(&cfg.ServerFileStoragePath, "f", "/tmp/metrics-db.json", "metrics store path")

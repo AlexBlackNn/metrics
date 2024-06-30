@@ -28,18 +28,14 @@ func New(cfg *config.Config) (*MemStorage, error) {
 		cfg:   cfg,
 		db:    make(DataBase),
 	}
-	fmt.Println("11111111111111", memStorage)
 	if cfg.ServerRestore {
 		err := memStorage.RestoreMetrics()
 		if err != nil {
 			if errors.Is(err, ErrFailedToRestoreMetrics) {
-				fmt.Println("222222222222222", err)
 				return &memStorage, nil
 			}
-			fmt.Println("3333333333333", err)
 			return nil, err
 		}
-		fmt.Println("44444444444", memStorage)
 		return &memStorage, nil
 	}
 	return &memStorage, nil
@@ -54,16 +50,12 @@ func (s *MemStorage) RestoreMetrics() error {
 
 	tmpBuffer, err := io.ReadAll(reader)
 	if err != nil {
-		fmt.Println("((((((", err)
-		fmt.Println("FINISH RESTORE METRICS 1")
 		return ErrFailedToRestoreMetrics
 	}
 	err = s.db.decode(tmpBuffer)
 	if err != nil {
-		fmt.Println("FINISH RESTORE METRICS 2", err)
 		return ErrFailedToRestoreMetrics
 	}
-	fmt.Println("FINISH RESTORE METRICS 3")
 	return nil
 }
 
@@ -78,11 +70,7 @@ func (s *MemStorage) SaveMetrics() error {
 	if err != nil {
 		return err
 	}
-	n, err := writer.Write(dataBaseBytes)
-
-	fmt.Println("==============>>>", n)
-	fmt.Println("==============>>>", dataBaseBytes, string(dataBaseBytes))
-	fmt.Println("==============>>>", err)
+	_, err = writer.Write(dataBaseBytes)
 	if err != nil {
 		return err
 	}

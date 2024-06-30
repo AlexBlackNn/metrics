@@ -2,7 +2,6 @@ package memstorage
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 )
 
@@ -25,7 +24,6 @@ func (db *DataBase) UnmarshalJSON(data []byte) error {
 	}
 	for _, v := range TempDBMetric {
 		v := v
-		fmt.Println(v.Type, v.Name, v.GetStringValue())
 		metric, err := models.New(v.Type, v.Name, v.GetStringValue())
 		if err != nil {
 			return err
