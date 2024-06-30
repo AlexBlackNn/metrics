@@ -76,17 +76,19 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"tes
 
 ----------------
 ```bash
-curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8080/update/gauge/param1/2
-```
-
-```bash
-curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter","delta":10}' http://localhost:8080/update/
+curl -v -H "Content-Type: text/plain" -X POST  http://localhost:8080/update/gauge/param2/2
 ```
 ```bash
-curl -v --header "Content-Type: application/json" --request POST --data '{"id":"testCounter111","type":"counter"}' http://localhost:8080/value/
+curl -v -H "Content-Type: text/plain" -X GET  http://localhost:8080/value/gauge/param2
 ```
 ```bash
-curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"testCounter1","type":"counter"}' http://localhost:8080/value/ --compressed
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter","delta":10}' http://localhost:8080/update/
+```
+```bash
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter"}' http://localhost:8080/value/
+```
+```bash
+curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter"}' http://localhost:8080/value/ --compressed
 ```
 
 ```bash
