@@ -36,7 +36,7 @@ func (m *TempMetric) GetStringValue() string {
 			return fmt.Sprintf("%d", value)
 		}
 	default:
-		return fmt.Sprintf("%f", m.GetValue())
+		return fmt.Sprintf("%g", m.GetValue())
 	}
 	return ""
 }
