@@ -21,7 +21,6 @@ func (db *DataBase) UnmarshalJSON(data []byte) error {
 	var TempDBMetric map[string]TempMetric
 
 	if err := json.Unmarshal(data, &TempDBMetric); err != nil {
-		fmt.Println("***********", err)
 		return err
 	}
 	for _, v := range TempDBMetric {
@@ -29,10 +28,8 @@ func (db *DataBase) UnmarshalJSON(data []byte) error {
 		fmt.Println(v.Type, v.Name, v.GetStringValue())
 		metric, err := models.New(v.Type, v.Name, v.GetStringValue())
 		if err != nil {
-			fmt.Println("(((((((((((((", err)
 			return err
 		}
-		fmt.Println(")))))))))))", metric)
 		(*db)[v.Name] = metric
 	}
 	return nil
@@ -40,7 +37,6 @@ func (db *DataBase) UnmarshalJSON(data []byte) error {
 
 func (db *DataBase) decode(data []byte) error {
 	err := json.Unmarshal(data, &db)
-	fmt.Println("111111111", db)
 	if err != nil {
 		return err
 	}
