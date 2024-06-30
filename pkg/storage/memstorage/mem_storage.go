@@ -34,7 +34,7 @@ func New(cfg *config.Config) (*MemStorage, error) {
 			if errors.Is(err, ErrFailedToRestoreMetrics) {
 				return &memStorage, nil
 			}
-			return nil, err
+			return &memStorage, nil
 		}
 		return &memStorage, nil
 	}
