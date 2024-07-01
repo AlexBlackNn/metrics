@@ -8,13 +8,13 @@ import (
 	"os"
 )
 
-// DataBaseJsonStateManager saves and restores database state
-type dataBaseJsonStateManager struct {
+// dataBaseJSONStateManager saves and restores database state
+type dataBaseJSONStateManager struct {
 	cfg *config.Config
 	db  dataBase
 }
 
-func (jm *dataBaseJsonStateManager) saveMetrics() error {
+func (jm *dataBaseJSONStateManager) saveMetrics() error {
 	file, err := os.OpenFile(
 		jm.cfg.ServerFileStoragePath, os.O_WRONLY|os.O_CREATE, 0777,
 	)
@@ -38,7 +38,7 @@ func (jm *dataBaseJsonStateManager) saveMetrics() error {
 	return nil
 }
 
-func (jm *dataBaseJsonStateManager) restoreMetrics() error {
+func (jm *dataBaseJSONStateManager) restoreMetrics() error {
 	file, err := os.OpenFile(
 		jm.cfg.ServerFileStoragePath, os.O_RDONLY, 0777,
 	)

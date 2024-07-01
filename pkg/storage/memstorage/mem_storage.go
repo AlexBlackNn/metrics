@@ -14,7 +14,7 @@ type MemStorage struct {
 	mutex sync.RWMutex
 	db    dataBase
 	cfg   *config.Config
-	jm    *dataBaseJsonStateManager
+	jm    *dataBaseJSONStateManager
 }
 
 // New inits mem storage (map structure)
@@ -24,7 +24,7 @@ func New(cfg *config.Config) (*MemStorage, error) {
 		mutex: sync.RWMutex{},
 		cfg:   cfg,
 		db:    db,
-		jm:    &dataBaseJsonStateManager{cfg: cfg, db: db},
+		jm:    &dataBaseJSONStateManager{cfg: cfg, db: db},
 	}
 	if cfg.ServerRestore {
 		err := memStorage.jm.restoreMetrics()
