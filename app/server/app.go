@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	v2 "github.com/AlexBlackNn/metrics/internal/handlers/v2"
 	"github.com/AlexBlackNn/metrics/internal/logger"
@@ -19,7 +19,7 @@ type App struct {
 	MetricsService *metricsservice.MetricService
 	HandlersV1     v1.MetricHandlers
 	HandlersV2     v2.MetricHandlers
-	Cfg            *config.Config
+	Cfg            *configserver.Config
 	Log            *slog.Logger
 	Srv            *http.Server
 }
@@ -27,7 +27,7 @@ type App struct {
 // New creates App collecting service layer, config, logger and predefined storage layer
 func New() (*App, error) {
 
-	cfg, err := config.New()
+	cfg, err := configserver.New()
 	if err != nil {
 		return nil, err
 	}

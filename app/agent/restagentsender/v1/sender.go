@@ -3,7 +3,7 @@ package v1
 import (
 	"context"
 	"fmt"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"log/slog"
@@ -13,13 +13,13 @@ import (
 
 type Sender struct {
 	log *slog.Logger
-	cfg *config.Config
+	cfg *configagent.Config
 	*agentmetricsservice.MonitorService
 }
 
 func New(
 	log *slog.Logger,
-	cfg *config.Config,
+	cfg *configagent.Config,
 ) *Sender {
 	return &Sender{
 		log,
@@ -34,7 +34,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
 	)
 	client := http.Client{
-		Timeout: time.Duration(mhs.cfg.ClientTimeout) * time.Second,
+		Timeout: time.Duration(mhs.cfg.AgentTimeout) * time.Second,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error { // в 1 инкрименте "Редиректы не поддерживаются."
 			return http.ErrUseLastResponse
 		}}

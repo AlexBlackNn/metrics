@@ -3,7 +3,7 @@ package memstorage
 import (
 	"context"
 	"errors"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"sync"
 	"time"
@@ -14,13 +14,13 @@ var ErrFailedToRestoreMetrics = errors.New("failed to restore metrics")
 type MemStorage struct {
 	mutex    sync.RWMutex
 	db       dataBase
-	cfg      *config.Config
+	cfg      *configserver.Config
 	jm       *dataBaseJSONStateManager
 	saveChan chan struct{}
 }
 
 // New inits mem storage (map structure)
-func New(cfg *config.Config) (*MemStorage, error) {
+func New(cfg *configserver.Config) (*MemStorage, error) {
 	db := make(dataBase)
 	memStorage := MemStorage{
 		mutex:    sync.RWMutex{},

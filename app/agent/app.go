@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 	"github.com/AlexBlackNn/metrics/app/agent/restagentsender/v2"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"log/slog"
 )
 
@@ -20,7 +20,7 @@ type AppMonitor struct {
 // NewAppMonitor creates App
 func NewAppMonitor(
 	log *slog.Logger,
-	cfg *config.Config,
+	cfg *configagent.Config,
 ) *AppMonitor {
 
 	metricsService := v2.New(

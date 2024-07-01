@@ -3,7 +3,7 @@ package metricsservice
 import (
 	"context"
 	"errors"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 	"log/slog"
@@ -25,14 +25,14 @@ type MetricsStorage interface {
 
 type MetricService struct {
 	log            *slog.Logger
-	cfg            *config.Config
+	cfg            *configserver.Config
 	metricsStorage MetricsStorage
 }
 
 // New returns a new instance of MonitoringService
 func New(
 	log *slog.Logger,
-	cfg *config.Config,
+	cfg *configserver.Config,
 	metricsStorage MetricsStorage,
 ) *MetricService {
 	return &MetricService{

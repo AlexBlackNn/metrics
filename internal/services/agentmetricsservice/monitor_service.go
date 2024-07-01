@@ -2,7 +2,7 @@ package agentmetricsservice
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"log/slog"
 	"math/rand"
@@ -13,14 +13,14 @@ import (
 
 type MonitorService struct {
 	log     *slog.Logger
-	cfg     *config.Config
+	cfg     *configagent.Config
 	Metrics map[string]models.MetricInteraction
 	mutex   sync.RWMutex
 }
 
 func New(
 	log *slog.Logger,
-	cfg *config.Config,
+	cfg *configagent.Config,
 ) *MonitorService {
 	return &MonitorService{
 		Metrics: make(map[string]models.MetricInteraction),

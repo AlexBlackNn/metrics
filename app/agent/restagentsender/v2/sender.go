@@ -3,7 +3,7 @@ package v2
 import (
 	"context"
 	"fmt"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"github.com/go-resty/resty/v2"
@@ -13,13 +13,13 @@ import (
 
 type Sender struct {
 	log *slog.Logger
-	cfg *config.Config
+	cfg *configagent.Config
 	*agentmetricsservice.MonitorService
 }
 
 func New(
 	log *slog.Logger,
-	cfg *config.Config,
+	cfg *configagent.Config,
 ) *Sender {
 	return &Sender{
 		log,

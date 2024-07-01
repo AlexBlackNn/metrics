@@ -3,14 +3,14 @@ package memstorage
 import (
 	"bufio"
 	"encoding/json"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"io"
 	"os"
 )
 
 // dataBaseJSONStateManager saves and restores database state
 type dataBaseJSONStateManager struct {
-	cfg *config.Config
+	cfg *configserver.Config
 	db  dataBase
 }
 
