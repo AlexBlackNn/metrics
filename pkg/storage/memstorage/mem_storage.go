@@ -12,22 +12,22 @@ var ErrFailedToRestoreMetrics = errors.New("failed to restore metrics")
 
 type MemStorage struct {
 	mutex sync.RWMutex
-	db    DataBase
+	db    dataBase
 	cfg   *config.Config
-	jm    *DataBaseJsonStateManager
+	jm    *dataBaseJsonStateManager
 }
 
 // New inits mem storage (map structure)
 func New(cfg *config.Config) (*MemStorage, error) {
-	db := make(DataBase)
+	db := make(dataBase)
 	memStorage := MemStorage{
 		mutex: sync.RWMutex{},
 		cfg:   cfg,
 		db:    db,
-		jm:    &DataBaseJsonStateManager{cfg: cfg, db: db},
+		jm:    &dataBaseJsonStateManager{cfg: cfg, db: db},
 	}
 	if cfg.ServerRestore {
-		err := memStorage.jm.RestoreMetrics()
+		err := memStorage.jm.restoreMetrics()
 		if err != nil {
 			if errors.Is(err, ErrFailedToRestoreMetrics) {
 				return &memStorage, nil
@@ -47,7 +47,7 @@ func (ms *MemStorage) UpdateMetric(
 	ms.mutex.Lock()
 	defer ms.mutex.Unlock()
 	ms.db[metric.GetName()] = metric
-	err := ms.jm.SaveMetrics()
+	err := ms.jm.saveMetrics()
 	if err != nil {
 		return err
 	}

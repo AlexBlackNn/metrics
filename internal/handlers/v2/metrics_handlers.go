@@ -29,8 +29,8 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var reqMetrics Metrics
+	// TODO: easyjson can be used?
 	err := render.DecodeJSON(r.Body, &reqMetrics)
-	fmt.Println("1111111111 GetOneMetric 1111111", reqMetrics)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body

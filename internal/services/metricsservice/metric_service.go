@@ -87,18 +87,18 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 
 // GetOneMetricValue extracts metric
 func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.MetricInteraction, error) {
-
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
 	)
 	log.Info("starts getting metric value")
-
 	metric, err := ms.metricsStorage.GetMetric(ctx, key)
-	if errors.Is(err, memstorage.ErrMetricNotFound) {
-		return nil, ErrMetricNotFound
-	}
 	if err != nil {
-		return nil, ErrCouldNotUpdateMetric
+		if errors.Is(err, memstorage.ErrMetricNotFound) {
+			log.Warn("metric not found")
+			return nil, ErrMetricNotFound
+		}
+		log.Error(err.Error())
+		return nil, ErrCouldNotGetMetric
 	}
 	log.Info("finish getting metric value")
 	return metric, nil

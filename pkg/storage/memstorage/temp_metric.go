@@ -41,6 +41,7 @@ func (m *TempMetric) GetStringValue() string {
 	return ""
 }
 
+// TODO: interface sigrigation in solid failed
 func (m *TempMetric) AddValue(other models.MetricInteraction) error {
 	return errors.New("addValue is not implemented")
 }
