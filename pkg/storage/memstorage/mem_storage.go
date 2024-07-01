@@ -6,26 +6,45 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"sync"
+	"time"
 )
 
 var ErrFailedToRestoreMetrics = errors.New("failed to restore metrics")
 
 type MemStorage struct {
-	mutex sync.RWMutex
-	db    dataBase
-	cfg   *config.Config
-	jm    *dataBaseJSONStateManager
+	mutex    sync.RWMutex
+	db       dataBase
+	cfg      *config.Config
+	jm       *dataBaseJSONStateManager
+	saveChan chan struct{}
 }
 
 // New inits mem storage (map structure)
 func New(cfg *config.Config) (*MemStorage, error) {
 	db := make(dataBase)
 	memStorage := MemStorage{
-		mutex: sync.RWMutex{},
-		cfg:   cfg,
-		db:    db,
-		jm:    &dataBaseJSONStateManager{cfg: cfg, db: db},
+		mutex:    sync.RWMutex{},
+		cfg:      cfg,
+		db:       db,
+		jm:       &dataBaseJSONStateManager{cfg: cfg, db: db},
+		saveChan: make(chan struct{}),
 	}
+
+	go func() {
+		for {
+			if cfg.ServerStoreInterval > 0 {
+				<-time.After(time.Duration(cfg.ServerStoreInterval) * time.Second)
+				memStorage.mutex.Lock()
+				_ = memStorage.jm.saveMetrics()
+				memStorage.mutex.Unlock()
+			} else {
+				<-memStorage.saveChan
+				memStorage.mutex.Lock()
+				_ = memStorage.jm.saveMetrics()
+				memStorage.mutex.Unlock()
+			}
+		}
+	}()
 
 	if cfg.ServerRestore {
 		err := memStorage.jm.restoreMetrics()
@@ -48,11 +67,9 @@ func (ms *MemStorage) UpdateMetric(
 	ms.mutex.Lock()
 	ms.db[metric.GetName()] = metric
 	ms.mutex.Unlock()
-	go func() {
-		ms.mutex.Lock()
-		_ = ms.jm.saveMetrics()
-		ms.mutex.Unlock()
-	}()
+	if ms.cfg.ServerStoreInterval == 0 {
+		ms.saveChan <- struct{}{}
+	}
 	return nil
 }
 

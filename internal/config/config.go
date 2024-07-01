@@ -18,7 +18,7 @@ type Config struct {
 	ServerReadTimeout     int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerWriteTimeout    int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerIdleTimeout     int    `yaml:"server_idle_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
-	ServerStoreInterval   int    `yaml:"server_store_interval" env-default:"300" env:"STORE_INTERVAL" envDefault:"300"`
+	ServerStoreInterval   int    `yaml:"server_store_interval" env:"STORE_INTERVAL"`
 	ServerFileStoragePath string `yaml:"server_file_storage_path" env-default:"/tmp/metrics-db.json" env:"FILE_STORAGE_PATH" envDefault:"/tmp/metrics-db.json"`
 	ServerRestore         bool   `yaml:"server_restore" env-default:"true" env:"RESTORE" envDefault:"true"`
 	AgentRetryCount       int    `yaml:"agent_retry_count" env-default:"30" env:"AGENT_RETRY_COUNT" envDefault:"3"`
@@ -35,7 +35,8 @@ func (c *Config) String() string {
 			" ClientTimeout: %d,"+
 			"ServerReadTimeout: %d,"+
 			"ServerWriteTimeout: %d,"+
-			"ServerIdleTimeout: %d,",
+			"ServerIdleTimeout: %d,"+
+			"ServerStoreInterval: %d,",
 		c.Env,
 		c.ServerAddr,
 		c.PollInterval,
@@ -44,6 +45,7 @@ func (c *Config) String() string {
 		c.ServerReadTimeout,
 		c.ServerWriteTimeout,
 		c.ServerIdleTimeout,
+		c.ServerStoreInterval,
 	)
 }
 
@@ -61,7 +63,7 @@ func New() (*Config, error) {
 	flag.IntVar(&cfg.ReportInterval, "r", 2, "metrics report interval")
 	flag.IntVar(&cfg.PollInterval, "p", 1, "metrics poll interval")
 	flag.IntVar(&cfg.ClientTimeout, "t", 1, "agent request timeout")
-	flag.IntVar(&cfg.ServerStoreInterval, "i", 300, "metrics store interval")
+	flag.IntVar(&cfg.ServerStoreInterval, "i", 1, "metrics store interval")
 	flag.StringVar(&cfg.ServerFileStoragePath, "f", "/tmp/metrics-db.json", "metrics store path")
 	flag.BoolVar(&cfg.ServerRestore, "re", true, "restore saved metrics")
 
