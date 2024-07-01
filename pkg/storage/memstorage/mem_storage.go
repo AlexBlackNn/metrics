@@ -2,39 +2,83 @@ package memstorage
 
 import (
 	"context"
+	"errors"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"sync"
+	"time"
 )
 
+var ErrFailedToRestoreMetrics = errors.New("failed to restore metrics")
+
+type StateManager interface {
+	saveMetrics() error
+	restoreMetrics() error
+}
+
 type MemStorage struct {
-	mutex sync.RWMutex
-	db    map[string]models.MetricInteraction
+	mutex    sync.RWMutex
+	db       dataBase
+	cfg      *configserver.Config
+	jm       StateManager
+	saveChan chan struct{}
 }
 
 // New inits mem storage (map structure)
-func New() (*MemStorage, error) {
-	return &MemStorage{db: make(map[string]models.MetricInteraction)}, nil
+func New(cfg *configserver.Config) (*MemStorage, error) {
+	db := make(dataBase)
+	memStorage := MemStorage{
+		mutex:    sync.RWMutex{},
+		cfg:      cfg,
+		db:       db,
+		jm:       &dataBaseGOBStateManager{cfg: cfg, db: db},
+		saveChan: make(chan struct{}),
+	}
+
+	go func() {
+		for {
+			if cfg.ServerStoreInterval > 0 {
+				<-time.After(time.Duration(cfg.ServerStoreInterval) * time.Second)
+				memStorage.mutex.Lock()
+				_ = memStorage.jm.saveMetrics()
+				memStorage.mutex.Unlock()
+			} else {
+				<-memStorage.saveChan
+				memStorage.mutex.Lock()
+				_ = memStorage.jm.saveMetrics()
+				memStorage.mutex.Unlock()
+			}
+		}
+	}()
+
+	if cfg.ServerRestore {
+		_ = memStorage.jm.restoreMetrics()
+	}
+	return &memStorage, nil
 }
 
 // UpdateMetric updates metric value in mem storage
-func (s *MemStorage) UpdateMetric(
+func (ms *MemStorage) UpdateMetric(
 	ctx context.Context,
-	metric models.MetricInteraction,
+	metric models.MetricGetter,
 ) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	s.db[metric.GetName()] = metric
+	ms.mutex.Lock()
+	ms.db[metric.GetName()] = metric
+	ms.mutex.Unlock()
+	if ms.cfg.ServerStoreInterval == 0 {
+		ms.saveChan <- struct{}{}
+	}
 	return nil
 }
 
 // GetMetric gets metric value from mem storage
-func (s *MemStorage) GetMetric(
+func (ms *MemStorage) GetMetric(
 	ctx context.Context,
 	name string,
-) (models.MetricInteraction, error) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	metric, ok := s.db[name]
+) (models.MetricGetter, error) {
+	ms.mutex.RLock()
+	defer ms.mutex.RUnlock()
+	metric, ok := ms.db[name]
 	if !ok {
 		return &models.Metric[float64]{}, ErrMetricNotFound
 	}
@@ -42,16 +86,16 @@ func (s *MemStorage) GetMetric(
 }
 
 // GetAllMetrics gets metric value from mem storage
-func (s *MemStorage) GetAllMetrics(
+func (ms *MemStorage) GetAllMetrics(
 	ctx context.Context,
-) ([]models.MetricInteraction, error) {
-	var metrics []models.MetricInteraction
-	if len(s.db) == 0 {
-		return []models.MetricInteraction{}, ErrMetricNotFound
+) ([]models.MetricGetter, error) {
+	var metrics []models.MetricGetter
+	if len(ms.db) == 0 {
+		return []models.MetricGetter{}, ErrMetricNotFound
 	}
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	for _, oneMetric := range s.db {
+	ms.mutex.RLock()
+	defer ms.mutex.RUnlock()
+	for _, oneMetric := range ms.db {
 		metrics = append(metrics, oneMetric)
 	}
 	return metrics, nil
