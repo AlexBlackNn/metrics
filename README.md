@@ -33,3 +33,6 @@ git fetch template && git checkout template/main .github
 
 RESTY USEFUL
 https://www.alldevstack.com/ru/go-resty-tutorial/go-resty-quickstart.html
+
+mapstructure is a Go library for decoding generic map values to structures and vice versa, while providing helpful error handling.
+https://github.com/mitchellh/mapstructure

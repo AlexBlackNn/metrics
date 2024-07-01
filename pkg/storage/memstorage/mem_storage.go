@@ -11,11 +11,16 @@ import (
 
 var ErrFailedToRestoreMetrics = errors.New("failed to restore metrics")
 
+type StateManager interface {
+	saveMetrics() error
+	restoreMetrics() error
+}
+
 type MemStorage struct {
 	mutex    sync.RWMutex
 	db       dataBase
 	cfg      *configserver.Config
-	jm       *dataBaseJSONStateManager
+	jm       StateManager
 	saveChan chan struct{}
 }
 
@@ -26,7 +31,7 @@ func New(cfg *configserver.Config) (*MemStorage, error) {
 		mutex:    sync.RWMutex{},
 		cfg:      cfg,
 		db:       db,
-		jm:       &dataBaseJSONStateManager{cfg: cfg, db: db},
+		jm:       &dataBaseGOBStateManager{cfg: cfg, db: db},
 		saveChan: make(chan struct{}),
 	}
 
