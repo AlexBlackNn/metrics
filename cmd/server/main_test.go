@@ -200,7 +200,7 @@ func (ms *MetricsSuite) TestServerGetMetricHappyPathCounter() {
 	}
 }
 
-//
+// TODO: Need to fix
 //func (ms *MetricsSuite) TestServerGetAllMetricsHappyPath() {
 //
 //	type Want struct {
