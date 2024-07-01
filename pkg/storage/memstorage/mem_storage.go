@@ -26,6 +26,7 @@ func New(cfg *config.Config) (*MemStorage, error) {
 		db:    db,
 		jm:    &dataBaseJSONStateManager{cfg: cfg, db: db},
 	}
+
 	if cfg.ServerRestore {
 		err := memStorage.jm.restoreMetrics()
 		if err != nil {
