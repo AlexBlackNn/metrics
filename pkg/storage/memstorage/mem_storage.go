@@ -52,14 +52,7 @@ func New(cfg *configserver.Config) (*MemStorage, error) {
 	}()
 
 	if cfg.ServerRestore {
-		err := memStorage.jm.restoreMetrics()
-		if err != nil {
-			if errors.Is(err, ErrFailedToRestoreMetrics) {
-				return &memStorage, nil
-			}
-			return &memStorage, nil
-		}
-		return &memStorage, nil
+		_ = memStorage.jm.restoreMetrics()
 	}
 	return &memStorage, nil
 }
