@@ -14,12 +14,20 @@ var ErrAddDifferentMetricType = errors.New("different metric types")
 var ErrAddDifferentMetricName = errors.New("different metric names")
 var ErrAddMetricValueCast = errors.New("cannot cast metric to required type")
 
-type MetricInteraction interface {
+type MetricAdder interface {
+	AddValue(metric MetricGetter) error
+}
+
+type MetricGetter interface {
 	GetType() string
 	GetName() string
 	GetValue() any
-	AddValue(metric MetricInteraction) error
 	GetStringValue() string
+}
+
+type MetricInteraction interface {
+	MetricAdder
+	MetricGetter
 }
 
 // Metric works with metrics collected by an agent
@@ -52,7 +60,7 @@ func (m *Metric[T]) GetStringValue() string {
 }
 
 // AddValue adds the value of another Metric to the current Metric
-func (m *Metric[T]) AddValue(other MetricInteraction) error {
+func (m *Metric[T]) AddValue(other MetricGetter) error {
 	if m.GetType() != other.GetType() {
 		return ErrAddDifferentMetricType
 	}

@@ -45,7 +45,7 @@ func ValidationError(errs validator.ValidationErrors) string {
 	return strings.Join(errMsgs, ", ")
 }
 
-func responseOK(w http.ResponseWriter, r *http.Request, metric models.MetricInteraction) {
+func responseOK(w http.ResponseWriter, r *http.Request, metric models.MetricGetter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 

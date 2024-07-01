@@ -42,7 +42,7 @@ func New(cfg *config.Config) (*MemStorage, error) {
 // UpdateMetric updates metric value in mem storage
 func (ms *MemStorage) UpdateMetric(
 	ctx context.Context,
-	metric models.MetricInteraction,
+	metric models.MetricGetter,
 ) error {
 	ms.mutex.Lock()
 	defer ms.mutex.Unlock()
@@ -58,7 +58,7 @@ func (ms *MemStorage) UpdateMetric(
 func (ms *MemStorage) GetMetric(
 	ctx context.Context,
 	name string,
-) (models.MetricInteraction, error) {
+) (models.MetricGetter, error) {
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()
 	metric, ok := ms.db[name]
@@ -71,10 +71,10 @@ func (ms *MemStorage) GetMetric(
 // GetAllMetrics gets metric value from mem storage
 func (ms *MemStorage) GetAllMetrics(
 	ctx context.Context,
-) ([]models.MetricInteraction, error) {
-	var metrics []models.MetricInteraction
+) ([]models.MetricGetter, error) {
+	var metrics []models.MetricGetter
 	if len(ms.db) == 0 {
-		return []models.MetricInteraction{}, ErrMetricNotFound
+		return []models.MetricGetter{}, ErrMetricNotFound
 	}
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()

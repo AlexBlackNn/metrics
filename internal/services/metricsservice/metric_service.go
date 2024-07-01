@@ -12,15 +12,15 @@ import (
 type MetricsStorage interface {
 	UpdateMetric(
 		ctx context.Context,
-		metric models.MetricInteraction,
+		metric models.MetricGetter,
 	) error
 	GetMetric(
 		ctx context.Context,
 		metricName string,
-	) (models.MetricInteraction, error)
+	) (models.MetricGetter, error)
 	GetAllMetrics(
 		ctx context.Context,
-	) ([]models.MetricInteraction, error)
+	) ([]models.MetricGetter, error)
 }
 
 type MetricService struct {
@@ -86,7 +86,7 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 }
 
 // GetOneMetricValue extracts metric
-func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.MetricInteraction, error) {
+func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.MetricGetter, error) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
 	)
@@ -105,7 +105,7 @@ func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (mod
 }
 
 // GetAllMetrics extracts all metric
-func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricInteraction, error) {
+func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricGetter, error) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),
 	)

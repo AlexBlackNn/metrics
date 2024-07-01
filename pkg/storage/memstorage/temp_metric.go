@@ -1,13 +1,11 @@
 package memstorage
 
 import (
-	"errors"
 	"fmt"
-	"github.com/AlexBlackNn/metrics/internal/domain/models"
 )
 
 // TempMetric is a template to deserialize data from bytes
-// models.MetricInteraction and generic types can't be used here
+// (models.MetricGetter and generic types can't be used here)
 type TempMetric struct {
 	Type  string
 	Name  string
@@ -39,9 +37,4 @@ func (m *TempMetric) GetStringValue() string {
 		return fmt.Sprintf("%g", m.GetValue())
 	}
 	return ""
-}
-
-// TODO: interface sigrigation in solid failed
-func (m *TempMetric) AddValue(other models.MetricInteraction) error {
-	return errors.New("addValue is not implemented")
 }

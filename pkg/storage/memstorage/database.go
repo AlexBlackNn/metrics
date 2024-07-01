@@ -5,7 +5,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 )
 
-type dataBase map[string]models.MetricInteraction
+type dataBase map[string]models.MetricGetter
 
 func (db *dataBase) UnmarshalJSON(data []byte) error {
 
