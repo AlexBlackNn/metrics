@@ -46,12 +46,13 @@ func (ms *MemStorage) UpdateMetric(
 	metric models.MetricGetter,
 ) error {
 	ms.mutex.Lock()
-	defer ms.mutex.Unlock()
 	ms.db[metric.GetName()] = metric
-	err := ms.jm.saveMetrics()
-	if err != nil {
-		return err
-	}
+	ms.mutex.Unlock()
+	go func() {
+		ms.mutex.Lock()
+		_ = ms.jm.saveMetrics()
+		ms.mutex.Unlock()
+	}()
 	return nil
 }
 
