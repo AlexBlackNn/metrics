@@ -134,9 +134,9 @@ func (ms *MetricsSuite) TestServerGetMetricHappyPathCounter() {
 	}{
 		{
 			name:        "counter with value 10",
-			url:         "/value/gauge/test_counter",
-			metricType:  "gauge",
-			metricName:  "test_counter",
+			url:         "/value/counter/test_counter_10",
+			metricType:  "counter",
+			metricName:  "test_counter_10",
 			metricValue: 10,
 			want: Want{
 				code:        http.StatusOK,

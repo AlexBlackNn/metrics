@@ -35,13 +35,13 @@ func (ms *MetricsSuite) TestServerHappyPathV2() {
 			},
 		},
 		{
-			name: "gauge with value 10",
+			name: "counter with value 10",
 			url:  "/update/",
 			body: []byte(
 				`{
-				"id": "test_gauge",
-				"type": "gauge",
-				"value": 10
+				"id": "test_counter",
+				"type": "counter",
+				"delta": 10
 				}`,
 			),
 			want: Want{
