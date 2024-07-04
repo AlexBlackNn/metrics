@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"golang.org/x/exp/constraints"
 	"strconv"
 	"strings"
@@ -84,7 +85,7 @@ func (m *Metric[T]) AddValue(other MetricGetter) error {
 }
 
 func CheckModelType(metricType string) error {
-	if metricType != "gauge" && metricType != "counter" {
+	if metricType != configserver.Gauge && metricType != configserver.Counter {
 		return ErrNotValidMetricType
 	}
 	return nil
@@ -92,7 +93,7 @@ func CheckModelType(metricType string) error {
 
 func New(metricType string, metricName string, metricValue string) (MetricInteraction, error) {
 
-	if metricType == "gauge" {
+	if metricType == configserver.Gauge {
 		value, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
 			return nil, ErrNotValidMetricValue
@@ -104,7 +105,7 @@ func New(metricType string, metricName string, metricValue string) (MetricIntera
 		}, nil
 	}
 
-	if metricType == "counter" {
+	if metricType == configserver.Counter {
 		value, err := strconv.ParseUint(metricValue, 10, 64)
 		if err != nil {
 			return nil, ErrNotValidMetricValue

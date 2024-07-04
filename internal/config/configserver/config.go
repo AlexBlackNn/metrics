@@ -9,6 +9,11 @@ import (
 	"os"
 )
 
+const (
+	Counter = "counter"
+	Gauge   = "gauge"
+)
+
 // Config consists project settings
 type Config struct {
 	Env                   string `yaml:"env" env-default:"local" env:"ENV"`

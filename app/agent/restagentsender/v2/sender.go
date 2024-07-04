@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"github.com/go-resty/resty/v2"
@@ -47,7 +48,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 						SetRetryMaxWaitTime(time.Duration(mhs.cfg.AgentRetryMaxWaitTime) * time.Second)
 
 					var body string
-					if savedMetric.GetType() == "counter" {
+					if savedMetric.GetType() == configserver.Counter {
 						body = fmt.Sprintf(`{"id":"%s", "type":"%s", "delta": %d}`,
 							savedMetric.GetName(),
 							savedMetric.GetType(),

@@ -2,6 +2,7 @@ package v2
 
 import (
 	"fmt"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/go-playground/validator/v10"
 	"github.com/mailru/easyjson"
@@ -49,7 +50,7 @@ func responseOK(w http.ResponseWriter, r *http.Request, metric models.MetricGett
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if metric.GetType() == "counter" {
+	if metric.GetType() == configserver.Counter {
 		metricValue := int64(metric.GetValue().(uint64))
 		metricMarshal, _ := easyjson.Marshal(Metrics{
 			ID:    metric.GetName(),

@@ -2,6 +2,7 @@ package memstorage
 
 import (
 	"fmt"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 )
 
 // TempMetric is a template to deserialize data from bytes
@@ -26,7 +27,7 @@ func (m *TempMetric) GetValue() any {
 
 func (m *TempMetric) GetStringValue() string {
 	switch m.GetType() {
-	case "counter":
+	case configserver.Counter:
 		if value, ok := m.GetValue().(float64); ok {
 			return fmt.Sprintf("%d", int(value))
 		}

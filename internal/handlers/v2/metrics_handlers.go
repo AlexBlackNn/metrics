@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/go-chi/render"
@@ -89,7 +90,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	var metric models.MetricInteraction
 
 	// TODO must be in service layer
-	if reqMetrics.MType == "counter" {
+	if reqMetrics.MType == configserver.Counter {
 		metric, err = models.New(
 			reqMetrics.MType,
 			reqMetrics.ID,
