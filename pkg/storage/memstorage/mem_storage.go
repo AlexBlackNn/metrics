@@ -36,9 +36,10 @@ func New(cfg *configserver.Config) (*MemStorage, error) {
 	}
 
 	go func() {
+		storeInterval := time.Duration(cfg.ServerStoreInterval) * time.Second
 		for {
 			if cfg.ServerStoreInterval > 0 {
-				<-time.After(time.Duration(cfg.ServerStoreInterval) * time.Second)
+				<-time.After(storeInterval)
 				memStorage.mutex.Lock()
 				_ = memStorage.jm.saveMetrics()
 				memStorage.mutex.Unlock()

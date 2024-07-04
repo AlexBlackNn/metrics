@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
@@ -47,7 +46,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		responseError(w, r, http.StatusBadRequest, errorText)
 		return
 	}
-	ctx := context.Background()
+	ctx := r.Context()
 	metric, err := m.metricsService.GetOneMetricValue(
 		ctx, strings.ToLower(reqMetrics.ID),
 	)
@@ -108,7 +107,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	err = m.metricsService.UpdateMetricValue(ctx, metric)
 	if err != nil {
 		if errors.Is(err, metricsservice.ErrNotValidURL) {

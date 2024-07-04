@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -31,7 +30,7 @@ func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	metrics, err := m.metricsService.GetAllMetrics(ctx)
 	if errors.Is(err, metricsservice.ErrMetricNotFound) {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -72,7 +71,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	metric, err := m.metricsService.GetOneMetricValue(
 		ctx, strings.ToLower(chi.URLParam(r, "metric_name")),
 	)
@@ -108,7 +107,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	err = m.metricsService.UpdateMetricValue(ctx, metric)
 	if errors.Is(err, metricsservice.ErrNotValidURL) {
 		http.Error(w, err.Error(), http.StatusNotFound)
