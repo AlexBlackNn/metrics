@@ -44,7 +44,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 					restyClient := resty.New()
 					restyClient.
 						SetRetryCount(mhs.cfg.AgentRetryCount).
-						SetRetryWaitTime(time.Duration(mhs.cfg.AgentRetryWaitTime) * time.Second).
+						SetRetryWaitTime(mhs.cfg.AgentRetryWaitTime).
 						SetRetryMaxWaitTime(time.Duration(mhs.cfg.AgentRetryMaxWaitTime) * time.Second)
 
 					var body string

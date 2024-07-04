@@ -7,6 +7,7 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/ilyakaznacheev/cleanenv"
 	"os"
+	"time"
 )
 
 const (
@@ -16,14 +17,14 @@ const (
 
 // Config consists project settings
 type Config struct {
-	Env                   string `yaml:"env" env-default:"local" env:"ENV"`
-	ServerAddr            string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
-	PollInterval          int    `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
-	ReportInterval        int    `yaml:"report_interval" env-default:"10" env:"REPORT_INTERVAL"`
-	AgentTimeout          int    `yaml:"client_timeout" env:"CLIENT_TIMEOUT"`
-	AgentRetryCount       int    `yaml:"agent_retry_count" env-default:"30" env:"AGENT_RETRY_COUNT" envDefault:"3"`
-	AgentRetryWaitTime    int    `yaml:"agent_retry_wait_time" env-default:"30" env:"AGENT_RETRY_WAIT_TIME" envDefault:"30"`
-	AgentRetryMaxWaitTime int    `yaml:"agent_retry_max_wait_time" env-default:"90" env:"AGENT_RETRY_MAX_WAIT_TIME" envDefault:"90"`
+	Env                   string        `yaml:"env" env-default:"local" env:"ENV"`
+	ServerAddr            string        `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
+	PollInterval          int           `yaml:"poll_interval" env-default:"2" env:"POLL_INTERVAL"`
+	ReportInterval        int           `yaml:"report_interval" env-default:"10" env:"REPORT_INTERVAL"`
+	AgentTimeout          int           `yaml:"client_timeout" env:"CLIENT_TIMEOUT"`
+	AgentRetryCount       int           `yaml:"agent_retry_count" env-default:"30" env:"AGENT_RETRY_COUNT" envDefault:"3"`
+	AgentRetryWaitTime    time.Duration `yaml:"agent_retry_wait_time" env-default:"30s" env:"AGENT_RETRY_WAIT_TIME" envDefault:"30s"`
+	AgentRetryMaxWaitTime int           `yaml:"agent_retry_max_wait_time" env-default:"90" env:"AGENT_RETRY_MAX_WAIT_TIME" envDefault:"90"`
 }
 
 func (c *Config) String() string {
