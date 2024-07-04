@@ -8,6 +8,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"github.com/go-resty/resty/v2"
+	"golang.org/x/time/rate"
 	"log/slog"
 	"time"
 )
@@ -35,12 +36,17 @@ func (mhs *Sender) Send(ctx context.Context) {
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
 	)
 	reportInterval := time.Duration(mhs.cfg.ReportInterval) * time.Second
+	rateLimiter := rate.NewLimiter(rate.Limit(30), 30)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
 			for _, savedMetric := range mhs.GetMetrics() {
+				err := rateLimiter.Wait(ctx)
+				if err != nil {
+					log.Error(err.Error())
+				}
 				go func(savedMetric models.MetricInteraction) {
 					restyClient := resty.New()
 					restyClient.
