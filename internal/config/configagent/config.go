@@ -24,7 +24,7 @@ type Config struct {
 	AgentTimeout          int           `yaml:"client_timeout" env:"CLIENT_TIMEOUT"`
 	AgentRetryCount       int           `yaml:"agent_retry_count" env-default:"30" env:"AGENT_RETRY_COUNT" envDefault:"3"`
 	AgentRetryWaitTime    time.Duration `yaml:"agent_retry_wait_time" env-default:"30s" env:"AGENT_RETRY_WAIT_TIME" envDefault:"30s"`
-	AgentRetryMaxWaitTime int           `yaml:"agent_retry_max_wait_time" env-default:"90" env:"AGENT_RETRY_MAX_WAIT_TIME" envDefault:"90"`
+	AgentRetryMaxWaitTime time.Duration `yaml:"agent_retry_max_wait_time" env-default:"90s" env:"AGENT_RETRY_MAX_WAIT_TIME" envDefault:"90s"`
 }
 
 func (c *Config) String() string {

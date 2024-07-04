@@ -34,6 +34,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 	log := mhs.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
 	)
+	reportInterval := time.Duration(mhs.cfg.ReportInterval) * time.Second
 	for {
 		select {
 		case <-ctx.Done():
@@ -45,7 +46,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 					restyClient.
 						SetRetryCount(mhs.cfg.AgentRetryCount).
 						SetRetryWaitTime(mhs.cfg.AgentRetryWaitTime).
-						SetRetryMaxWaitTime(time.Duration(mhs.cfg.AgentRetryMaxWaitTime) * time.Second)
+						SetRetryMaxWaitTime(mhs.cfg.AgentRetryMaxWaitTime)
 
 					var body string
 					if savedMetric.GetType() == configserver.Counter {
@@ -77,7 +78,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 					)
 				}(savedMetric)
 			}
-			<-time.After(time.Duration(mhs.cfg.ReportInterval) * time.Second)
+			<-time.After(reportInterval)
 		}
 	}
 }

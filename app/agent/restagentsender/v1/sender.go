@@ -38,6 +38,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 		CheckRedirect: func(req *http.Request, via []*http.Request) error { // в 1 инкрименте "Редиректы не поддерживаются."
 			return http.ErrUseLastResponse
 		}}
+	reportInterval := time.Duration(mhs.cfg.ReportInterval) * time.Second
 	for {
 		select {
 		case <-ctx.Done():
@@ -70,7 +71,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 					}
 				}(savedMetric)
 			}
-			<-time.After(time.Duration(mhs.cfg.ReportInterval) * time.Second)
+			<-time.After(reportInterval)
 		}
 	}
 }
