@@ -53,7 +53,7 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
 			if !strings.Contains(strings.Join(r.Header.Values("Accept-Encoding"), " "), "gzip") {
-				// if gzip is not supported then return uncompressed page
+				// If gzip is not supported then return uncompressed page.
 				next.ServeHTTP(w, r)
 				return
 			}

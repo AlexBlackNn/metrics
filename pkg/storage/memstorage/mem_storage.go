@@ -58,7 +58,7 @@ func New(cfg *configserver.Config) (*MemStorage, error) {
 	return &memStorage, nil
 }
 
-// UpdateMetric updates metric value in mem storage
+// UpdateMetric updates metric value in mem storage.
 func (ms *MemStorage) UpdateMetric(
 	ctx context.Context,
 	metric models.MetricGetter,
@@ -72,7 +72,7 @@ func (ms *MemStorage) UpdateMetric(
 	return nil
 }
 
-// GetMetric gets metric value from mem storage
+// GetMetric gets metric value from mem storage.
 func (ms *MemStorage) GetMetric(
 	ctx context.Context,
 	name string,
@@ -86,7 +86,7 @@ func (ms *MemStorage) GetMetric(
 	return metric, nil
 }
 
-// GetAllMetrics gets metric value from mem storage
+// GetAllMetrics gets metric value from mem storage.
 func (ms *MemStorage) GetAllMetrics(
 	ctx context.Context,
 ) ([]models.MetricGetter, error) {

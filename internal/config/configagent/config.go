@@ -15,7 +15,7 @@ const (
 	Gauge   = "gauge"
 )
 
-// Config consists project settings
+// Config consists project settings.
 type Config struct {
 	Env                   string        `yaml:"env" env-default:"local" env:"ENV"`
 	ServerAddr            string        `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`

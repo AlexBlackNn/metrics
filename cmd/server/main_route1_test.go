@@ -94,7 +94,7 @@ func (ms *MetricsSuite) TestServerGetMetricHappyPathGauge() {
 			},
 		},
 	}
-	// stop server when tests finished
+	// Stop server when tests finished.
 	defer ms.srv.Close()
 
 	for _, tt := range tests {
@@ -145,7 +145,7 @@ func (ms *MetricsSuite) TestServerGetMetricHappyPathCounter() {
 			},
 		},
 	}
-	// stop server when tests finished
+	// Stop server when tests finished.
 	defer ms.srv.Close()
 
 	for _, tt := range tests {

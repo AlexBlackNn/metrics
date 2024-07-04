@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// App service consists all entities needed to work
+// App service consists all entities needed to work.
 type App struct {
 	MetricsService *metricsservice.MetricService
 	HandlersV1     v1.MetricHandlers
@@ -24,7 +24,7 @@ type App struct {
 	Srv            *http.Server
 }
 
-// New creates App collecting service layer, config, logger and predefined storage layer
+// New creates App collecting service layer, config, logger and predefined storage layer.
 func New() (*App, error) {
 
 	cfg, err := configserver.New()
@@ -34,7 +34,7 @@ func New() (*App, error) {
 
 	log := logger.New(cfg.Env)
 
-	// err is now skipped, but when migratings to postgres/sqlite/etc... err will be checked
+	// Err is now skipped, but when migratings to postgres/sqlite/etc... err will be checked.
 	memStorage, _ := memstorage.New(cfg)
 
 	metricsService := metricsservice.New(

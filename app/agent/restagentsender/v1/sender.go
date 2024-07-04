@@ -53,16 +53,16 @@ func (mhs *Sender) Send(ctx context.Context) {
 
 					req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
 
-					// TODO: need refactoring to better work with error
+					// TODO: need refactoring to better work with error.
 					if err != nil {
 						log.Error("error creating http request")
 					}
 
-					// would be better to add backoff, but in next task client itself can do it
+					//Would be better to add backoff, but in next task client itself can do it.
 					//https://pkg.go.dev/github.com/cenkalti/backoff/v4#section-readme
 					response, err := client.Do(req)
 
-					// TODO: need refactoring to better work with error
+					// TODO: need refactoring to better work with error.
 					if err != nil {
 						log.Error("error doing http request", "err", err.Error())
 					} else {

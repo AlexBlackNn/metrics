@@ -9,7 +9,7 @@ type dataBase map[string]models.MetricGetter
 
 func (db *dataBase) UnmarshalJSON(data []byte) error {
 
-	// can't unmarshal to models.MetricInteraction (interface)
+	// Can't unmarshal to models.MetricInteraction (interface).
 	var TempDBMetric map[string]TempMetric
 
 	if err := json.Unmarshal(data, &TempDBMetric); err != nil {

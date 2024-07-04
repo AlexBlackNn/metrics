@@ -12,12 +12,12 @@ type CollectSender interface {
 	Send(ctx context.Context)
 }
 
-// AppMonitor service consists all service layers
+// AppMonitor service consists all service layers.
 type AppMonitor struct {
 	MetricsService CollectSender
 }
 
-// NewAppMonitor creates App
+// NewAppMonitor creates App.
 func NewAppMonitor(
 	log *slog.Logger,
 	cfg *configagent.Config,

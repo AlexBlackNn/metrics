@@ -29,7 +29,7 @@ type MetricService struct {
 	metricsStorage MetricsStorage
 }
 
-// New returns a new instance of MonitoringService
+// New returns a new instance of MonitoringService.
 func New(
 	log *slog.Logger,
 	cfg *configserver.Config,
@@ -42,7 +42,7 @@ func New(
 	}
 }
 
-// UpdateMetricValue updates metric value or create new metric
+// UpdateMetricValue updates metric value or create new metric.
 func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.MetricInteraction) error {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.UpdateMetricValue"),
@@ -85,7 +85,7 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 	return nil
 }
 
-// GetOneMetricValue extracts metric
+// GetOneMetricValue extracts metric.
 func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.MetricGetter, error) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
@@ -104,7 +104,7 @@ func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (mod
 	return metric, nil
 }
 
-// GetAllMetrics extracts all metric
+// GetAllMetrics extracts all metric.
 func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricGetter, error) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.GetAllMetrics"),

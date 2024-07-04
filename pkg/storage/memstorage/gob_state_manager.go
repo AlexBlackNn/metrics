@@ -19,13 +19,13 @@ func init() {
 
 }
 
-// dataBaseJSONStateManager saves and restores database state
+// dataBaseJSONStateManager saves and restores database state.
 type dataBaseGOBStateManager struct {
 	cfg *configserver.Config
 	db  dataBase
 }
 
-// Custom gob encoder for models.Metric[uint64]
+// Custom gob encoder for models.Metric[uint64].
 func encodeMetricUint64(enc *gob.Encoder, m models.Metric[uint64]) error {
 	return enc.Encode(struct {
 		Name  string
@@ -38,7 +38,7 @@ func encodeMetricUint64(enc *gob.Encoder, m models.Metric[uint64]) error {
 	})
 }
 
-// Custom gob encoder for models.Metric[uint64]
+// Custom gob encoder for models.Metric[uint64].
 func encodeMetricFloat64(enc *gob.Encoder, m models.Metric[float64]) error {
 	return enc.Encode(struct {
 		Name  string
@@ -65,7 +65,6 @@ func (gm *dataBaseGOBStateManager) saveMetrics() error {
 	writer := bufio.NewWriter(file)
 	defer writer.Flush()
 	var buffer bytes.Buffer
-	// кодирование
 	if err = gob.NewEncoder(&buffer).Encode(gm.db); err != nil {
 		fmt.Println(err)
 		return err
@@ -89,9 +88,9 @@ func (gm *dataBaseGOBStateManager) restoreMetrics() error {
 	}(file)
 
 	reader := bufio.NewReader(file)
-	dec := gob.NewDecoder(reader) // Create a gob decoder
+	dec := gob.NewDecoder(reader)
 
-	// Decode the data into a map[string]interface{}
+	// Decode the data into a map[string]interface{}.
 	var decodedData map[string]interface{}
 	if err = dec.Decode(&decodedData); err != nil {
 		return err

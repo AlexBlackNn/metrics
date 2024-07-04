@@ -6,7 +6,7 @@ import (
 )
 
 // TempMetric is a template to deserialize data from bytes
-// (models.MetricGetter and generic types can't be used here)
+// (models.MetricGetter and generic types can't be used here).
 type TempMetric struct {
 	Type  string
 	Name  string

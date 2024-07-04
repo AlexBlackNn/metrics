@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-// dataBaseJSONStateManager saves and restores database state
+// dataBaseJSONStateManager saves and restores database state.
 type dataBaseJSONStateManager struct {
 	cfg *configserver.Config
 	db  dataBase

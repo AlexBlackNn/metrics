@@ -31,7 +31,7 @@ type MetricInteraction interface {
 	MetricGetter
 }
 
-// Metric works with metrics collected by an agent
+// Metric works with metrics collected by an agent.
 type Metric[T constraints.Integer | constraints.Float] struct {
 	Type  string
 	Name  string
@@ -60,7 +60,7 @@ func (m *Metric[T]) GetStringValue() string {
 	}
 }
 
-// AddValue adds the value of another Metric to the current Metric
+// AddValue adds the value of another Metric to the current Metric.
 func (m *Metric[T]) AddValue(other MetricGetter) error {
 	if m.GetType() != other.GetType() {
 		return ErrAddDifferentMetricType
@@ -69,7 +69,7 @@ func (m *Metric[T]) AddValue(other MetricGetter) error {
 		return ErrAddDifferentMetricName
 	}
 
-	// Since T is constrained to be either constraints.Float or constraints.Integer, we can use them here
+	// Since T is constrained to be either constraints.Float or constraints.Integer, we can use them here.
 	if mValue, ok := any(m.Value).(float64); ok {
 		if oValue, ok := other.GetValue().(float64); ok {
 			m.Value = T(mValue + oValue)

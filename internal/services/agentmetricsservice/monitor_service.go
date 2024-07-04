@@ -29,7 +29,7 @@ func New(
 	}
 }
 
-// Collect starts collecting runtime metrics
+// Collect starts collecting runtime metrics.
 func (ms *MonitorService) Collect(ctx context.Context) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: agentmetricservice.Start"),
@@ -83,7 +83,7 @@ func (ms *MonitorService) Collect(ctx context.Context) {
 	}
 }
 
-// GetMetrics return collected metrics as thread safe map
+// GetMetrics return collected metrics as thread safe map.
 func (ms *MonitorService) GetMetrics() map[string]models.MetricInteraction {
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()

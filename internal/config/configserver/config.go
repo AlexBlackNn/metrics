@@ -14,7 +14,7 @@ const (
 	Gauge   = "gauge"
 )
 
-// Config consists project settings
+// Config consists project settings.
 type Config struct {
 	Env                   string `yaml:"env" env-default:"local" env:"ENV"`
 	ServerAddr            string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
@@ -43,8 +43,8 @@ func (c *Config) String() string {
 	)
 }
 
-// fetchConfigPath fetches config path from command line flag or env var
-// Priority: env -> yml -> flag -> default
+// fetchConfigPath fetches config path from command line flag or env var.
+// Priority: env -> yml -> flag -> default.
 
 // New loads config
 func New() (*Config, error) {
