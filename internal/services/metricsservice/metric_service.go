@@ -49,7 +49,7 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 	)
 	log.Info("starts update metric value")
 
-	if metric.GetType() == configserver.Counter {
+	if metric.GetType() == configserver.MetricTypeCounter {
 
 		metricStorage, err := ms.metricsStorage.GetMetric(ctx, metric.GetName())
 		if errors.Is(err, memstorage.ErrMetricNotFound) {

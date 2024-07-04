@@ -50,7 +50,7 @@ func responseOK(w http.ResponseWriter, r *http.Request, metric models.MetricGett
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if metric.GetType() == configserver.Counter {
+	if metric.GetType() == configserver.MetricTypeCounter {
 		metricValue := int64(metric.GetValue().(uint64))
 		metricMarshal, _ := easyjson.Marshal(Metrics{
 			ID:    metric.GetName(),

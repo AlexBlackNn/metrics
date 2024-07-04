@@ -89,7 +89,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	var metric models.MetricInteraction
 
 	// TODO must be in service layer
-	if reqMetrics.MType == configserver.Counter {
+	if reqMetrics.MType == configserver.MetricTypeCounter {
 		metric, err = models.New(
 			reqMetrics.MType,
 			reqMetrics.ID,

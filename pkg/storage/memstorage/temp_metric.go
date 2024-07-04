@@ -27,7 +27,7 @@ func (m *TempMetric) GetValue() any {
 
 func (m *TempMetric) GetStringValue() string {
 	switch m.GetType() {
-	case configserver.Counter:
+	case configserver.MetricTypeCounter:
 		if value, ok := m.GetValue().(float64); ok {
 			return fmt.Sprintf("%d", int(value))
 		}

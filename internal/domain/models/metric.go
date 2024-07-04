@@ -85,7 +85,7 @@ func (m *Metric[T]) AddValue(other MetricGetter) error {
 }
 
 func CheckModelType(metricType string) error {
-	if metricType != configserver.Gauge && metricType != configserver.Counter {
+	if metricType != configserver.MetricTypeGauge && metricType != configserver.MetricTypeCounter {
 		return ErrNotValidMetricType
 	}
 	return nil
@@ -93,7 +93,7 @@ func CheckModelType(metricType string) error {
 
 func New(metricType string, metricName string, metricValue string) (MetricInteraction, error) {
 
-	if metricType == configserver.Gauge {
+	if metricType == configserver.MetricTypeGauge {
 		value, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
 			return nil, ErrNotValidMetricValue
@@ -105,7 +105,7 @@ func New(metricType string, metricName string, metricValue string) (MetricIntera
 		}, nil
 	}
 
-	if metricType == configserver.Counter {
+	if metricType == configserver.MetricTypeCounter {
 		value, err := strconv.ParseUint(metricValue, 10, 64)
 		if err != nil {
 			return nil, ErrNotValidMetricValue

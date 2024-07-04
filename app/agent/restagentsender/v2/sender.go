@@ -55,7 +55,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 						SetRetryMaxWaitTime(mhs.cfg.AgentRetryMaxWaitTime)
 
 					var body string
-					if savedMetric.GetType() == configserver.Counter {
+					if savedMetric.GetType() == configserver.MetricTypeCounter {
 						body = fmt.Sprintf(`{"id":"%s", "type":"%s", "delta": %d}`,
 							savedMetric.GetName(),
 							savedMetric.GetType(),

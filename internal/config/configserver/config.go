@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	Counter = "counter"
-	Gauge   = "gauge"
+	MetricTypeCounter = "counter"
+	MetricTypeGauge   = "gauge"
 )
 
 // Config consists project settings.
