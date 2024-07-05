@@ -2,15 +2,12 @@ package memstorage
 
 import (
 	"context"
-	"errors"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"log/slog"
 	"sync"
 	"time"
 )
-
-var ErrFailedToRestoreMetrics = errors.New("failed to restore metrics")
 
 type StateManager interface {
 	saveMetrics() error

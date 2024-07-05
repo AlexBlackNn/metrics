@@ -75,11 +75,8 @@ func (jm *dataBaseJSONStateManager) restoreMetrics() error {
 	reader := bufio.NewReader(file)
 	tmpBuffer, err := io.ReadAll(reader)
 	if err != nil {
-		return ErrFailedToRestoreMetrics
+		return err
 	}
-	err = json.Unmarshal(tmpBuffer, &jm.db)
-	if err != nil {
-		return ErrFailedToRestoreMetrics
-	}
-	return nil
+
+	return json.Unmarshal(tmpBuffer, &jm.db)
 }

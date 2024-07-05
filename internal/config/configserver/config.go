@@ -67,27 +67,30 @@ func New() (*Config, error) {
 	if configPath != "" {
 		cfg, err = LoadByPath(configPath)
 		if err != nil {
-			return &Config{}, err
+			return nil, err
 		}
 		return cfg, nil
 	}
 
 	err = env.Parse(cfg)
 	if err != nil {
-		return cfg, err
+		return nil, err
 	}
 	return cfg, nil
 }
 
 // LoadByPath loads config by path
 func LoadByPath(configPath string) (*Config, error) {
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		return &Config{}, config.ErrAbsentConfigFile
+	_, err := os.Stat(configPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, config.ErrAbsentConfigFile
+		}
+		return nil, fmt.Errorf("LoadByPath stat error: %w", err)
 	}
-
 	var cfg Config
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		return &Config{}, config.ErrReadConfigFailed
+		return nil, config.ErrReadConfigFailed
 	}
 	return &cfg, nil
 }
