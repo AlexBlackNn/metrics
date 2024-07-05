@@ -54,21 +54,23 @@ func (ms *MemStorage) saveMetricToDisk() {
 	log := ms.log.With(
 		slog.String("info", "STORAGE LAYER: mem_storage.saveMetricToDisk"),
 	)
-	log.Info("starts saving metric to disk")
 	storeInterval := time.Duration(ms.cfg.ServerStoreInterval) * time.Second
 	for {
 		if ms.cfg.ServerStoreInterval > 0 {
 			<-time.After(storeInterval)
+			log.Debug("starts saving metric to disk")
 			err := ms.sm.saveMetrics()
 			if err != nil {
 				log.Error("failed save metrics", "err", err)
 			}
 		} else {
 			<-ms.saveChan
+			log.Debug("starts saving metric to disk")
 			err := ms.sm.saveMetrics()
 			if err != nil {
 				log.Error("failed save metrics", "err", err)
 			}
+			log.Debug("finish save metric to disk")
 		}
 	}
 }
