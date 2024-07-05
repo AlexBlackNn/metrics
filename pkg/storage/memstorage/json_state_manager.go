@@ -6,15 +6,19 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"io"
 	"os"
+	"sync"
 )
 
 // dataBaseJSONStateManager saves and restores database state.
 type dataBaseJSONStateManager struct {
-	cfg *configserver.Config
-	db  dataBase
+	cfg   *configserver.Config
+	db    dataBase
+	mutex *sync.RWMutex
 }
 
 func (jm *dataBaseJSONStateManager) saveMetrics() error {
+	jm.mutex.RLock()
+	defer jm.mutex.RUnlock()
 	file, err := os.OpenFile(
 		jm.cfg.ServerFileStoragePath, os.O_WRONLY|os.O_CREATE, 0777,
 	)
@@ -39,6 +43,8 @@ func (jm *dataBaseJSONStateManager) saveMetrics() error {
 }
 
 func (jm *dataBaseJSONStateManager) restoreMetrics() error {
+	jm.mutex.RLock()
+	defer jm.mutex.RUnlock()
 	file, err := os.OpenFile(
 		jm.cfg.ServerFileStoragePath, os.O_RDONLY, 0777,
 	)

@@ -17,7 +17,7 @@ type StateManager interface {
 }
 
 type MemStorage struct {
-	mutex    sync.RWMutex
+	mutex    *sync.RWMutex
 	db       dataBase
 	cfg      *configserver.Config
 	jm       StateManager
@@ -27,35 +27,37 @@ type MemStorage struct {
 // New inits mem storage (map structure)
 func New(cfg *configserver.Config) (*MemStorage, error) {
 	db := make(dataBase)
+	mutex := &sync.RWMutex{}
 	memStorage := MemStorage{
-		mutex:    sync.RWMutex{},
+		mutex:    mutex,
 		cfg:      cfg,
 		db:       db,
-		jm:       &dataBaseGOBStateManager{cfg: cfg, db: db},
+		jm:       &dataBaseGOBStateManager{cfg: cfg, db: db, mutex: mutex},
 		saveChan: make(chan struct{}),
 	}
 
 	go func() {
-		storeInterval := time.Duration(cfg.ServerStoreInterval) * time.Second
-		for {
-			if cfg.ServerStoreInterval > 0 {
-				<-time.After(storeInterval)
-				memStorage.mutex.Lock()
-				_ = memStorage.jm.saveMetrics()
-				memStorage.mutex.Unlock()
-			} else {
-				<-memStorage.saveChan
-				memStorage.mutex.Lock()
-				_ = memStorage.jm.saveMetrics()
-				memStorage.mutex.Unlock()
-			}
-		}
+		memStorage.saveMetricToDisk()
 	}()
 
 	if cfg.ServerRestore {
 		_ = memStorage.jm.restoreMetrics()
 	}
 	return &memStorage, nil
+}
+
+// saveMetricToDisk saves metrics to disk.
+func (ms *MemStorage) saveMetricToDisk() {
+	storeInterval := time.Duration(ms.cfg.ServerStoreInterval) * time.Second
+	for {
+		if ms.cfg.ServerStoreInterval > 0 {
+			<-time.After(storeInterval)
+			_ = ms.jm.saveMetrics()
+		} else {
+			<-ms.saveChan
+			_ = ms.jm.saveMetrics()
+		}
+	}
 }
 
 // UpdateMetric updates metric value in mem storage.

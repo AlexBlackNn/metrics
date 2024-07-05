@@ -9,6 +9,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"os"
+	"sync"
 )
 
 func init() {
@@ -21,8 +22,9 @@ func init() {
 
 // dataBaseJSONStateManager saves and restores database state.
 type dataBaseGOBStateManager struct {
-	cfg *configserver.Config
-	db  dataBase
+	cfg   *configserver.Config
+	db    dataBase
+	mutex *sync.RWMutex
 }
 
 // Custom gob encoder for models.Metric[uint64].
@@ -52,7 +54,8 @@ func encodeMetricFloat64(enc *gob.Encoder, m models.Metric[float64]) error {
 }
 
 func (gm *dataBaseGOBStateManager) saveMetrics() error {
-
+	gm.mutex.RLock()
+	defer gm.mutex.RUnlock()
 	file, err := os.OpenFile(
 		gm.cfg.ServerFileStoragePath, os.O_WRONLY|os.O_CREATE, 0777,
 	)
@@ -77,6 +80,8 @@ func (gm *dataBaseGOBStateManager) saveMetrics() error {
 }
 
 func (gm *dataBaseGOBStateManager) restoreMetrics() error {
+	gm.mutex.RLock()
+	defer gm.mutex.RUnlock()
 	file, err := os.OpenFile(
 		gm.cfg.ServerFileStoragePath, os.O_RDONLY, 0777,
 	)
