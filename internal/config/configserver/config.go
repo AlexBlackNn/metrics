@@ -24,6 +24,7 @@ type Config struct {
 	ServerStoreInterval   int    `yaml:"server_store_interval" env:"STORE_INTERVAL"`
 	ServerFileStoragePath string `yaml:"server_file_storage_path" env-default:"/tmp/metrics-db.json" env:"FILE_STORAGE_PATH" envDefault:"/tmp/metrics-db.json"`
 	ServerRestore         bool   `yaml:"server_restore" env-default:"true" env:"RESTORE" envDefault:"true"`
+	ServerRateLimit       int    `yaml:"server_rate_limit" env-default:"10000" env:"SERVER_RATE_LIMIT" envDefault:"10000"`
 }
 
 func (c *Config) String() string {

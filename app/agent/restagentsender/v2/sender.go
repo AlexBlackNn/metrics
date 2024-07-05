@@ -36,7 +36,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
 	)
 	reportInterval := time.Duration(mhs.cfg.ReportInterval) * time.Second
-	rateLimiter := rate.NewLimiter(rate.Limit(30), 30)
+	rateLimiter := rate.NewLimiter(rate.Limit(mhs.cfg.AgentRateLimit), mhs.cfg.AgentBurstTokens)
 	for {
 		select {
 		case <-ctx.Done():

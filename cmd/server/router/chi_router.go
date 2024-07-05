@@ -2,6 +2,7 @@ package router
 
 import (
 	"compress/gzip"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v2"
 	customMiddleware "github.com/AlexBlackNn/metrics/internal/middleware"
@@ -12,14 +13,14 @@ import (
 	"time"
 )
 
-func NewChiRouter(log *slog.Logger, metricHandlerV1 v1.MetricHandlers, metricHandlerV2 v2.MetricHandlers) *chi.Mux {
+func NewChiRouter(cfg *configserver.Config, log *slog.Logger, metricHandlerV1 v1.MetricHandlers, metricHandlerV2 v2.MetricHandlers) *chi.Mux {
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	//	Rate limit by IP and URL path (aka endpoint)
 	router.Use(httprate.Limit(
-		100,           // requests
-		1*time.Second, // per duration
+		cfg.ServerRateLimit, // requests
+		time.Second,         // per duration
 		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
 	))
 	router.Use(customMiddleware.Logger(log))

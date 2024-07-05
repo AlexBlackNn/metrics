@@ -28,7 +28,7 @@ func (ms *MetricsSuite) SetupSuite() {
 
 func (ms *MetricsSuite) BeforeTest(suiteName, testName string) {
 	// Starts server with first random port.
-	ms.srv = httptest.NewServer(router.NewChiRouter(ms.application.Log, ms.application.HandlersV1, ms.application.HandlersV2))
+	ms.srv = httptest.NewServer(router.NewChiRouter(ms.application.Cfg, ms.application.Log, ms.application.HandlersV1, ms.application.HandlersV2))
 }
 
 func (ms *MetricsSuite) AfterTest(suiteName, testName string) {

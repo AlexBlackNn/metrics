@@ -48,7 +48,7 @@ func New() (*App, error) {
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(cfg.ServerAddr),
-		Handler:      router.NewChiRouter(log, projectHandlersV1, projectHandlersV2),
+		Handler:      router.NewChiRouter(cfg, log, projectHandlersV1, projectHandlersV2),
 		ReadTimeout:  time.Duration(cfg.ServerReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(cfg.ServerWriteTimeout) * time.Second,
 		IdleTimeout:  time.Duration(cfg.ServerIdleTimeout) * time.Second,
