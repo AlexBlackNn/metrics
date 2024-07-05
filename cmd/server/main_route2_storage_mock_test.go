@@ -3,9 +3,11 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/pkg/storage/mockstorage"
 	"github.com/golang/mock/gomock"
+	"io"
 	"net/http"
 )
 
@@ -28,6 +30,7 @@ func (ms *MetricsSuite) TestServerHappyPathMockStorageV2() {
 		code        int
 		response    string
 		contentType string
+		value       int
 	}
 
 	tests := []struct {
@@ -38,17 +41,17 @@ func (ms *MetricsSuite) TestServerHappyPathMockStorageV2() {
 	}{
 		{
 			name: "counter with value 10",
-			url:  "/update/",
+			url:  "/value/",
 			body: []byte(
 				`{
 				"id": "test_counter",
-				"type": "counter",
-				"delta": 10
+				"type": "counter"
 				}`,
 			),
 			want: Want{
 				code:        http.StatusOK,
 				contentType: "application/json",
+				response:    `{"id":"test_counter","type":"counter","delta":10}`,
 			},
 		},
 	}
@@ -65,6 +68,10 @@ func (ms *MetricsSuite) TestServerHappyPathMockStorageV2() {
 			ms.Equal(tt.want.code, res.StatusCode)
 			defer res.Body.Close()
 			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
+			data, err := io.ReadAll(res.Body)
+			fmt.Println("1111111111", string(data))
+			ms.NoError(err)
+			ms.Equal(tt.want.response, string(data))
 		})
 	}
 }
