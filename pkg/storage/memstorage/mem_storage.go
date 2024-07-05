@@ -2,6 +2,7 @@ package memstorage
 
 import (
 	"context"
+	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"log/slog"
@@ -98,6 +99,7 @@ func (ms *MemStorage) GetMetric(
 	ctx context.Context,
 	name string,
 ) (models.MetricGetter, error) {
+	fmt.Println(ctx)
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()
 	metric, ok := ms.db[name]

@@ -1,102 +1,93 @@
 package main
 
-//
-//import (
-//	"bytes"
-//	"context"
-//	"github.com/AlexBlackNn/metrics/app/server"
-//	"github.com/AlexBlackNn/metrics/cmd/server/router"
-//	"github.com/AlexBlackNn/metrics/internal/domain/models"
-//	"github.com/AlexBlackNn/metrics/pkg/storage/mockstorage"
-//	"github.com/golang/mock/gomock"
-//	"github.com/stretchr/testify/suite"
-//	"net/http"
-//	"net/http/httptest"
-//	"testing"
-//	"time"
-//)
-//
-//type MetricsSuiteV2 struct {
-//	suite.Suite
-//	application *server.App
-//	client      http.Client
-//	srv         *httptest.Server
-//}
-//
-//func (ms *MetricsSuiteV2) SetupSuite() {
-//	var err error
-//	ms.application, err = server.New()
-//
-//	ctrl := gomock.NewController(ms.T())
-//	defer ctrl.Finish()
-//
-//	mockStorage := mockstorage.NewMockMetricsStorage(ctrl)
-//	ctx := context.Background()
-//	modelTest := &models.Metric[uint64]{Type: "counter", Name: "test_counter", Value: 22}
-//	mockStorage.EXPECT().GetMetric(ctx, "test_counter").Return(modelTest, nil)
-//	ms.application.DataBase = mockStorage
-//
-//	if err != nil {
-//		ms.T().Fatal(err)
-//	}
-//	ms.client = http.Client{Timeout: 3 * time.Second}
-//}
-//
-//func (ms *MetricsSuiteV2) BeforeTest(suiteName, testName string) {
-//	// Starts server with first random port.
-//	ms.srv = httptest.NewServer(router.NewChiRouter(ms.application.Cfg, ms.application.Log, ms.application.HandlersV1, ms.application.HandlersV2))
-//}
-//
-//func (ms *MetricsSuiteV2) AfterTest(suiteName, testName string) {
-//	ms.srv = nil
-//}
-//
-//func (ms *MetricsSuiteV2) TestServerHappyPathMockStorageV2() {
-//	type Want struct {
-//		code        int
-//		response    string
-//		contentType string
-//	}
-//
-//	tests := []struct {
-//		name string
-//		url  string
-//		body []byte
-//		want Want
-//	}{
-//		{
-//			name: "counter with value 10",
-//			url:  "/update/",
-//			body: []byte(
-//				`{
-//				"id": "test_counter",
-//				"type": "counter",
-//				"delta": 10
-//				}`,
-//			),
-//			want: Want{
-//				code:        http.StatusOK,
-//				contentType: "application/json",
-//			},
-//		},
-//	}
-//	// stop server when tests finished
-//	defer ms.srv.Close()
-//
-//	for _, tt := range tests {
-//		ms.Run(tt.name, func() {
-//			url := ms.srv.URL + tt.url
-//			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(tt.body))
-//			ms.NoError(err)
-//			res, err := ms.client.Do(request)
-//			ms.NoError(err)
-//			ms.Equal(tt.want.code, res.StatusCode)
-//			defer res.Body.Close()
-//			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
-//		})
-//	}
-//}
-//
-//func TestSuiteV2(t *testing.T) {
-//	suite.Run(t, new(MetricsSuiteV2))
-//}
+import (
+	"bytes"
+	"github.com/AlexBlackNn/metrics/app/server"
+	"github.com/AlexBlackNn/metrics/cmd/server/router"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
+	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/internal/logger"
+	"github.com/AlexBlackNn/metrics/pkg/storage/mockstorage"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+)
+
+func TestServerHappyPathMockStorageV2(t *testing.T) {
+	// создадим конроллер моков и экземпляр мок-хранилища
+	cfg, err := configserver.New()
+	if err != nil {
+		panic(err)
+	}
+	log := logger.New(cfg.Env)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockMetricStorage := mockstorage.NewMockMetricsStorage(ctrl)
+	mockHealthChecker := mockstorage.NewMockHealthChecker(ctrl)
+
+	// определим, какой результат будем получать от «хранилища»
+	modelTest := &models.Metric[uint64]{Type: "counter", Name: "test_counter", Value: 10}
+
+	// установим условие: при любом вызове метода ListMessages возвращать массив messages без ошибки
+	mockMetricStorage.EXPECT().
+		GetMetric(gomock.Any(), gomock.Any()).
+		Return(modelTest, nil)
+
+	application, err := server.NewAppInitStorage(mockMetricStorage, mockHealthChecker, cfg, log)
+	srv := httptest.NewServer(router.NewChiRouter(application.Cfg, application.Log, application.HandlersV1, application.HandlersV2))
+	defer srv.Close()
+
+	client := http.Client{Timeout: 3 * time.Second}
+
+	type Want struct {
+		code        int
+		response    string
+		contentType string
+		value       int
+	}
+
+	tests := []struct {
+		name string
+		url  string
+		body []byte
+		want Want
+	}{
+		{
+			name: "counter with value 10",
+			url:  "/value/",
+			body: []byte(
+				`{
+				"id": "test_counter",
+				"type": "counter",
+				"delta": 10
+				}`,
+			),
+			want: Want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				response:    `{"id":"test_counter","type":"counter","delta":10}`,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			url := srv.URL + tt.url
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(tt.body))
+			assert.NoError(t, err, "error creating HTTP request")
+			res, err := client.Do(request)
+			assert.NoError(t, err, "error making HTTP request")
+			assert.Equal(t, tt.want.code, res.StatusCode)
+			defer res.Body.Close()
+			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
+			data, err := io.ReadAll(res.Body)
+			assert.NoError(t, err, "error reading response body")
+			assert.Equal(t, tt.want.response, string(data))
+		})
+	}
+}
