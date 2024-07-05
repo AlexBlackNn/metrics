@@ -73,6 +73,12 @@ func (ms *MemStorage) saveMetricToDisk() {
 	}
 }
 
+func (ms *MemStorage) HealthCheck(
+	ctx context.Context,
+) error {
+	return nil
+}
+
 // UpdateMetric updates metric value in mem storage.
 func (ms *MemStorage) UpdateMetric(
 	ctx context.Context,

@@ -101,3 +101,7 @@ curl -v --request GET  http://localhost:8080/
 ```bash
 curl -v --header "Accept-Encoding: gzip" --request GET  http://localhost:8080/ --compressed
 ```
+
+```bash
+curl -v -X GET  http://localhost:8080/ping
+```
