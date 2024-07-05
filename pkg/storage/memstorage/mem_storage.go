@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"log/slog"
 	"sync"
 	"time"
 )
@@ -20,19 +21,21 @@ type MemStorage struct {
 	mutex    *sync.RWMutex
 	db       dataBase
 	cfg      *configserver.Config
-	jm       StateManager
+	sm       StateManager
+	log      *slog.Logger
 	saveChan chan struct{}
 }
 
 // New inits mem storage (map structure)
-func New(cfg *configserver.Config) (*MemStorage, error) {
+func New(cfg *configserver.Config, log *slog.Logger) (*MemStorage, error) {
 	db := make(dataBase)
 	mutex := &sync.RWMutex{}
 	memStorage := MemStorage{
 		mutex:    mutex,
 		cfg:      cfg,
 		db:       db,
-		jm:       &dataBaseGOBStateManager{cfg: cfg, db: db, mutex: mutex},
+		log:      log,
+		sm:       &dataBaseGOBStateManager{cfg: cfg, db: db, mutex: mutex, log: log},
 		saveChan: make(chan struct{}),
 	}
 
@@ -41,21 +44,31 @@ func New(cfg *configserver.Config) (*MemStorage, error) {
 	}()
 
 	if cfg.ServerRestore {
-		_ = memStorage.jm.restoreMetrics()
+		_ = memStorage.sm.restoreMetrics()
 	}
 	return &memStorage, nil
 }
 
 // saveMetricToDisk saves metrics to disk.
 func (ms *MemStorage) saveMetricToDisk() {
+	log := ms.log.With(
+		slog.String("info", "STORAGE LAYER: mem_storage.saveMetricToDisk"),
+	)
+	log.Info("starts saving metric to disk")
 	storeInterval := time.Duration(ms.cfg.ServerStoreInterval) * time.Second
 	for {
 		if ms.cfg.ServerStoreInterval > 0 {
 			<-time.After(storeInterval)
-			_ = ms.jm.saveMetrics()
+			err := ms.sm.saveMetrics()
+			if err != nil {
+				log.Error("failed save metrics", "err", err)
+			}
 		} else {
 			<-ms.saveChan
-			_ = ms.jm.saveMetrics()
+			err := ms.sm.saveMetrics()
+			if err != nil {
+				log.Error("failed save metrics", "err", err)
+			}
 		}
 	}
 }

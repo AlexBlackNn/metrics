@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"log/slog"
 	"os"
 	"sync"
 )
@@ -23,6 +24,7 @@ func init() {
 // dataBaseJSONStateManager saves and restores database state.
 type dataBaseGOBStateManager struct {
 	cfg   *configserver.Config
+	log   *slog.Logger
 	db    dataBase
 	mutex *sync.RWMutex
 }
@@ -54,6 +56,11 @@ func encodeMetricFloat64(enc *gob.Encoder, m models.Metric[float64]) error {
 }
 
 func (gm *dataBaseGOBStateManager) saveMetrics() error {
+	log := gm.log.With(
+		slog.String("info", "STORAGE LAYER: gob_state_manager.saveMetrics"),
+	)
+	log.Info("starts saving metric")
+
 	gm.mutex.RLock()
 	defer gm.mutex.RUnlock()
 	file, err := os.OpenFile(
@@ -63,7 +70,10 @@ func (gm *dataBaseGOBStateManager) saveMetrics() error {
 		return err
 	}
 	defer func(file *os.File) {
-		_ = file.Close()
+		err = file.Close()
+		if err != nil {
+			log.Error("failed to close file", "err", err)
+		}
 	}(file)
 	writer := bufio.NewWriter(file)
 	defer writer.Flush()
@@ -80,6 +90,10 @@ func (gm *dataBaseGOBStateManager) saveMetrics() error {
 }
 
 func (gm *dataBaseGOBStateManager) restoreMetrics() error {
+	log := gm.log.With(
+		slog.String("info", "STORAGE LAYER: gob_state_manager.restoreMetrics"),
+	)
+	log.Info("restore saved metric")
 	gm.mutex.RLock()
 	defer gm.mutex.RUnlock()
 	file, err := os.OpenFile(
@@ -89,7 +103,10 @@ func (gm *dataBaseGOBStateManager) restoreMetrics() error {
 		return err
 	}
 	defer func(file *os.File) {
-		_ = file.Close()
+		err = file.Close()
+		if err != nil {
+			log.Error("failed to close file", "err", err)
+		}
 	}(file)
 
 	reader := bufio.NewReader(file)
