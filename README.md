@@ -105,3 +105,13 @@ curl -v --header "Accept-Encoding: gzip" --request GET  http://localhost:8080/ -
 ```bash
 curl -v -X GET  http://localhost:8080/ping
 ```
+
+# Моки
+Создаем руками папку для хранения мока
+```bash
+mkdir pkg/storage/mock
+```
+Запускаем создание мока 
+```bash
+mockgen -destination=pkg/storage/mockstorage/mock_storage.go -package=mockstorage github.com/AlexBlackNn/metrics/internal/services/metricsservice MetricsStorage,HealthChecker
+```
