@@ -1,18 +1,41 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
+	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	v2 "github.com/AlexBlackNn/metrics/internal/handlers/v2"
 	"github.com/AlexBlackNn/metrics/internal/logger"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
+	"github.com/AlexBlackNn/metrics/pkg/storage/postgres"
 	"log/slog"
 	"net/http"
 	"time"
 )
+
+type MetricsStorage interface {
+	UpdateMetric(
+		ctx context.Context,
+		metric models.MetricGetter,
+	) error
+	GetMetric(
+		ctx context.Context,
+		metricName string,
+	) (models.MetricGetter, error)
+	GetAllMetrics(
+		ctx context.Context,
+	) ([]models.MetricGetter, error)
+}
+
+type HealthChecker interface {
+	HealthCheck(
+		ctx context.Context,
+	) error
+}
 
 // App service consists all entities needed to work.
 type App struct {
@@ -22,6 +45,8 @@ type App struct {
 	Cfg            *configserver.Config
 	Log            *slog.Logger
 	Srv            *http.Server
+	DataBase       MetricsStorage
+	HealthChecker  HealthChecker
 }
 
 // New creates App collecting service layer, config, logger and predefined storage layer.
@@ -36,11 +61,15 @@ func New() (*App, error) {
 
 	// Err is now skipped, but when migratings to postgres/sqlite/etc... err will be checked.
 	memStorage, _ := memstorage.New(cfg, log)
-
+	postgresStorage, err := postgres.New(cfg, log)
+	if err != nil {
+		return nil, err
+	}
 	metricsService := metricsservice.New(
 		log,
 		cfg,
 		memStorage,
+		postgresStorage,
 	)
 
 	projectHandlersV1 := v1.New(log, metricsService)
@@ -61,5 +90,7 @@ func New() (*App, error) {
 		Srv:            srv,
 		Cfg:            cfg,
 		Log:            log,
+		DataBase:       memStorage,
+		HealthChecker:  postgresStorage,
 	}, nil
 }

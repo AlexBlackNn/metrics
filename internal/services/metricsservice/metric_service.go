@@ -29,27 +29,25 @@ type HealthChecker interface {
 	) error
 }
 
-type MetricsStorageWithHealthChecker interface {
-	MetricsStorage
-	HealthChecker
-}
-
 type MetricService struct {
 	log            *slog.Logger
 	cfg            *configserver.Config
-	metricsStorage MetricsStorageWithHealthChecker
+	metricsStorage MetricsStorage
+	healthChecker  HealthChecker
 }
 
 // New returns a new instance of MonitoringService.
 func New(
 	log *slog.Logger,
 	cfg *configserver.Config,
-	metricsStorage MetricsStorageWithHealthChecker,
+	metricsStorage MetricsStorage,
+	healthChecker HealthChecker,
 ) *MetricService {
 	return &MetricService{
 		log:            log,
 		cfg:            cfg,
 		metricsStorage: metricsStorage,
+		healthChecker:  healthChecker,
 	}
 }
 
@@ -139,6 +137,6 @@ func (ms *MetricService) HealthCheck(ctx context.Context) error {
 		slog.String("info", "SERVICE LAYER: metrics_service.HealthCheck"),
 	)
 	log.Info("starts getting health check")
-	err := ms.metricsStorage.HealthCheck(ctx)
+	err := ms.healthChecker.HealthCheck(ctx)
 	return err
 }

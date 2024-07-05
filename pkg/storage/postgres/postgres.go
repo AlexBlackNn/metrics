@@ -17,6 +17,7 @@ type PostStorage struct {
 func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
 	db, err := sql.Open("pgx", cfg.ServerDataBaseDSN)
 	if err != nil {
+		log.Error("Unable to connect to database", "error", err)
 		return nil, fmt.Errorf(
 			"DATA LAYER: storage.postgres.New: couldn't open a database: %w",
 			err,
