@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"golang.org/x/exp/constraints"
 	"strconv"
 	"strings"
@@ -14,15 +15,23 @@ var ErrAddDifferentMetricType = errors.New("different metric types")
 var ErrAddDifferentMetricName = errors.New("different metric names")
 var ErrAddMetricValueCast = errors.New("cannot cast metric to required type")
 
-type MetricInteraction interface {
+type MetricAdder interface {
+	AddValue(metric MetricGetter) error
+}
+
+type MetricGetter interface {
 	GetType() string
 	GetName() string
 	GetValue() any
-	AddValue(metric MetricInteraction) error
 	GetStringValue() string
 }
 
-// Metric works with metrics collected by an agent
+type MetricInteraction interface {
+	MetricAdder
+	MetricGetter
+}
+
+// Metric works with metrics collected by an agent.
 type Metric[T constraints.Integer | constraints.Float] struct {
 	Type  string
 	Name  string
@@ -51,8 +60,8 @@ func (m *Metric[T]) GetStringValue() string {
 	}
 }
 
-// AddValue adds the value of another Metric to the current Metric
-func (m *Metric[T]) AddValue(other MetricInteraction) error {
+// AddValue adds the value of another Metric to the current Metric.
+func (m *Metric[T]) AddValue(other MetricGetter) error {
 	if m.GetType() != other.GetType() {
 		return ErrAddDifferentMetricType
 	}
@@ -60,7 +69,7 @@ func (m *Metric[T]) AddValue(other MetricInteraction) error {
 		return ErrAddDifferentMetricName
 	}
 
-	// Since T is constrained to be either constraints.Float or constraints.Integer, we can use them here
+	// Since T is constrained to be either constraints.Float or constraints.Integer, we can use them here.
 	if mValue, ok := any(m.Value).(float64); ok {
 		if oValue, ok := other.GetValue().(float64); ok {
 			m.Value = T(mValue + oValue)
@@ -76,7 +85,7 @@ func (m *Metric[T]) AddValue(other MetricInteraction) error {
 }
 
 func CheckModelType(metricType string) error {
-	if metricType != "gauge" && metricType != "counter" {
+	if metricType != configserver.MetricTypeGauge && metricType != configserver.MetricTypeCounter {
 		return ErrNotValidMetricType
 	}
 	return nil
@@ -84,7 +93,7 @@ func CheckModelType(metricType string) error {
 
 func New(metricType string, metricName string, metricValue string) (MetricInteraction, error) {
 
-	if metricType == "gauge" {
+	if metricType == configserver.MetricTypeGauge {
 		value, err := strconv.ParseFloat(metricValue, 64)
 		if err != nil {
 			return nil, ErrNotValidMetricValue
@@ -96,7 +105,7 @@ func New(metricType string, metricName string, metricValue string) (MetricIntera
 		}, nil
 	}
 
-	if metricType == "counter" {
+	if metricType == configserver.MetricTypeCounter {
 		value, err := strconv.ParseUint(metricValue, 10, 64)
 		if err != nil {
 			return nil, ErrNotValidMetricValue

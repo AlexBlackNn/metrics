@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/AlexBlackNn/metrics/app/agent"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/logger"
 	"log/slog"
 	"os"
@@ -15,7 +15,7 @@ import (
 func main() {
 	var wg sync.WaitGroup
 
-	cfg, err := config.New()
+	cfg, err := configagent.New()
 	if err != nil {
 		panic(err)
 	}
