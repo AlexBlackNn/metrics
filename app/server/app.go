@@ -65,6 +65,15 @@ func New() (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	return NewAppInitStorage(memStorage, postgresStorage, cfg, log)
+}
+
+func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Config, log *slog.Logger) (*App, error) {
+
+	// Err is now skipped, but when migratings to postgres/sqlite/etc... err will be checked.
+	memStorage := ms
+	postgresStorage := hc
+
 	metricsService := metricsservice.New(
 		log,
 		cfg,

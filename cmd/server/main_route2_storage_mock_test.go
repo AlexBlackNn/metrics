@@ -2,29 +2,56 @@ package main
 
 import (
 	"bytes"
-	"context"
-	"fmt"
+	"github.com/AlexBlackNn/metrics/app/server"
+	"github.com/AlexBlackNn/metrics/cmd/server/router"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/internal/logger"
 	"github.com/AlexBlackNn/metrics/pkg/storage/mockstorage"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
 )
 
-func (ms *MetricsSuite) TestServerHappyPathMockStorageV2() {
-	ctrl := gomock.NewController(ms.T())
+func TestServerHappyPathMockStorageV2(t *testing.T) {
+	cfg := &configserver.Config{
+		Env:                   "local",
+		ServerAddr:            ":8080",
+		ServerReadTimeout:     10,
+		ServerWriteTimeout:    10,
+		ServerIdleTimeout:     10,
+		ServerStoreInterval:   2,
+		ServerFileStoragePath: "/tmp/metrics-db.json",
+		ServerRestore:         true,
+		ServerRateLimit:       10000,
+		ServerDataBaseDSN:     "postgresql://postgres:postgres@127.0.0.1:5432/postgres",
+	}
+
+	log := logger.New(cfg.Env)
+
+	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	mockMetricStorage := mockstorage.NewMockMetricsStorage(ctrl)
+	mockHealthChecker := mockstorage.NewMockHealthChecker(ctrl)
 
-	mockStorage := mockstorage.NewMockMetricsStorage(ctrl)
+	// определим, какой результат будем получать от «хранилища»
+	modelTest := &models.Metric[uint64]{Type: "counter", Name: "test_counter", Value: 10}
 
-	ctx := context.Background()
-	modelTest := &models.Metric[uint64]{Type: "counter", Name: "test_counter", Value: 22}
-	mockStorage.EXPECT().GetMetric(ctx, "test_counter").Return(modelTest, nil)
-	result, err := mockStorage.GetMetric(ctx, "test_counter")
-	ms.Suite.NoError(err)
-	ms.Suite.Equal(modelTest, result)
+	// установим условие: при любом вызове метода ListMessages возвращать массив messages без ошибки
+	mockMetricStorage.EXPECT().
+		GetMetric(gomock.Any(), gomock.Any()).
+		Return(modelTest, nil)
 
-	ms.application.DataBase = mockStorage
+	application, err := server.NewAppInitStorage(mockMetricStorage, mockHealthChecker, cfg, log)
+	assert.NoError(t, err)
+	srv := httptest.NewServer(router.NewChiRouter(application.Cfg, application.Log, application.HandlersV1, application.HandlersV2))
+	defer srv.Close()
+
+	client := http.Client{Timeout: 3 * time.Second}
 
 	type Want struct {
 		code        int
@@ -45,7 +72,8 @@ func (ms *MetricsSuite) TestServerHappyPathMockStorageV2() {
 			body: []byte(
 				`{
 				"id": "test_counter",
-				"type": "counter"
+				"type": "counter",
+				"delta": 10
 				}`,
 			),
 			want: Want{
@@ -55,23 +83,20 @@ func (ms *MetricsSuite) TestServerHappyPathMockStorageV2() {
 			},
 		},
 	}
-	// stop server when tests finished
-	defer ms.srv.Close()
 
 	for _, tt := range tests {
-		ms.Run(tt.name, func() {
-			url := ms.srv.URL + tt.url
+		t.Run(tt.name, func(t *testing.T) {
+			url := srv.URL + tt.url
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(tt.body))
-			ms.NoError(err)
-			res, err := ms.client.Do(request)
-			ms.NoError(err)
-			ms.Equal(tt.want.code, res.StatusCode)
+			assert.NoError(t, err, "error creating HTTP request")
+			res, err := client.Do(request)
+			assert.NoError(t, err, "error making HTTP request")
+			assert.Equal(t, tt.want.code, res.StatusCode)
 			defer res.Body.Close()
-			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
 			data, err := io.ReadAll(res.Body)
-			fmt.Println("1111111111", string(data))
-			ms.NoError(err)
-			ms.Equal(tt.want.response, string(data))
+			assert.NoError(t, err, "error reading response body")
+			assert.Equal(t, tt.want.response, string(data))
 		})
 	}
 }

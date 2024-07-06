@@ -3,6 +3,10 @@ package main
 import (
 	"github.com/AlexBlackNn/metrics/app/server"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
+	"github.com/AlexBlackNn/metrics/internal/logger"
+	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
+	"github.com/AlexBlackNn/metrics/pkg/storage/postgres"
 	"github.com/stretchr/testify/suite"
 	"net/http"
 	"net/http/httptest"
@@ -19,10 +23,26 @@ type MetricsSuite struct {
 
 func (ms *MetricsSuite) SetupSuite() {
 	var err error
-	ms.application, err = server.New()
-	if err != nil {
-		ms.T().Fatal(err)
+	cfg := &configserver.Config{
+		Env:                   "local",
+		ServerAddr:            ":8080",
+		ServerReadTimeout:     10,
+		ServerWriteTimeout:    10,
+		ServerIdleTimeout:     10,
+		ServerStoreInterval:   2,
+		ServerFileStoragePath: "/tmp/metrics-db.json",
+		ServerRestore:         true,
+		ServerRateLimit:       10000,
+		ServerDataBaseDSN:     "postgresql://postgres:postgres@127.0.0.1:5432/postgres",
 	}
+	log := logger.New(cfg.Env)
+
+	memStorage, _ := memstorage.New(cfg, log)
+	postgresStorage, err := postgres.New(cfg, log)
+	ms.Suite.NoError(err)
+
+	ms.application, err = server.NewAppInitStorage(memStorage, postgresStorage, cfg, log)
+	ms.Suite.NoError(err)
 	ms.client = http.Client{Timeout: 3 * time.Second}
 }
 

@@ -2,6 +2,7 @@ version: "3.3"
 services:
   db:
     image: postgres:16.1-alpine
+    restart: always
     volumes:
       - /tmp/postgres_data/:/var/lib/postgresql/data/
     ports:
