@@ -56,12 +56,22 @@ CREATE INDEX IF NOT EXISTS counter_created_2_quarter_idx ON app.counter_y2024_2_
 CREATE INDEX IF NOT EXISTS counter_created_3_quarter_idx ON app.counter_y2024_3_quarter (created);
 CREATE INDEX IF NOT EXISTS counter_created_4_quarter_idx ON app.counter_y2024_4_quarter (created);
 
+CREATE INDEX IF NOT EXISTS counter_name_1_quarter_idx ON app.counter_y2024_1_quarter (name);
+CREATE INDEX IF NOT EXISTS counter_name_2_quarter_idx ON app.counter_y2024_2_quarter (name);
+CREATE INDEX IF NOT EXISTS counter_name_3_quarter_idx ON app.counter_y2024_3_quarter (name);
+CREATE INDEX IF NOT EXISTS counter_name_4_quarter_idx ON app.counter_y2024_4_quarter (name);
+
 
 -- Для каждой дочерней таблицы создаем индекс по ключевому столбцу
 CREATE INDEX IF NOT EXISTS gauge_created_1_quarter_idx ON app.gauge_y2024_1_quarter (created);
 CREATE INDEX IF NOT EXISTS gauge_created_2_quarter_idx ON app.gauge_y2024_2_quarter (created);
 CREATE INDEX IF NOT EXISTS gauge_created_3_quarter_idx ON app.gauge_y2024_3_quarter (created);
 CREATE INDEX IF NOT EXISTS gauge_created_4_quarter_idx ON app.gauge_y2024_4_quarter (created);
+
+CREATE INDEX IF NOT EXISTS gauge_name_1_quarter_idx ON app.gauge_y2024_1_quarter (name);
+CREATE INDEX IF NOT EXISTS gauge_name_2_quarter_idx ON app.gauge_y2024_2_quarter (name);
+CREATE INDEX IF NOT EXISTS gauge_name_3_quarter_idx ON app.gauge_y2024_3_quarter (name);
+CREATE INDEX IF NOT EXISTS gauge_name_4_quarter_idx ON app.gauge_y2024_4_quarter (name);
 
 INSERT INTO app.types(name) VALUES ('gauge');
 INSERT INTO app.types(name) VALUES ('counter');
