@@ -13,17 +13,25 @@ import (
 )
 
 func main() {
-	var migrationsPath, migrationsTable string
+
+	var migrationsPath, migrationsTable, databaseDSN string
+
+	flag.StringVar(
+		&databaseDSN,
+		"d",
+		"",
+		"database-dsn",
+	)
 
 	flag.StringVar(
 		&migrationsPath,
-		"migrations-path",
+		"p",
 		"",
 		"path to migrations",
 	)
 	flag.StringVar(
 		&migrationsTable,
-		"migrations-table",
+		"t",
 		"migrations",
 		"name of migration table, where migrator writes own data",
 	)
@@ -35,16 +43,13 @@ func main() {
 
 	m, err := migrate.New(
 		"file://"+migrationsPath,
-		fmt.Sprintf(
-			"postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable",
-		),
+		fmt.Sprintf(databaseDSN),
 	)
 	if err != nil {
 		panic(err)
 	}
 	if err := m.Up(); err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {
-			// TODO: change to logger
 			fmt.Println("no migrations to apply")
 			return
 		}

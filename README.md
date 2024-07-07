@@ -115,3 +115,9 @@ mkdir pkg/storage/mock
 ```bash
 mockgen -destination=pkg/storage/mockstorage/mock_storage.go -package=mockstorage github.com/AlexBlackNn/metrics/internal/services/metricsservice MetricsStorage,HealthChecker
 ```
+
+# Миграции 
+go run ./cmd/migrator/postgres  --migrations-path=./migrations
+
+# SQL 
+CREATE EXTENSION pg_stat_statements; 
