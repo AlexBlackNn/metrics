@@ -208,6 +208,10 @@ func (s *PostStorage) GetAllMetrics(
 		}
 		metrics = append(metrics, metricDB)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 	return metrics, nil
 }
 
