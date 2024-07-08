@@ -131,12 +131,12 @@ func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricGett
 	return metrics, nil
 }
 
-// HealthCheck returns health check
+// HealthCheck returns service health check
 func (ms *MetricService) HealthCheck(ctx context.Context) error {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.HealthCheck"),
 	)
 	log.Info("starts getting health check")
-	err := ms.healthChecker.HealthCheck(ctx)
-	return err
+	defer log.Info("finish getting health check")
+	return ms.healthChecker.HealthCheck(ctx)
 }

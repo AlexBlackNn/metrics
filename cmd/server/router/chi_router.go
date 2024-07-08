@@ -13,7 +13,13 @@ import (
 	"time"
 )
 
-func NewChiRouter(cfg *configserver.Config, log *slog.Logger, metricHandlerV1 v1.MetricHandlers, metricHandlerV2 v2.MetricHandlers) *chi.Mux {
+func NewChiRouter(
+	cfg *configserver.Config,
+	log *slog.Logger,
+	metricHandlerV1 v1.MetricHandlers,
+	metricHandlerV2 v2.MetricHandlers,
+	healthHandlerV2 v2.HealthHandlers,
+) *chi.Mux {
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -31,7 +37,7 @@ func NewChiRouter(cfg *configserver.Config, log *slog.Logger, metricHandlerV1 v1
 
 	router.Route("/", func(r chi.Router) {
 		r.Get("/", metricHandlerV1.GetAllMetrics)
-		r.Get("/ping", metricHandlerV2.ReadinessProbe)
+		r.Get("/ping", healthHandlerV2.ReadinessProbe)
 		r.Post("/update/{metric_type}/{metric_name}/{metric_value}", metricHandlerV1.UpdateMetric)
 		r.Get("/value/{metric_type}/{metric_name}", metricHandlerV1.GetOneMetric)
 		r.Post("/update/", metricHandlerV2.UpdateMetric)

@@ -11,11 +11,11 @@ type HealthHandlers struct {
 	metricsService *metricsservice.MetricService
 }
 
-func NewHealth(log *slog.Logger, metricsService *metricsservice.MetricService) MetricHandlers {
-	return MetricHandlers{log: log, metricsService: metricsService}
+func NewHealth(log *slog.Logger, metricsService *metricsservice.MetricService) HealthHandlers {
+	return HealthHandlers{log: log, metricsService: metricsService}
 }
 
-func (m *MetricHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) {
+func (m *HealthHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -30,7 +30,7 @@ func (m *MetricHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (m *MetricHandlers) LivenessProbe(w http.ResponseWriter, r *http.Request) {
+func (m *HealthHandlers) LivenessProbe(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return

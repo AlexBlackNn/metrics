@@ -136,7 +136,5 @@ func (s *PostStorage) GetAllMetrics(
 func (s *PostStorage) HealthCheck(
 	ctx context.Context,
 ) error {
-	err := s.db.PingContext(ctx)
-	fmt.Println("11111111111111111", err)
-	return err
+	return s.db.PingContext(ctx)
 }

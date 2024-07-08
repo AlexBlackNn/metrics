@@ -78,10 +78,11 @@ func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Co
 
 	projectHandlersV1 := v1.New(log, metricsService)
 	projectHandlersV2 := v2.New(log, metricsService)
+	healthHandlersV2 := v2.NewHealth(log, metricsService)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(cfg.ServerAddr),
-		Handler:      router.NewChiRouter(cfg, log, projectHandlersV1, projectHandlersV2),
+		Handler:      router.NewChiRouter(cfg, log, projectHandlersV1, projectHandlersV2, healthHandlersV2),
 		ReadTimeout:  time.Duration(cfg.ServerReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(cfg.ServerWriteTimeout) * time.Second,
 		IdleTimeout:  time.Duration(cfg.ServerIdleTimeout) * time.Second,
