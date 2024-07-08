@@ -57,7 +57,6 @@ func (s *PostStorage) GetMetric(
 	metric models.MetricGetter,
 ) (models.MetricGetter, error) {
 
-	// Create the template with a function to call GetType
 	tpl := template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
 		"GetType": GetType,
 	}).Parse(`
@@ -94,18 +93,29 @@ func (s *PostStorage) GetMetric(
 		strings.ToLower(metric.GetName()),
 	)
 
-	var metricCounter models.Metric[uint64]
-	var metricGauge models.Metric[float64]
-
 	if metric.GetType() == "counter" {
+		var metricCounter models.Metric[uint64]
 		err = row.Scan(&metricCounter.Type, &metricCounter.Name, &metricCounter.Value)
-	} else {
-		err = row.Scan(&metricGauge.Type, &metricGauge.Name, &metricGauge.Value)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, fmt.Errorf(
+					"DATA LAYER: storage.postgres.GetMetric: %w",
+					storage.ErrMetricNotFound,
+				)
+			}
+			return nil, fmt.Errorf(
+				"DATA LAYER: storage.postgres.GetMetric: %w",
+				err,
+			)
+		}
+		return &metricCounter, nil
 	}
+	var metricGauge models.Metric[float64]
+	err = row.Scan(&metricGauge.Type, &metricGauge.Name, &metricGauge.Value)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf(
-				"DATA LAYER: storage.postgres.GetUser: %w",
+				"DATA LAYER: storage.postgres.GetMetric: %w",
 				storage.ErrMetricNotFound,
 			)
 		}
@@ -113,9 +123,6 @@ func (s *PostStorage) GetMetric(
 			"DATA LAYER: storage.postgres.GetMetric: %w",
 			err,
 		)
-	}
-	if metric.GetType() == "counter" {
-		return &metricCounter, nil
 	}
 	return &metricGauge, nil
 }
