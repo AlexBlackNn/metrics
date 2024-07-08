@@ -126,3 +126,6 @@ CREATE EXTENSION pg_stat_statements;
 ```bash
 curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter"}' http://localhost:8080/value/
 ```
+```bash
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_gauge","type":"gauge"}' http://localhost:8080/value/
+```

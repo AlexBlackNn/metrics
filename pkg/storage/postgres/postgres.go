@@ -85,8 +85,7 @@ func (s *PostStorage) GetMetric(
 	var sqlTmp bytes.Buffer
 	err := tpl.Execute(&sqlTmp, metric)
 	if err != nil {
-		fmt.Println("Error executing template:", err)
-		return nil, nil
+		return nil, err
 	}
 
 	row := s.db.QueryRowContext(
