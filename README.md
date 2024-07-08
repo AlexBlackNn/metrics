@@ -70,7 +70,7 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"tes
 
 
 ```bash
-curl --header "Content-Type: application/json" --request POST --data '{"id":"testGauge","type":"gauge","value":465529.39165260154}' http://localhost:8080/update/
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testGauge","type":"gauge","value":465528.39165260154}' http://localhost:8080/update/
 ```
 ```bash
 curl --header "Content-Type: application/json" --request POST --data '{"id":"testGauge","type":"gauge"}' http://localhost:8080/value/

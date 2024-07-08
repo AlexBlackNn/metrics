@@ -24,11 +24,6 @@ func GetType(m models.MetricGetter) string {
 	return m.GetType()
 }
 
-// Helper function to get the name
-func GetName(m models.MetricGetter) string {
-	return m.GetName()
-}
-
 func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
 	db, err := sql.Open("pgx", cfg.ServerDataBaseDSN)
 	if err != nil {
@@ -49,6 +44,30 @@ func (s *PostStorage) UpdateMetric(
 	ctx context.Context,
 	metric models.MetricGetter,
 ) error {
+
+	tpl := template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
+		"GetType": GetType,
+	}).Parse(`
+      INSERT INTO
+    {{GetType .}}_part (metric_id, name, value)
+	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
+ 	 `))
+
+	var sqlTmp bytes.Buffer
+	err := tpl.Execute(&sqlTmp, metric)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.ExecContext(
+		ctx, sqlTmp.String(), metric.GetType(), metric.GetName(), metric.GetValue(),
+	)
+	if err != nil {
+		return fmt.Errorf(
+			"DATA LAYER: storage.postgres.SaveOperation: couldn't save Operation  %w",
+			err,
+		)
+	}
 	return nil
 }
 
