@@ -12,14 +12,13 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"html/template"
 	"log/slog"
-	"strings"
 )
 
 type PostStorage struct {
 	db *sql.DB
 }
 
-// Helper function to get the type
+// GetType is a helper function to get the type
 func GetType(m models.MetricGetter) string {
 	return m.GetType()
 }
@@ -109,7 +108,7 @@ func (s *PostStorage) GetMetric(
 	row := s.db.QueryRowContext(
 		ctx,
 		sqlTmp.String(),
-		strings.ToLower(metric.GetName()),
+		metric.GetName(),
 	)
 
 	var tmpMetric TempMetric
