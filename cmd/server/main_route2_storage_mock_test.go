@@ -48,7 +48,13 @@ func TestServerHappyPathMockStorageV2(t *testing.T) {
 
 	application, err := server.NewAppInitStorage(mockMetricStorage, mockHealthChecker, cfg, log)
 	assert.NoError(t, err)
-	srv := httptest.NewServer(router.NewChiRouter(application.Cfg, application.Log, application.HandlersV1, application.HandlersV2))
+	srv := httptest.NewServer(router.NewChiRouter(
+		application.Cfg,
+		application.Log,
+		application.HandlersV1,
+		application.HandlersV2,
+		application.HealthHandlersV2),
+	)
 	defer srv.Close()
 
 	client := http.Client{Timeout: 3 * time.Second}

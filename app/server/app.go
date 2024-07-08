@@ -38,14 +38,15 @@ type HealthChecker interface {
 
 // App service consists all entities needed to work.
 type App struct {
-	MetricsService *metricsservice.MetricService
-	HandlersV1     v1.MetricHandlers
-	HandlersV2     v2.MetricHandlers
-	Cfg            *configserver.Config
-	Log            *slog.Logger
-	Srv            *http.Server
-	DataBase       MetricsStorage
-	HealthChecker  HealthChecker
+	MetricsService   *metricsservice.MetricService
+	HandlersV1       v1.MetricHandlers
+	HandlersV2       v2.MetricHandlers
+	HealthHandlersV2 v2.HealthHandlers
+	Cfg              *configserver.Config
+	Log              *slog.Logger
+	Srv              *http.Server
+	DataBase         MetricsStorage
+	HealthChecker    HealthChecker
 }
 
 // New creates App collecting service layer, config, logger and predefined storage layer.
@@ -89,13 +90,14 @@ func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Co
 	}
 
 	return &App{
-		MetricsService: metricsService,
-		HandlersV1:     projectHandlersV1,
-		HandlersV2:     projectHandlersV2,
-		Srv:            srv,
-		Cfg:            cfg,
-		Log:            log,
-		DataBase:       ms,
-		HealthChecker:  hc,
+		MetricsService:   metricsService,
+		HandlersV1:       projectHandlersV1,
+		HandlersV2:       projectHandlersV2,
+		HealthHandlersV2: healthHandlersV2,
+		Srv:              srv,
+		Cfg:              cfg,
+		Log:              log,
+		DataBase:         ms,
+		HealthChecker:    hc,
 	}, nil
 }

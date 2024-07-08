@@ -51,7 +51,7 @@ func (mr *MockMetricsStorageMockRecorder) GetAllMetrics(arg0 interface{}) *gomoc
 }
 
 // GetMetric mocks base method.
-func (m *MockMetricsStorage) GetMetric(arg0 context.Context, arg1 string) (models.MetricGetter, error) {
+func (m *MockMetricsStorage) GetMetric(arg0 context.Context, arg1 models.MetricGetter) (models.MetricGetter, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMetric", arg0, arg1)
 	ret0, _ := ret[0].(models.MetricGetter)
