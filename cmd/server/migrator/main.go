@@ -43,7 +43,7 @@ func main() {
 
 	m, err := migrate.New(
 		"file://"+migrationsPath,
-		fmt.Sprintf(databaseDSN),
+		databaseDSN,
 	)
 	if err != nil {
 		panic(err)
