@@ -2,8 +2,8 @@ package agent
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/app/agent/restagentsender"
-	"github.com/AlexBlackNn/metrics/internal/config"
+	"github.com/AlexBlackNn/metrics/app/agent/restagentsender/v2"
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"log/slog"
 )
 
@@ -12,18 +12,18 @@ type CollectSender interface {
 	Send(ctx context.Context)
 }
 
-// AppMonitor service consists all service layers
+// AppMonitor service consists all service layers.
 type AppMonitor struct {
 	MetricsService CollectSender
 }
 
-// NewAppMonitor creates App
+// NewAppMonitor creates App.
 func NewAppMonitor(
 	log *slog.Logger,
-	cfg *config.Config,
+	cfg *configagent.Config,
 ) *AppMonitor {
 
-	metricsService := restagentsender.New(
+	metricsService := v2.New(
 		log,
 		cfg,
 	)

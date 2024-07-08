@@ -2,56 +2,116 @@ package memstorage
 
 import (
 	"context"
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"log/slog"
 	"sync"
+	"time"
 )
 
+type StateManager interface {
+	saveMetrics() error
+	restoreMetrics() error
+}
+
 type MemStorage struct {
-	mutex sync.RWMutex
-	db    map[string]models.MetricInteraction
+	mutex    *sync.RWMutex
+	db       dataBase
+	cfg      *configserver.Config
+	sm       StateManager
+	log      *slog.Logger
+	saveChan chan struct{}
 }
 
 // New inits mem storage (map structure)
-func New() (*MemStorage, error) {
-	return &MemStorage{db: make(map[string]models.MetricInteraction)}, nil
+func New(cfg *configserver.Config, log *slog.Logger) (*MemStorage, error) {
+	db := make(dataBase)
+	mutex := &sync.RWMutex{}
+	memStorage := MemStorage{
+		mutex:    mutex,
+		cfg:      cfg,
+		db:       db,
+		log:      log,
+		sm:       &dataBaseGOBStateManager{cfg: cfg, db: db, mutex: mutex, log: log},
+		saveChan: make(chan struct{}),
+	}
+
+	go func() {
+		memStorage.saveMetricToDisk()
+	}()
+
+	if cfg.ServerRestore {
+		_ = memStorage.sm.restoreMetrics()
+	}
+	return &memStorage, nil
 }
 
-// UpdateMetric updates metric value in mem storage
-func (s *MemStorage) UpdateMetric(
+// saveMetricToDisk saves metrics to disk.
+func (ms *MemStorage) saveMetricToDisk() {
+	log := ms.log.With(
+		slog.String("info", "STORAGE LAYER: mem_storage.saveMetricToDisk"),
+	)
+	storeInterval := time.Duration(ms.cfg.ServerStoreInterval) * time.Second
+	for {
+		if ms.cfg.ServerStoreInterval > 0 {
+			<-time.After(storeInterval)
+			log.Debug("starts saving metric to disk")
+			err := ms.sm.saveMetrics()
+			if err != nil {
+				log.Error("failed save metrics", "err", err)
+			}
+			log.Debug("finish save metric to disk")
+		} else {
+			<-ms.saveChan
+			log.Debug("starts saving metric to disk")
+			err := ms.sm.saveMetrics()
+			if err != nil {
+				log.Error("failed save metrics", "err", err)
+			}
+			log.Debug("finish save metric to disk")
+		}
+	}
+}
+
+// UpdateMetric updates metric value in mem storage.
+func (ms *MemStorage) UpdateMetric(
 	ctx context.Context,
-	metric models.MetricInteraction,
+	metric models.MetricGetter,
 ) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	s.db[metric.GetName()] = metric
+	ms.mutex.Lock()
+	ms.db[metric.GetName()] = metric
+	ms.mutex.Unlock()
+	if ms.cfg.ServerStoreInterval == 0 {
+		ms.saveChan <- struct{}{}
+	}
 	return nil
 }
 
-// GetMetric gets metric value from mem storage
-func (s *MemStorage) GetMetric(
+// GetMetric gets metric value from mem storage.
+func (ms *MemStorage) GetMetric(
 	ctx context.Context,
 	name string,
-) (models.MetricInteraction, error) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	metric, ok := s.db[name]
+) (models.MetricGetter, error) {
+	ms.mutex.RLock()
+	defer ms.mutex.RUnlock()
+	metric, ok := ms.db[name]
 	if !ok {
 		return &models.Metric[float64]{}, ErrMetricNotFound
 	}
 	return metric, nil
 }
 
-// GetAllMetrics gets metric value from mem storage
-func (s *MemStorage) GetAllMetrics(
+// GetAllMetrics gets metric value from mem storage.
+func (ms *MemStorage) GetAllMetrics(
 	ctx context.Context,
-) ([]models.MetricInteraction, error) {
-	var metrics []models.MetricInteraction
-	if len(s.db) == 0 {
-		return []models.MetricInteraction{}, ErrMetricNotFound
+) ([]models.MetricGetter, error) {
+	var metrics []models.MetricGetter
+	if len(ms.db) == 0 {
+		return []models.MetricGetter{}, ErrMetricNotFound
 	}
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	for _, oneMetric := range s.db {
+	ms.mutex.RLock()
+	defer ms.mutex.RUnlock()
+	for _, oneMetric := range ms.db {
 		metrics = append(metrics, oneMetric)
 	}
 	return metrics, nil

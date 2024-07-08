@@ -1,7 +1,6 @@
-package handlers
+package v1
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -31,21 +30,18 @@ func (m *MetricHandlers) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	metrics, err := m.metricsService.GetAllMetrics(ctx)
-
 	if errors.Is(err, metricsservice.ErrMetricNotFound) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-
 	path, err := os.Getwd()
 	if err != nil {
 		m.log.Error("Error getting current work dir", "err", err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
-	pathToTemplate := filepath.Join(filepath.Dir(filepath.Dir(path)), "internal/handlers/metrics.tmpl")
-
+	pathToTemplate := filepath.Join(path, "internal/handlers/v1/metrics.tmpl")
 	tmpl, err := template.New("metrics").ParseFiles(pathToTemplate)
 	if err != nil {
 		m.log.Error("ParseFiles Error:", "err", err.Error(), "path:", pathToTemplate)
@@ -75,7 +71,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	metric, err := m.metricsService.GetOneMetricValue(
 		ctx, strings.ToLower(chi.URLParam(r, "metric_name")),
 	)
@@ -111,7 +107,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	err = m.metricsService.UpdateMetricValue(ctx, metric)
 	if errors.Is(err, metricsservice.ErrNotValidURL) {
 		http.Error(w, err.Error(), http.StatusNotFound)

@@ -11,7 +11,7 @@ const (
 	envProd  = "prod"
 )
 
-// New creates logger with predefine setting (depends on environment)
+// New creates logger with predefine setting (depends on environment).
 func New(env string) *slog.Logger {
 	var log *slog.Logger
 
