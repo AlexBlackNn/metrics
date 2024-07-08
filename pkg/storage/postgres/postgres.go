@@ -184,7 +184,12 @@ func (s *PostStorage) GetAllMetrics(
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(rows)
 
 	for rows.Next() {
 		var tmpMetric TempMetric
