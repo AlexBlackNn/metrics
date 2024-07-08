@@ -9,6 +9,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	v2 "github.com/AlexBlackNn/metrics/internal/handlers/v2"
 	"github.com/AlexBlackNn/metrics/internal/logger"
+	"github.com/AlexBlackNn/metrics/internal/migrator"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 	"github.com/AlexBlackNn/metrics/pkg/storage/postgres"
@@ -66,6 +67,12 @@ func New() (*App, error) {
 		if err != nil {
 			return nil, err
 		}
+		log.Info("Starts to apply migrations")
+		err = migrator.ApplyMigration(cfg)
+		if err != nil {
+			log.Error("Failed to apply migration", err)
+		}
+		log.Info("Finish to apply migrations")
 		return NewAppInitStorage(postgresStorage, postgresStorage, cfg, log)
 	}
 	memStorage, err := memstorage.New(cfg, log)
