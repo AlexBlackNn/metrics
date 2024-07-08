@@ -86,7 +86,6 @@ func responseError(w http.ResponseWriter, r *http.Request, statusCode int, messa
 func responseHealth(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	dataMarshal, err := json.Marshal(HealthOk(message))
-	fmt.Println("111111111111111111111", "err", err)
+	dataMarshal, _ := json.Marshal(HealthOk(message))
 	w.Write(dataMarshal)
 }
