@@ -93,25 +93,8 @@ func (s *PostStorage) GetMetric(
 		strings.ToLower(metric.GetName()),
 	)
 
-	if metric.GetType() == "counter" {
-		var metricCounter models.Metric[uint64]
-		err = row.Scan(&metricCounter.Type, &metricCounter.Name, &metricCounter.Value)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return nil, fmt.Errorf(
-					"DATA LAYER: storage.postgres.GetMetric: %w",
-					storage.ErrMetricNotFound,
-				)
-			}
-			return nil, fmt.Errorf(
-				"DATA LAYER: storage.postgres.GetMetric: %w",
-				err,
-			)
-		}
-		return &metricCounter, nil
-	}
-	var metricGauge models.Metric[float64]
-	err = row.Scan(&metricGauge.Type, &metricGauge.Name, &metricGauge.Value)
+	var tmpMetric TempMetric
+	err = row.Scan(&tmpMetric.Type, &tmpMetric.Name, &tmpMetric.Value)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf(
@@ -124,13 +107,85 @@ func (s *PostStorage) GetMetric(
 			err,
 		)
 	}
-	return &metricGauge, nil
+	metricDB, err := models.New(
+		tmpMetric.GetType(),
+		tmpMetric.GetName(),
+		tmpMetric.GetStringValue(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return metricDB, nil
 }
 
 func (s *PostStorage) GetAllMetrics(
 	ctx context.Context,
 ) ([]models.MetricGetter, error) {
-	return nil, nil
+
+	var metrics []models.MetricGetter
+
+	sqlTmp := `
+	WITH LatestCounter AS (
+		SELECT
+			MAX(created) AS latest_created, name
+		FROM
+			app.counter_part
+		GROUP BY
+			name
+	), LatestGauge AS (
+		SELECT
+			MAX(created) AS latest_created, name
+		FROM
+			app.gauge_part
+		GROUP BY
+			name
+	)
+	SELECT
+		t.name, c.name, c.value
+	FROM
+		app.counter_part as c
+			JOIN
+		app.types as t ON c.metric_id = t.uuid
+			JOIN
+		LatestCounter lc ON c.created = lc.latest_created AND c.name = lc.name
+	UNION
+	SELECT
+		t.name, g.name, g.value
+	FROM
+		app.gauge_part as g
+			JOIN
+		app.types as t ON g.metric_id = t.uuid
+			JOIN
+		LatestGauge lc ON g.created = lc.latest_created AND g.name = lc.name
+`
+
+	rows, err := s.db.QueryContext(
+		ctx,
+		sqlTmp,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tmpMetric TempMetric
+		err = rows.Scan(&tmpMetric.Type, &tmpMetric.Name, &tmpMetric.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		metricDB, err := models.New(
+			tmpMetric.GetType(),
+			tmpMetric.GetName(),
+			tmpMetric.GetStringValue(),
+		)
+		if err != nil {
+			return nil, err
+		}
+		metrics = append(metrics, metricDB)
+	}
+	return metrics, nil
 }
 
 func (s *PostStorage) HealthCheck(

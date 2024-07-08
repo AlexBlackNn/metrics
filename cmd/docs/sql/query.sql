@@ -125,3 +125,41 @@ FROM
     app.types as t ON g.metric_id = t.uuid
         JOIN
     LatestCounter lc ON g.created = lc.latest_created AND g.name = lc.name
+
+
+
+--------------------
+-- (cost=166.81..166.83 rows=2 width=1040) (actual time=0.136..0.141 rows=4 loops=1)
+EXPLAIN ANALYSE
+WITH LatestCounter AS (
+    SELECT
+        MAX(created) AS latest_created, name
+    FROM
+        app.counter_part
+    GROUP BY
+        name
+), LatestGauge AS (
+    SELECT
+        MAX(created) AS latest_created, name
+    FROM
+        app.gauge_part
+    GROUP BY
+        name
+)
+SELECT
+    t.name, c.name, c.value
+FROM
+    app.counter_part as c
+        JOIN
+    app.types as t ON c.metric_id = t.uuid
+        JOIN
+    LatestCounter lc ON c.created = lc.latest_created AND c.name = lc.name
+UNION
+SELECT
+    t.name, g.name, g.value
+FROM
+    app.gauge_part as g
+        JOIN
+    app.types as t ON g.metric_id = t.uuid
+        JOIN
+    LatestGauge lc ON g.created = lc.latest_created AND g.name = lc.name
