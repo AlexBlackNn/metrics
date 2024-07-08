@@ -11,7 +11,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strings"
 )
 
 type MetricHandlers struct {
@@ -47,9 +46,12 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	metric, err := m.metricsService.GetOneMetricValue(
-		ctx, strings.ToLower(reqMetrics.ID),
-	)
+
+	metric, err := models.New(reqMetrics.MType, reqMetrics.ID, "0")
+	if err != nil {
+		responseError(w, r, http.StatusInternalServerError, err.Error())
+	}
+	metricReturned, err := m.metricsService.GetOneMetricValue(ctx, metric)
 
 	if err != nil {
 		if errors.Is(err, metricsservice.ErrMetricNotFound) {
@@ -59,7 +61,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		responseError(w, r, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	responseOK(w, r, metric)
+	responseOK(w, r, metricReturned)
 }
 
 func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {

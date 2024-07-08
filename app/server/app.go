@@ -10,7 +10,6 @@ import (
 	v2 "github.com/AlexBlackNn/metrics/internal/handlers/v2"
 	"github.com/AlexBlackNn/metrics/internal/logger"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
-	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 	"github.com/AlexBlackNn/metrics/pkg/storage/postgres"
 	"log/slog"
 	"net/http"
@@ -24,7 +23,7 @@ type MetricsStorage interface {
 	) error
 	GetMetric(
 		ctx context.Context,
-		metricName string,
+		metric models.MetricGetter,
 	) (models.MetricGetter, error)
 	GetAllMetrics(
 		ctx context.Context,
@@ -60,25 +59,21 @@ func New() (*App, error) {
 	log := logger.New(cfg.Env)
 
 	// Err is now skipped, but when migratings to postgres/sqlite/etc... err will be checked.
-	memStorage, _ := memstorage.New(cfg, log)
+	//memStorage, _ := memstorage.New(cfg, log)
 	postgresStorage, err := postgres.New(cfg, log)
 	if err != nil {
 		return nil, err
 	}
-	return NewAppInitStorage(memStorage, postgresStorage, cfg, log)
+	return NewAppInitStorage(postgresStorage, postgresStorage, cfg, log)
 }
 
 func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Config, log *slog.Logger) (*App, error) {
 
-	// Err is now skipped, but when migratings to postgres/sqlite/etc... err will be checked.
-	memStorage := ms
-	postgresStorage := hc
-
 	metricsService := metricsservice.New(
 		log,
 		cfg,
-		memStorage,
-		postgresStorage,
+		ms,
+		hc,
 	)
 
 	projectHandlersV1 := v1.New(log, metricsService)
@@ -99,7 +94,7 @@ func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Co
 		Srv:            srv,
 		Cfg:            cfg,
 		Log:            log,
-		DataBase:       memStorage,
-		HealthChecker:  postgresStorage,
+		DataBase:       ms,
+		HealthChecker:  hc,
 	}, nil
 }

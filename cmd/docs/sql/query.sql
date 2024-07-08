@@ -4,7 +4,7 @@ SELECT name FROM app.types;
 -- insert data to counter
 INSERT INTO
     app.counter_part (metric_id, name, value, created)
-VALUES ((SELECT uuid FROM app.types WHERE name = 'counter'), 'test_counter2', 22, NOW());
+VALUES ((SELECT uuid FROM app.types WHERE name = 'counter'), 'test_counter', 22, NOW());
 
 SELECT created FROM  app.counter_part;
 SELECT created FROM  app.counter_y2024_3_quarter;

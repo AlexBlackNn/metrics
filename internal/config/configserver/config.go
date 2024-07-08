@@ -59,7 +59,7 @@ func New() (*Config, error) {
 	flag.IntVar(&cfg.ServerStoreInterval, "i", 1, "metrics store interval")
 	flag.StringVar(&cfg.ServerFileStoragePath, "f", "/tmp/metrics-db.json", "metrics store path")
 	flag.BoolVar(&cfg.ServerRestore, "r", true, "restore saved metrics")
-	flag.StringVar(&cfg.ServerDataBaseDSN, "d", "postgresql://postgres:postgres@127.0.0.1:5432/postgres", "database dsn")
+	flag.StringVar(&cfg.ServerDataBaseDSN, "d", "postgresql://app:app123@127.0.0.1:5432/metric_db?sslmode=disable", "database dsn")
 
 	flag.StringVar(&configPath, "c", "", "path to config file")
 	flag.Parse()

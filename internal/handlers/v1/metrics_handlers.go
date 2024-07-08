@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -72,10 +71,11 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	metric, err := m.metricsService.GetOneMetricValue(
-		ctx, strings.ToLower(chi.URLParam(r, "metric_name")),
-	)
-
+	metric, err := models.New(chi.URLParam(r, "metric_type"), chi.URLParam(r, "metric_name"), "0")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	metricReturned, err := m.metricsService.GetOneMetricValue(ctx, metric)
 	if errors.Is(err, metricsservice.ErrMetricNotFound) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -88,7 +88,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("%v", metric.GetValue())))
+	w.Write([]byte(fmt.Sprintf("%v", metricReturned.GetValue())))
 }
 
 func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {

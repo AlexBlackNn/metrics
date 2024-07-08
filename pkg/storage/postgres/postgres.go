@@ -1,20 +1,32 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/pkg/storage"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"html/template"
 	"log/slog"
-	"os"
-	"text/template"
+	"strings"
 )
 
 type PostStorage struct {
 	db *sql.DB
+}
+
+// Helper function to get the type
+func GetType(m models.MetricGetter) string {
+	return m.GetType()
+}
+
+// Helper function to get the name
+func GetName(m models.MetricGetter) string {
+	return m.GetName()
 }
 
 func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
@@ -45,72 +57,68 @@ func (s *PostStorage) GetMetric(
 	metric models.MetricGetter,
 ) (models.MetricGetter, error) {
 
+	// Create the template with a function to call GetType
+	tpl := template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
+		"GetType": GetType,
+	}).Parse(`
+      WITH LatestCounter AS (
+        SELECT
+          MAX(created) AS latest_created
+        FROM
+          {{GetType .}}_part
+        WHERE
+          {{GetType .}}_part.name = $1
+      )
+      SELECT
+        t.name, c.name, c.value
+      FROM
+        {{GetType .}}_part as c
+      JOIN
+        app.types as t ON c.metric_id = t.uuid
+      JOIN
+        LatestCounter lc ON c.created = lc.latest_created
+      WHERE
+        c.name = $1
+      ORDER BY c.created;
+  `))
 
-	tpl := template.Must(template.New("sqlQuery").Parse(`
-     WITH LatestCounter AS (
-       SELECT
-         MAX(created) AS latest_created
-       FROM
-         {{.TableName}}
-       WHERE
-         {{.TableName}}.name = '{{.Name}}'
-     )
-     SELECT
-       t.name, c.name, c.value
-     FROM
-       {{.TableName}} as c
-     JOIN
-       app.types as t ON c.metric_id = t.uuid
-     JOIN
-       LatestCounter lc ON c.created = lc.latest_created
-     WHERE
-       c.name = '{{.Name}}'
-     ORDER BY c.created;
- `))
-
-	data := struct {
-		TableName string
-		Name      string
-	}{
-		TableName: metric.GetType()+"s",
-		Name:      metric.GetName(),
-	}
-
-	// Execute the template and print the result
-	err := tpl.Execute(os.Stdout, data)
+	var sqlTmp bytes.Buffer
+	err := tpl.Execute(&sqlTmp, metric)
 	if err != nil {
 		fmt.Println("Error executing template:", err)
-		return
-	}
-}
-
-	var row *sql.Row
-	switch metric.GetType() {
-	case "counter":
-		query := "SELECT id, email, pass_hash, is_admin FROM users WHERE (id = $1);"
-		row = s.db.QueryRowContext(ctx, query, sqlParam)
-	case "gauge":
-		query := "SELECT id, email, pass_hash, is_admin FROM users WHERE (email = $1);"
-		row = s.db.QueryRowContext(ctx, query, sqlParam)
-	default:
-		return nil, errors.New("wrong metric type")
+		return nil, nil
 	}
 
-	var user models.User
-	err := row.Scan(&user.ID, &user.Email, &user.PassHash, &user.IsAdmin)
+	row := s.db.QueryRowContext(
+		ctx,
+		sqlTmp.String(),
+		strings.ToLower(metric.GetName()),
+	)
+
+	var metricCounter models.Metric[uint64]
+	var metricGauge models.Metric[float64]
+
+	if metric.GetType() == "counter" {
+		err = row.Scan(&metricCounter.Type, &metricCounter.Name, &metricCounter.Value)
+	} else {
+		err = row.Scan(&metricGauge.Type, &metricGauge.Name, &metricGauge.Value)
+	}
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.User{}, fmt.Errorf(
+			return nil, fmt.Errorf(
 				"DATA LAYER: storage.postgres.GetUser: %w",
-				storage.ErrUserNotFound,
+				storage.ErrMetricNotFound,
 			)
 		}
-		return models.User{}, fmt.Errorf(
-			"DATA LAYER: storage.postgres.GetUser: %w",
+		return nil, fmt.Errorf(
+			"DATA LAYER: storage.postgres.GetMetric: %w",
 			err,
 		)
 	}
-	return user, nil
+	if metric.GetType() == "counter" {
+		return &metricCounter, nil
+	}
+	return &metricGauge, nil
 }
 
 func (s *PostStorage) GetAllMetrics(
@@ -122,5 +130,7 @@ func (s *PostStorage) GetAllMetrics(
 func (s *PostStorage) HealthCheck(
 	ctx context.Context,
 ) error {
-	return s.db.PingContext(ctx)
+	err := s.db.PingContext(ctx)
+	fmt.Println("11111111111111111", err)
+	return err
 }

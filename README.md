@@ -91,7 +91,7 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"tes
 curl -v --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter"}' http://localhost:8080/value/
 ```
 ```bash
-curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter"}' http://localhost:8080/value/ --compressed
+curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter"}' http://localhost:8080/value/ --compressed
 ```
 
 ```bash
@@ -121,3 +121,8 @@ go run ./cmd/migrator/postgres  --migrations-path=./migrations
 
 # SQL 
 CREATE EXTENSION pg_stat_statements; 
+
+
+```bash
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter"}' http://localhost:8080/value/
+```

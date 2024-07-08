@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/pkg/storage"
 	"log/slog"
 	"sync"
 	"time"
@@ -97,14 +98,14 @@ func (ms *MemStorage) UpdateMetric(
 // GetMetric gets metric value from mem storage.
 func (ms *MemStorage) GetMetric(
 	ctx context.Context,
-	name string,
+	metric models.MetricGetter,
 ) (models.MetricGetter, error) {
 	fmt.Println(ctx)
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()
-	metric, ok := ms.db[name]
+	metric, ok := ms.db[metric.GetName()]
 	if !ok {
-		return &models.Metric[float64]{}, ErrMetricNotFound
+		return &models.Metric[float64]{}, storage.ErrMetricNotFound
 	}
 	return metric, nil
 }
@@ -115,7 +116,7 @@ func (ms *MemStorage) GetAllMetrics(
 ) ([]models.MetricGetter, error) {
 	var metrics []models.MetricGetter
 	if len(ms.db) == 0 {
-		return []models.MetricGetter{}, ErrMetricNotFound
+		return []models.MetricGetter{}, storage.ErrMetricNotFound
 	}
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()
