@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -28,6 +29,12 @@ func Error(msg string) Response {
 	return Response{
 		Status: StatusError,
 		Error:  msg,
+	}
+}
+
+func HealthOk(msg string) Response {
+	return Response{
+		Status: msg,
 	}
 }
 
@@ -72,6 +79,14 @@ func responseOK(w http.ResponseWriter, r *http.Request, metric models.MetricGett
 func responseError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	errMarshal, _ := easyjson.Marshal(Error(message))
-	w.Write(errMarshal)
+	dataMarshal, _ := easyjson.Marshal(Error(message))
+	w.Write(dataMarshal)
+}
+
+func responseHealth(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	dataMarshal, err := json.Marshal(HealthOk(message))
+	fmt.Println("111111111111111111111", "err", err)
+	w.Write(dataMarshal)
 }

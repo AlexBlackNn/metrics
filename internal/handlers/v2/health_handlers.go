@@ -28,6 +28,7 @@ func (m *HealthHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	responseHealth(w, r, http.StatusOK, "ready")
 }
 
 func (m *HealthHandlers) LivenessProbe(w http.ResponseWriter, r *http.Request) {
@@ -35,5 +36,5 @@ func (m *HealthHandlers) LivenessProbe(w http.ResponseWriter, r *http.Request) {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	responseHealth(w, r, http.StatusOK, "alive")
 }
