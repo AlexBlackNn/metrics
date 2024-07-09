@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
+	"github.com/AlexBlackNn/metrics/pkg/storage"
 	"log/slog"
 )
 
@@ -16,17 +16,24 @@ type MetricsStorage interface {
 	) error
 	GetMetric(
 		ctx context.Context,
-		metricName string,
+		metric models.MetricGetter,
 	) (models.MetricGetter, error)
 	GetAllMetrics(
 		ctx context.Context,
 	) ([]models.MetricGetter, error)
 }
 
+type HealthChecker interface {
+	HealthCheck(
+		ctx context.Context,
+	) error
+}
+
 type MetricService struct {
 	log            *slog.Logger
 	cfg            *configserver.Config
 	metricsStorage MetricsStorage
+	healthChecker  HealthChecker
 }
 
 // New returns a new instance of MonitoringService.
@@ -34,11 +41,13 @@ func New(
 	log *slog.Logger,
 	cfg *configserver.Config,
 	metricsStorage MetricsStorage,
+	healthChecker HealthChecker,
 ) *MetricService {
 	return &MetricService{
 		log:            log,
 		cfg:            cfg,
 		metricsStorage: metricsStorage,
+		healthChecker:  healthChecker,
 	}
 }
 
@@ -51,8 +60,8 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 
 	if metric.GetType() == configserver.MetricTypeCounter {
 
-		metricStorage, err := ms.metricsStorage.GetMetric(ctx, metric.GetName())
-		if errors.Is(err, memstorage.ErrMetricNotFound) {
+		metricStorage, err := ms.metricsStorage.GetMetric(ctx, metric)
+		if errors.Is(err, storage.ErrMetricNotFound) {
 			err = ms.metricsStorage.UpdateMetric(ctx, metric)
 			if err != nil {
 				ms.log.Error(err.Error())
@@ -86,14 +95,14 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 }
 
 // GetOneMetricValue extracts metric.
-func (ms *MetricService) GetOneMetricValue(ctx context.Context, key string) (models.MetricGetter, error) {
+func (ms *MetricService) GetOneMetricValue(ctx context.Context, metric models.MetricGetter) (models.MetricGetter, error) {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.GetOneMetricValue"),
 	)
 	log.Info("starts getting metric value")
-	metric, err := ms.metricsStorage.GetMetric(ctx, key)
+	metric, err := ms.metricsStorage.GetMetric(ctx, metric)
 	if err != nil {
-		if errors.Is(err, memstorage.ErrMetricNotFound) {
+		if errors.Is(err, storage.ErrMetricNotFound) {
 			log.Warn("metric not found")
 			return nil, ErrMetricNotFound
 		}
@@ -112,7 +121,7 @@ func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricGett
 	log.Info("starts getting all metrics")
 
 	metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
-	if errors.Is(err, memstorage.ErrMetricNotFound) {
+	if errors.Is(err, storage.ErrMetricNotFound) {
 		return nil, ErrMetricNotFound
 	}
 	if err != nil {
@@ -120,4 +129,14 @@ func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricGett
 	}
 	log.Info("finish getting all metrics")
 	return metrics, nil
+}
+
+// HealthCheck returns service health check
+func (ms *MetricService) HealthCheck(ctx context.Context) error {
+	log := ms.log.With(
+		slog.String("info", "SERVICE LAYER: metrics_service.HealthCheck"),
+	)
+	log.Info("starts getting health check")
+	defer log.Info("finish getting health check")
+	return ms.healthChecker.HealthCheck(ctx)
 }

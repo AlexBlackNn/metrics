@@ -13,6 +13,9 @@ LOG_FILE="test_log_file.txt"
 ./metricstest -test.v -test.run=^TestIteration7 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. >> "$LOG_FILE" 2>&1
 ./metricstest -test.v -test.run=^TestIteration8 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. -server-port=8080 >> "$LOG_FILE" 2>&1
 ./metricstest -test.v -test.run=^TestIteration9 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. -server-port=8080 -file-storage-path ./test.json >> "$LOG_FILE" 2>&1
+./metricstest -test.v -test.run=^TestIteration10 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. -server-port=8080 -file-storage-path ./test.json -database-dsn postgresql://app:app123@127.0.0.1:5432/metric_db?sslmode=disable>> "$LOG_FILE" 2>&1
+./metricstest -test.v -test.run=^TestIteration11 -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server -source-path=. -server-port=8080 -file-storage-path ./test.json -database-dsn postgresql://app:app123@127.0.0.1:5432/metric_db?sslmode=disable >> "$LOG_FILE" 2>&1
+
 # Process the log file to find failed tests
 while read line; do
   # Check if the line indicates a failed test

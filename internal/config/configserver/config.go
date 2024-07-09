@@ -25,6 +25,8 @@ type Config struct {
 	ServerFileStoragePath string `yaml:"server_file_storage_path" env-default:"/tmp/metrics-db.json" env:"FILE_STORAGE_PATH" envDefault:"/tmp/metrics-db.json"`
 	ServerRestore         bool   `yaml:"server_restore" env-default:"true" env:"RESTORE" envDefault:"true"`
 	ServerRateLimit       int    `yaml:"server_rate_limit" env-default:"10000" env:"SERVER_RATE_LIMIT" envDefault:"10000"`
+	ServerDataBaseDSN     string `yaml:"server_data_base_dsn" env:"DATABASE_DSN"`
+	ServerMigrationTable  string `yaml:"server_migration_table_name" env-default:"migrations" env:"SERVER_MIGRATION_TABLE_NAME" envDefault:"migrations"`
 }
 
 func (c *Config) String() string {
@@ -58,6 +60,7 @@ func New() (*Config, error) {
 	flag.IntVar(&cfg.ServerStoreInterval, "i", 1, "metrics store interval")
 	flag.StringVar(&cfg.ServerFileStoragePath, "f", "/tmp/metrics-db.json", "metrics store path")
 	flag.BoolVar(&cfg.ServerRestore, "r", true, "restore saved metrics")
+	flag.StringVar(&cfg.ServerDataBaseDSN, "d", "", "database dsn")
 
 	flag.StringVar(&configPath, "c", "", "path to config file")
 	flag.Parse()

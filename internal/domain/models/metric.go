@@ -6,7 +6,6 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"golang.org/x/exp/constraints"
 	"strconv"
-	"strings"
 )
 
 var ErrNotValidMetricValue = errors.New("invalid metric value")
@@ -100,7 +99,7 @@ func New(metricType string, metricName string, metricValue string) (MetricIntera
 		}
 		return &Metric[float64]{
 			Type:  metricType,
-			Name:  strings.ToLower(metricName),
+			Name:  metricName,
 			Value: value,
 		}, nil
 	}
@@ -112,7 +111,7 @@ func New(metricType string, metricName string, metricValue string) (MetricIntera
 		}
 		return &Metric[uint64]{
 			Type:  metricType,
-			Name:  strings.ToLower(metricName),
+			Name:  metricName,
 			Value: value,
 		}, nil
 	}
