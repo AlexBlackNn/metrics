@@ -23,6 +23,10 @@ type MetricsStorage interface {
 		ctx context.Context,
 		metric models.MetricGetter,
 	) error
+	UpdateSeveralMetrics(
+		ctx context.Context,
+		metric models.MetricGetter,
+	) error
 	GetMetric(
 		ctx context.Context,
 		metric models.MetricGetter,

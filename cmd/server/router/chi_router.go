@@ -41,6 +41,7 @@ func NewChiRouter(
 		r.Post("/update/{metric_type}/{metric_name}/{metric_value}", metricHandlerV1.UpdateMetric)
 		r.Get("/value/{metric_type}/{metric_name}", metricHandlerV1.GetOneMetric)
 		r.Post("/update/", metricHandlerV2.UpdateMetric)
+		r.Post("/updates/", metricHandlerV2.UpdateSeveralMetrics)
 		r.Post("/value/", metricHandlerV2.GetOneMetric)
 	})
 	return router

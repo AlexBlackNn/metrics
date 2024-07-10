@@ -110,6 +110,13 @@ func (ms *MemStorage) GetMetric(
 	return metric, nil
 }
 
+func (s *MemStorage) UpdateSeveralMetrics(
+	ctx context.Context,
+	metric models.MetricGetter,
+) error {
+	return nil
+}
+
 // GetAllMetrics gets metric value from mem storage.
 func (ms *MemStorage) GetAllMetrics(
 	ctx context.Context,

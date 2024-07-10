@@ -129,3 +129,8 @@ curl -v --header "Content-Type: application/json" --request POST --data '{"id":"
 ```bash
 curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_gauge","type":"gauge"}' http://localhost:8080/value/
 ```
+
+```bash
+curl --header "Content-Type: application/json" --request POST --data '[{"id":"testGauge","type":"gauge","value":465528.39165260154},{"id":"testGauge1","type":"gauge","value":123.39165260154} ]' http://localhost:8080/updates/
+```
+

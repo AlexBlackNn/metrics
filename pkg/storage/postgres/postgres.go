@@ -70,6 +70,13 @@ func (s *PostStorage) UpdateMetric(
 	return nil
 }
 
+func (s *PostStorage) UpdateSeveralMetrics(
+	ctx context.Context,
+	metric models.MetricGetter,
+) error {
+	return nil
+}
+
 func (s *PostStorage) GetMetric(
 	ctx context.Context,
 	metric models.MetricGetter,

@@ -14,6 +14,10 @@ type MetricsStorage interface {
 		ctx context.Context,
 		metric models.MetricGetter,
 	) error
+	UpdateSeveralMetrics(
+		ctx context.Context,
+		metric models.MetricGetter,
+	) error
 	GetMetric(
 		ctx context.Context,
 		metric models.MetricGetter,
@@ -91,6 +95,15 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 		return ErrCouldNotUpdateMetric
 	}
 	log.Info("finish updating metric value")
+	return nil
+}
+
+// UpdateSeveralMetrics updates several metric value or create new ones.
+func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metric []models.MetricInteraction) error {
+	log := ms.log.With(
+		slog.String("info", "SERVICE LAYER: metrics_service.UpdateSeveralMetrics"),
+	)
+	log.Info("starts update several metric values")
 	return nil
 }
 

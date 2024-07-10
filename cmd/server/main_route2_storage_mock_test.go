@@ -102,7 +102,7 @@ func TestServerHappyPathMockStorageV2(t *testing.T) {
 			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
 			data, err := io.ReadAll(res.Body)
 			assert.NoError(t, err, "error reading response body")
-			assert.Equal(t, tt.want.response, string(data))
+			assert.JSONEq(t, tt.want.response, string(data))
 		})
 	}
 }
