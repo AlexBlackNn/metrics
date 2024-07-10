@@ -99,11 +99,47 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 }
 
 // UpdateSeveralMetrics updates several metric value or create new ones.
-func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metric []models.MetricInteraction) error {
+func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []models.MetricInteraction) error {
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: metrics_service.UpdateSeveralMetrics"),
 	)
 	log.Info("starts update several metric values")
+
+	for _, oneMetric := range metrics {
+		if oneMetric.GetType() == configserver.MetricTypeCounter {
+
+			metricStorage, err := ms.metricsStorage.GetMetric(ctx, oneMetric)
+			if errors.Is(err, storage.ErrMetricNotFound) {
+				err = ms.metricsStorage.UpdateMetric(ctx, oneMetric)
+				if err != nil {
+					ms.log.Error(err.Error())
+					return ErrCouldNotUpdateMetric
+				}
+				return nil
+			}
+			if err != nil {
+				ms.log.Error(err.Error())
+				return ErrCouldNotUpdateMetric
+			}
+			err = oneMetric.AddValue(metricStorage)
+			if err != nil {
+				ms.log.Error(err.Error())
+				return ErrCouldNotUpdateMetric
+			}
+			err = ms.metricsStorage.UpdateMetric(ctx, oneMetric)
+			if err != nil {
+				ms.log.Error(err.Error())
+				return ErrCouldNotUpdateMetric
+			}
+			return nil
+		}
+		err := ms.metricsStorage.UpdateMetric(ctx, oneMetric)
+		if err != nil {
+			ms.log.Error(err.Error())
+			return ErrCouldNotUpdateMetric
+		}
+		log.Info("finish updating metric value")
+	}
 	return nil
 }
 
