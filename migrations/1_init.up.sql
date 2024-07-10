@@ -16,16 +16,16 @@ CREATE TABLE IF NOT EXISTS app.counter_part (
                                            PRIMARY KEY (uuid, created)
 ) PARTITION BY RANGE (created);
 
-CREATE TABLE app.counter_y2024_1_quarter  PARTITION OF app.counter_part
+CREATE TABLE IF NOT EXISTS app.counter_y2024_1_quarter  PARTITION OF app.counter_part
     FOR VALUES FROM ('2024-01-01 00:00:00') TO ('2024-04-01 00:00:00');
 
-CREATE TABLE app.counter_y2024_2_quarter  PARTITION OF app.counter_part
+CREATE TABLE IF NOT EXISTS app.counter_y2024_2_quarter  PARTITION OF app.counter_part
     FOR VALUES FROM ('2024-04-01 00:00:00') TO ('2024-07-01 00:00:00');
 
-CREATE TABLE app.counter_y2024_3_quarter  PARTITION OF app.counter_part
+CREATE TABLE IF NOT EXISTS app.counter_y2024_3_quarter  PARTITION OF app.counter_part
     FOR VALUES FROM ('2024-07-01 00:00:00') TO ('2024-10-01 00:00:00');
 
-CREATE TABLE app.counter_y2024_4_quarter  PARTITION OF app.counter_part
+CREATE TABLE IF NOT EXISTS app.counter_y2024_4_quarter  PARTITION OF app.counter_part
     FOR VALUES FROM ('2024-10-01 00:00:00') TO ('2025-01-01 00:00:00');
 
 
@@ -38,16 +38,16 @@ CREATE TABLE IF NOT EXISTS app.gauge_part (
                                               PRIMARY KEY (uuid, created)
 ) PARTITION BY RANGE (created);
 
-CREATE TABLE app.gauge_y2024_1_quarter  PARTITION OF app.gauge_part
+CREATE TABLE IF NOT EXISTS app.gauge_y2024_1_quarter  PARTITION OF app.gauge_part
     FOR VALUES FROM ('2024-01-01 00:00:00') TO ('2024-04-01 00:00:00');
 
-CREATE TABLE app.gauge_y2024_2_quarter  PARTITION OF app.gauge_part
+CREATE TABLE IF NOT EXISTS app.gauge_y2024_2_quarter  PARTITION OF app.gauge_part
     FOR VALUES FROM ('2024-04-01 00:00:00') TO ('2024-07-01 00:00:00');
 
-CREATE TABLE app.gauge_y2024_3_quarter  PARTITION OF app.gauge_part
+CREATE TABLE IF NOT EXISTS app.gauge_y2024_3_quarter  PARTITION OF app.gauge_part
     FOR VALUES FROM ('2024-07-01 00:00:00') TO ('2024-10-01 00:00:00');
 
-CREATE TABLE app.gauge_y2024_4_quarter  PARTITION OF app.gauge_part
+CREATE TABLE IF NOT EXISTS app.gauge_y2024_4_quarter  PARTITION OF app.gauge_part
     FOR VALUES FROM ('2024-10-01 00:00:00') TO ('2025-01-01 00:00:00');
 
 -- -- Для каждой дочерней таблицы создаем индекс по ключевому столбцу
