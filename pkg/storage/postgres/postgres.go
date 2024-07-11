@@ -76,6 +76,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 ) error {
 
 	tx, err := s.db.Begin()
+
 	if err != nil {
 		return err
 	}
@@ -86,22 +87,22 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		}
 	}(tx)
 
-	for _, oneMetric := range metrics {
-		tpl := template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
-			"GetType": GetType,
-		}).Parse(`
-      INSERT INTO
-    app.{{GetType .}}_part (metric_id, name, value)
-	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
-	`))
-		var sqlTmp bytes.Buffer
-		err = tpl.Execute(&sqlTmp, oneMetric)
+	sqlTmpStms := make(map[string]string)
+	sqlTmpStms[configserver.MetricTypeGauge] = "INSERT INTO app.gauge_part (metric_id, name, value) VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)"
+	sqlTmpStms[configserver.MetricTypeCounter] = "INSERT INTO app.counter_part (metric_id, name, value) VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)"
+
+	preparedStmt := make(map[string]*sql.Stmt)
+	for name, onesqlTmpStms := range sqlTmpStms {
+		stmt, err := tx.PrepareContext(ctx, onesqlTmpStms)
 		if err != nil {
 			return err
 		}
+		preparedStmt[name] = stmt
+	}
 
-		_, err = tx.ExecContext(
-			ctx, sqlTmp.String(), oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue(),
+	for _, oneMetric := range metrics {
+		_, err = preparedStmt[oneMetric.GetType()].ExecContext(
+			ctx, oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue(),
 		)
 		if err != nil {
 			return fmt.Errorf(
