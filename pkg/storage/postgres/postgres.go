@@ -93,21 +93,14 @@ func (s *PostStorage) UpdateSeveralMetrics(
 
 	preparedStmt := make(map[string]*sql.Stmt)
 	for name, onesqlTmpStms := range sqlTmpStms {
+		// The statements prepared for a transaction by calling the transaction's Tx.Prepare or Tx.Stmt methods
+		//are closed by the call to Tx.Commit or Tx.Rollback. https://pkg.go.dev/database/sql#Tx
 		stmt, err := tx.PrepareContext(ctx, onesqlTmpStms)
 		if err != nil {
 			return err
 		}
 		preparedStmt[name] = stmt
 	}
-
-	defer func(preparedStmt map[string]*sql.Stmt) {
-		for _, oneSqlTmpStms := range preparedStmt {
-			err := oneSqlTmpStms.Close()
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-	}(preparedStmt)
 
 	for _, oneMetric := range metrics {
 		_, err = preparedStmt[oneMetric.GetType()].ExecContext(
