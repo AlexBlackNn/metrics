@@ -106,9 +106,24 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 	)
 	log.Info("starts update several metric values")
 
+	tmpMetricsReduces := make(map[string]models.MetricInteraction)
+
 	for _, OneMetric := range metrics {
 		fmt.Println("4444444444444", OneMetric, OneMetric.GetType(), OneMetric.GetName(), OneMetric.GetValue())
+		if metric, ok := tmpMetricsReduces[OneMetric.GetName()]; ok && metric.GetType() == "counter" {
+			OneMetric.AddValue(metric)
+			tmpMetricsReduces[OneMetric.GetName()] = OneMetric
+		} else {
+			tmpMetricsReduces[OneMetric.GetName()] = OneMetric
+		}
 	}
+
+	var reducedMetrics []models.MetricInteraction
+	for _, OneMetric := range tmpMetricsReduces {
+		reducedMetrics = append(reducedMetrics, OneMetric)
+
+	}
+	metrics = reducedMetrics
 
 	var errs []error
 	for _, oneMetric := range metrics {

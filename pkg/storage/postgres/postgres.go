@@ -50,7 +50,7 @@ func (s *PostStorage) UpdateMetric(
       INSERT INTO
     app.{{GetType .}}_part (metric_id, name, value)
 	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
- 	 `))
+	`))
 
 	var sqlTmp bytes.Buffer
 	err := tpl.Execute(&sqlTmp, metric)
