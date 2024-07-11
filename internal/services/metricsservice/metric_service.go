@@ -108,25 +108,29 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 
 	tmpMetricsReduces := make(map[string]models.MetricInteraction)
 
-	for _, OneMetric := range metrics {
-		fmt.Println("4444444444444", OneMetric, OneMetric.GetType(), OneMetric.GetName(), OneMetric.GetValue())
-		if metric, ok := tmpMetricsReduces[OneMetric.GetName()]; ok && metric.GetType() == "counter" {
-			OneMetric.AddValue(metric)
-			tmpMetricsReduces[OneMetric.GetName()] = OneMetric
-		} else {
-			tmpMetricsReduces[OneMetric.GetName()] = OneMetric
+	// If several received metrics have the same name and type counter - calculate result value.
+	// In case of type being gauge - just save the last value.
+	// Such calculation decreases quantity of data to write in database.
+	for _, oneMetric := range metrics {
+		if metric, ok := tmpMetricsReduces[oneMetric.GetName()]; ok && metric.GetType() == "counter" {
+			err := oneMetric.AddValue(metric)
+			if err != nil {
+				log.Error("failed to add value to metric", "metric", oneMetric.GetName(), "err", err)
+				return err
+			}
 		}
+		tmpMetricsReduces[oneMetric.GetName()] = oneMetric
 	}
 
+	// convert tmpMetricsReduces to dto
+	// TODO: may by it is worth to use just a map for transfering data to storage layer
 	var reducedMetrics []models.MetricInteraction
 	for _, OneMetric := range tmpMetricsReduces {
 		reducedMetrics = append(reducedMetrics, OneMetric)
-
 	}
-	metrics = reducedMetrics
 
 	var errs []error
-	for _, oneMetric := range metrics {
+	for _, oneMetric := range reducedMetrics {
 		if oneMetric.GetType() == configserver.MetricTypeCounter {
 
 			metricStorage, err := ms.metricsStorage.GetMetric(ctx, oneMetric)
