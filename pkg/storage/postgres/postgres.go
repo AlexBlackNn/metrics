@@ -48,7 +48,7 @@ func (s *PostStorage) UpdateMetric(
 		"GetType": GetType,
 	}).Parse(`
       INSERT INTO
-    {{GetType .}}_part (metric_id, name, value)
+    app.{{GetType .}}_part (metric_id, name, value)
 	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
  	 `))
 
@@ -89,14 +89,14 @@ func (s *PostStorage) GetMetric(
         SELECT
           MAX(created) AS latest_created
         FROM
-          {{GetType .}}_part
+          app.{{GetType .}}_part
         WHERE
-          {{GetType .}}_part.name = $1
+          app.{{GetType .}}_part.name = $1
       )
       SELECT
         t.name, c.name, c.value
       FROM
-        {{GetType .}}_part as c
+        app.{{GetType .}}_part as c
       JOIN
         app.types as t ON c.metric_id = t.uuid
       JOIN
