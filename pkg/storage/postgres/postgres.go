@@ -100,6 +100,15 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		preparedStmt[name] = stmt
 	}
 
+	defer func(preparedStmt map[string]*sql.Stmt) {
+		for _, oneSqlTmpStms := range preparedStmt {
+			err := oneSqlTmpStms.Close()
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+	}(preparedStmt)
+
 	for _, oneMetric := range metrics {
 		_, err = preparedStmt[oneMetric.GetType()].ExecContext(
 			ctx, oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue(),
