@@ -22,7 +22,7 @@ func (jm *dataBaseJSONStateManager) saveMetrics() error {
 	log := jm.log.With(
 		slog.String("info", "STORAGE LAYER: json_state_manager.saveMetrics"),
 	)
-	log.Info("starts saving metric")
+	log.Debug("starts saving metric")
 	jm.mutex.RLock()
 	defer jm.mutex.RUnlock()
 	file, err := os.OpenFile(

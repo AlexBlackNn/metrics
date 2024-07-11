@@ -20,7 +20,7 @@ func New(env string) *slog.Logger {
 		log = slog.New(
 			slog.NewTextHandler(
 				os.Stdout, &slog.HandlerOptions{
-					Level:     slog.LevelDebug,
+					Level:     slog.LevelInfo,
 					AddSource: true,
 				},
 			),
