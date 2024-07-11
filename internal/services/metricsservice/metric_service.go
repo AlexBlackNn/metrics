@@ -3,6 +3,7 @@ package metricsservice
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/pkg/storage"
@@ -16,7 +17,7 @@ type MetricsStorage interface {
 	) error
 	UpdateSeveralMetrics(
 		ctx context.Context,
-		metric models.MetricGetter,
+		metrics []models.MetricGetter,
 	) error
 	GetMetric(
 		ctx context.Context,
@@ -105,42 +106,56 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 	)
 	log.Info("starts update several metric values")
 
+	for _, OneMetric := range metrics {
+		fmt.Println("4444444444444", OneMetric, OneMetric.GetType(), OneMetric.GetName(), OneMetric.GetValue())
+	}
+
+	var errs []error
 	for _, oneMetric := range metrics {
 		if oneMetric.GetType() == configserver.MetricTypeCounter {
 
 			metricStorage, err := ms.metricsStorage.GetMetric(ctx, oneMetric)
 			if errors.Is(err, storage.ErrMetricNotFound) {
+				fmt.Println("4444444444444*", ErrMetricNotFound, oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue())
 				err = ms.metricsStorage.UpdateMetric(ctx, oneMetric)
 				if err != nil {
 					ms.log.Error(err.Error())
-					return ErrCouldNotUpdateMetric
+					errs = append(errs, ErrCouldNotUpdateMetric)
+					continue
 				}
-				return nil
+				continue
 			}
 			if err != nil {
 				ms.log.Error(err.Error())
-				return ErrCouldNotUpdateMetric
+				errs = append(errs, ErrCouldNotUpdateMetric)
+				continue
 			}
+			fmt.Println("4444444444444**", oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue())
+			fmt.Println("4444444444444***", metricStorage.GetType(), metricStorage.GetName(), metricStorage.GetValue())
 			err = oneMetric.AddValue(metricStorage)
+			fmt.Println("4444444444444****", ErrMetricNotFound, oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue())
 			if err != nil {
 				ms.log.Error(err.Error())
-				return ErrCouldNotUpdateMetric
+				errs = append(errs, ErrCouldNotUpdateMetric)
+				continue
 			}
 			err = ms.metricsStorage.UpdateMetric(ctx, oneMetric)
 			if err != nil {
 				ms.log.Error(err.Error())
-				return ErrCouldNotUpdateMetric
+				errs = append(errs, ErrCouldNotUpdateMetric)
+				continue
 			}
-			return nil
+			continue
 		}
 		err := ms.metricsStorage.UpdateMetric(ctx, oneMetric)
 		if err != nil {
 			ms.log.Error(err.Error())
-			return ErrCouldNotUpdateMetric
+			errs = append(errs, ErrCouldNotUpdateMetric)
+			continue
 		}
 		log.Info("finish updating metric value")
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // GetOneMetricValue extracts metric.

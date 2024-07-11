@@ -110,10 +110,15 @@ func (ms *MemStorage) GetMetric(
 	return metric, nil
 }
 
-func (s *MemStorage) UpdateSeveralMetrics(
+func (ms *MemStorage) UpdateSeveralMetrics(
 	ctx context.Context,
-	metric models.MetricGetter,
+	metrics []models.MetricGetter,
 ) error {
+	ms.mutex.RLock()
+	defer ms.mutex.RUnlock()
+	for _, oneMetric := range metrics {
+		ms.db[oneMetric.GetName()] = oneMetric
+	}
 	return nil
 }
 

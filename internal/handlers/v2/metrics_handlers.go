@@ -23,6 +23,7 @@ func New(log *slog.Logger, metricsService *metricsservice.MetricService) MetricH
 }
 
 func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("22222222222222222222", "UpdateMetric")
 	if r.Method != http.MethodPost {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -30,6 +31,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	var reqMetrics Metrics
 	// TODO: easyjson can be used?
 	err := render.DecodeJSON(r.Body, &reqMetrics)
+	fmt.Println("2222222222222222222*", reqMetrics)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body
@@ -65,6 +67,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("33333333333333333", "UpdateMetric")
 	if r.Method != http.MethodPost {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -72,6 +75,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 
 	var reqMetrics Metrics
 	err := render.DecodeJSON(r.Body, &reqMetrics)
+	fmt.Println("33333333333333333*", reqMetrics)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body
@@ -123,6 +127,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *MetricHandlers) UpdateSeveralMetrics(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("11111111111111111", "UpdateSeveralMetrics")
 	if r.Method != http.MethodPost {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -130,6 +135,16 @@ func (m *MetricHandlers) UpdateSeveralMetrics(w http.ResponseWriter, r *http.Req
 
 	var reqMetrics []Metrics
 	err := render.DecodeJSON(r.Body, &reqMetrics)
+	fmt.Println("11111111111111111*", reqMetrics)
+	for _, OneMetric := range reqMetrics {
+		if OneMetric.Value != nil {
+			fmt.Println("11111111111111111**", OneMetric, *OneMetric.Value, OneMetric.Delta)
+		}
+		if OneMetric.Delta != nil {
+			fmt.Println("11111111111111111**", OneMetric, OneMetric.Value, *OneMetric.Delta)
+		}
+
+	}
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body
@@ -170,6 +185,10 @@ func (m *MetricHandlers) UpdateSeveralMetrics(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		responseError(w, r, http.StatusBadRequest, "metric value conversion error")
 		return
+	}
+
+	for _, OneMetric := range severalMetrics {
+		fmt.Println("11111111111111111***", OneMetric, OneMetric.GetType(), OneMetric.GetName(), OneMetric.GetValue())
 	}
 
 	ctx := r.Context()
