@@ -79,6 +79,20 @@ func (mr *MockMetricsStorageMockRecorder) UpdateMetric(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetric", reflect.TypeOf((*MockMetricsStorage)(nil).UpdateMetric), arg0, arg1)
 }
 
+// UpdateSeveralMetrics mocks base method.
+func (m *MockMetricsStorage) UpdateSeveralMetrics(arg0 context.Context, arg1 []models.MetricGetter) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSeveralMetrics", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSeveralMetrics indicates an expected call of UpdateSeveralMetrics.
+func (mr *MockMetricsStorageMockRecorder) UpdateSeveralMetrics(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSeveralMetrics", reflect.TypeOf((*MockMetricsStorage)(nil).UpdateSeveralMetrics), arg0, arg1)
+}
+
 // MockHealthChecker is a mock of HealthChecker interface.
 type MockHealthChecker struct {
 	ctrl     *gomock.Controller
