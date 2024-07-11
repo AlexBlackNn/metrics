@@ -112,8 +112,29 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 	// In case of type being gauge - just save the last value.
 	// Such calculation decreases quantity of data to write in database.
 	for _, oneMetric := range metrics {
+		// if value already exists in tmpMetricsReduces
 		if metric, ok := tmpMetricsReduces[oneMetric.GetName()]; ok && metric.GetType() == "counter" {
 			err := oneMetric.AddValue(metric)
+			if err != nil {
+				log.Error("failed to add value to metric", "metric", oneMetric.GetName(), "err", err)
+				return err
+			}
+
+			// if value is absent in tmpMetricsReduces and type counter (at the beginning of UpdateSeveralMetrics)
+		} else if oneMetric.GetType() == "counter" {
+			// try to load data from database
+			metricStorage, err := ms.metricsStorage.GetMetric(ctx, oneMetric)
+			if err != nil {
+				if !errors.Is(err, storage.ErrMetricNotFound) {
+					return err
+				}
+			}
+			if errors.Is(err, storage.ErrMetricNotFound) {
+				tmpMetricsReduces[oneMetric.GetName()] = oneMetric
+				continue
+			}
+			// if data exists then add to received metric
+			err = oneMetric.AddValue(metricStorage)
 			if err != nil {
 				log.Error("failed to add value to metric", "metric", oneMetric.GetName(), "err", err)
 				return err
@@ -122,50 +143,12 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 		tmpMetricsReduces[oneMetric.GetName()] = oneMetric
 	}
 
-	// convert tmpMetricsReduces to dto
-	// TODO: may by it is worth to use just a map for transfering data to storage layer
-	var reducedMetrics []models.MetricInteraction
-	for _, OneMetric := range tmpMetricsReduces {
-		reducedMetrics = append(reducedMetrics, OneMetric)
+	for _, oneMetric := range tmpMetricsReduces {
+		fmt.Println("000000000", oneMetric, oneMetric.GetName(), oneMetric.GetValue(), oneMetric.GetType())
 	}
 
 	var errs []error
-	for _, oneMetric := range reducedMetrics {
-		if oneMetric.GetType() == configserver.MetricTypeCounter {
-
-			metricStorage, err := ms.metricsStorage.GetMetric(ctx, oneMetric)
-			if errors.Is(err, storage.ErrMetricNotFound) {
-				fmt.Println("4444444444444*", ErrMetricNotFound, oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue())
-				err = ms.metricsStorage.UpdateMetric(ctx, oneMetric)
-				if err != nil {
-					ms.log.Error(err.Error())
-					errs = append(errs, ErrCouldNotUpdateMetric)
-					continue
-				}
-				continue
-			}
-			if err != nil {
-				ms.log.Error(err.Error())
-				errs = append(errs, ErrCouldNotUpdateMetric)
-				continue
-			}
-			fmt.Println("4444444444444**", oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue())
-			fmt.Println("4444444444444***", metricStorage.GetType(), metricStorage.GetName(), metricStorage.GetValue())
-			err = oneMetric.AddValue(metricStorage)
-			fmt.Println("4444444444444****", ErrMetricNotFound, oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue())
-			if err != nil {
-				ms.log.Error(err.Error())
-				errs = append(errs, ErrCouldNotUpdateMetric)
-				continue
-			}
-			err = ms.metricsStorage.UpdateMetric(ctx, oneMetric)
-			if err != nil {
-				ms.log.Error(err.Error())
-				errs = append(errs, ErrCouldNotUpdateMetric)
-				continue
-			}
-			continue
-		}
+	for _, oneMetric := range tmpMetricsReduces {
 		err := ms.metricsStorage.UpdateMetric(ctx, oneMetric)
 		if err != nil {
 			ms.log.Error(err.Error())
