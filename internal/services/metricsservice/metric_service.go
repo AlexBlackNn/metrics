@@ -17,7 +17,7 @@ type MetricsStorage interface {
 	) error
 	UpdateSeveralMetrics(
 		ctx context.Context,
-		metrics []models.MetricGetter,
+		metrics map[string]models.MetricGetter,
 	) error
 	GetMetric(
 		ctx context.Context,
@@ -106,7 +106,7 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 	)
 	log.Info("starts update several metric values")
 
-	tmpMetricsReduces := make(map[string]models.MetricInteraction)
+	tmpMetricsReduces := make(map[string]models.MetricGetter)
 
 	// If several received metrics have the same name and type counter - calculate result value.
 	// In case of type being gauge - just save the last value.
@@ -147,17 +147,12 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 		fmt.Println("000000000", oneMetric, oneMetric.GetName(), oneMetric.GetValue(), oneMetric.GetType())
 	}
 
-	var errs []error
-	for _, oneMetric := range tmpMetricsReduces {
-		err := ms.metricsStorage.UpdateMetric(ctx, oneMetric)
-		if err != nil {
-			ms.log.Error(err.Error())
-			errs = append(errs, ErrCouldNotUpdateMetric)
-			continue
-		}
-		log.Info("finish updating metric value")
+	err := ms.metricsStorage.UpdateSeveralMetrics(ctx, tmpMetricsReduces)
+	if err != nil {
+		ms.log.Info("failed to update several metric values")
 	}
-	return errors.Join(errs...)
+	log.Info("finish updating metric value")
+	return err
 }
 
 // GetOneMetricValue extracts metric.

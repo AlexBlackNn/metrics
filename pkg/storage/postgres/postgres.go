@@ -72,8 +72,35 @@ func (s *PostStorage) UpdateMetric(
 
 func (s *PostStorage) UpdateSeveralMetrics(
 	ctx context.Context,
-	metrics []models.MetricGetter,
+	metrics map[string]models.MetricGetter,
 ) error {
+
+	for _, oneMetric := range metrics {
+
+		tpl := template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
+			"GetType": GetType,
+		}).Parse(`
+      INSERT INTO
+    app.{{GetType .}}_part (metric_id, name, value)
+	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
+	`))
+
+		var sqlTmp bytes.Buffer
+		err := tpl.Execute(&sqlTmp, oneMetric)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.db.ExecContext(
+			ctx, sqlTmp.String(), oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue(),
+		)
+		if err != nil {
+			return fmt.Errorf(
+				"DATA LAYER: storage.postgres.SaveOperation: couldn't save Operation  %w",
+				err,
+			)
+		}
+	}
 	return nil
 }
 

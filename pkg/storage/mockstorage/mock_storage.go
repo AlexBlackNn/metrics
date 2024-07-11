@@ -80,7 +80,7 @@ func (mr *MockMetricsStorageMockRecorder) UpdateMetric(arg0, arg1 interface{}) *
 }
 
 // UpdateSeveralMetrics mocks base method.
-func (m *MockMetricsStorage) UpdateSeveralMetrics(arg0 context.Context, arg1 []models.MetricGetter) error {
+func (m *MockMetricsStorage) UpdateSeveralMetrics(arg0 context.Context, arg1 map[string]models.MetricGetter) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSeveralMetrics", arg0, arg1)
 	ret0, _ := ret[0].(error)

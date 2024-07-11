@@ -112,7 +112,7 @@ func (ms *MemStorage) GetMetric(
 
 func (ms *MemStorage) UpdateSeveralMetrics(
 	ctx context.Context,
-	metrics []models.MetricGetter,
+	metrics map[string]models.MetricGetter,
 ) error {
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()
