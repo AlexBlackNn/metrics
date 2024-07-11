@@ -75,8 +75,18 @@ func (s *PostStorage) UpdateSeveralMetrics(
 	metrics map[string]models.MetricGetter,
 ) error {
 
-	for _, oneMetric := range metrics {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer func(tx *sql.Tx) {
+		err := tx.Rollback()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(tx)
 
+	for _, oneMetric := range metrics {
 		tpl := template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
 			"GetType": GetType,
 		}).Parse(`
@@ -84,14 +94,13 @@ func (s *PostStorage) UpdateSeveralMetrics(
     app.{{GetType .}}_part (metric_id, name, value)
 	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
 	`))
-
 		var sqlTmp bytes.Buffer
-		err := tpl.Execute(&sqlTmp, oneMetric)
+		err = tpl.Execute(&sqlTmp, oneMetric)
 		if err != nil {
 			return err
 		}
 
-		_, err = s.db.ExecContext(
+		_, err = tx.ExecContext(
 			ctx, sqlTmp.String(), oneMetric.GetType(), oneMetric.GetName(), oneMetric.GetValue(),
 		)
 		if err != nil {
@@ -101,7 +110,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 			)
 		}
 	}
-	return nil
+	return tx.Commit()
 }
 
 func (s *PostStorage) GetMetric(
