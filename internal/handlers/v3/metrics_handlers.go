@@ -45,11 +45,13 @@ func (m *MetricHandlers) UpdateSeveralMetrics(w http.ResponseWriter, r *http.Req
 	var severalMetrics []models.MetricInteraction
 	for _, oneMetric := range reqMetrics {
 
-		if err := validator.New().Struct(oneMetric); err != nil {
-			validateErr := err.(validator.ValidationErrors)
-			errorText := ValidationError(validateErr)
-			responseError(w, r, http.StatusBadRequest, errorText)
-			return
+		if err = validator.New().Struct(reqMetrics); err != nil {
+			var validateErr validator.ValidationErrors
+			if errors.As(err, &validateErr) {
+				errorText := ValidationError(validateErr)
+				responseError(w, r, http.StatusBadRequest, errorText)
+				return
+			}
 		}
 
 		// TODO must be in service layer
