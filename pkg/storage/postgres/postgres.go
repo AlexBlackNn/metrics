@@ -55,7 +55,10 @@ func (s *PostStorage) UpdateMetric(
 	var sqlTmp bytes.Buffer
 	err := tpl.Execute(&sqlTmp, metric)
 	if err != nil {
-		return err
+		return fmt.Errorf(
+			"DATA LAYER: storage.postgres.UpdateMetric: couldn't create template  %w",
+			err,
+		)
 	}
 
 	_, err = s.db.ExecContext(
@@ -76,9 +79,11 @@ func (s *PostStorage) UpdateSeveralMetrics(
 ) error {
 
 	tx, err := s.db.Begin()
-
 	if err != nil {
-		return err
+		return fmt.Errorf(
+			"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't open transaction  %w",
+			err,
+		)
 	}
 	defer func(tx *sql.Tx) {
 		err := tx.Rollback()
@@ -97,7 +102,10 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		//are closed by the call to Tx.Commit or Tx.Rollback. https://pkg.go.dev/database/sql#Tx
 		stmt, err := tx.PrepareContext(ctx, onesqlTmpStms)
 		if err != nil {
-			return err
+			return fmt.Errorf(
+				"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't prepare context  %w",
+				err,
+			)
 		}
 		preparedStmt[name] = stmt
 	}
@@ -108,7 +116,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		)
 		if err != nil {
 			return fmt.Errorf(
-				"DATA LAYER: storage.postgres.SaveOperation: couldn't save Operation  %w",
+				"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't save metric  %w",
 				err,
 			)
 		}
