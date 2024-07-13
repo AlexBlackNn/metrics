@@ -5,6 +5,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v2"
+	v3 "github.com/AlexBlackNn/metrics/internal/handlers/v3"
 	customMiddleware "github.com/AlexBlackNn/metrics/internal/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -19,6 +20,7 @@ func NewChiRouter(
 	metricHandlerV1 v1.MetricHandlers,
 	metricHandlerV2 v2.MetricHandlers,
 	healthHandlerV2 v2.HealthHandlers,
+	metricHandlerV3 v3.MetricHandlers,
 ) *chi.Mux {
 
 	router := chi.NewRouter()
@@ -41,7 +43,7 @@ func NewChiRouter(
 		r.Post("/update/{metric_type}/{metric_name}/{metric_value}", metricHandlerV1.UpdateMetric)
 		r.Get("/value/{metric_type}/{metric_name}", metricHandlerV1.GetOneMetric)
 		r.Post("/update/", metricHandlerV2.UpdateMetric)
-		r.Post("/updates/", metricHandlerV2.UpdateSeveralMetrics)
+		r.Post("/updates/", metricHandlerV3.UpdateSeveralMetrics)
 		r.Post("/value/", metricHandlerV2.GetOneMetric)
 	})
 	return router

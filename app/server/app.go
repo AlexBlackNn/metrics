@@ -8,6 +8,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	v2 "github.com/AlexBlackNn/metrics/internal/handlers/v2"
+	v3 "github.com/AlexBlackNn/metrics/internal/handlers/v3"
 	"github.com/AlexBlackNn/metrics/internal/logger"
 	"github.com/AlexBlackNn/metrics/internal/migrator"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
@@ -48,6 +49,7 @@ type App struct {
 	HandlersV1       v1.MetricHandlers
 	HandlersV2       v2.MetricHandlers
 	HealthHandlersV2 v2.HealthHandlers
+	HandlersV3       v3.MetricHandlers
 	Cfg              *configserver.Config
 	Log              *slog.Logger
 	Srv              *http.Server
@@ -98,10 +100,18 @@ func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Co
 	projectHandlersV1 := v1.New(log, metricsService)
 	projectHandlersV2 := v2.New(log, metricsService)
 	healthHandlersV2 := v2.NewHealth(log, metricsService)
+	projectHandlersV3 := v3.New(log, metricsService)
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(cfg.ServerAddr),
-		Handler:      router.NewChiRouter(cfg, log, projectHandlersV1, projectHandlersV2, healthHandlersV2),
+		Addr: fmt.Sprintf(cfg.ServerAddr),
+		Handler: router.NewChiRouter(
+			cfg,
+			log,
+			projectHandlersV1,
+			projectHandlersV2,
+			healthHandlersV2,
+			projectHandlersV3,
+		),
 		ReadTimeout:  time.Duration(cfg.ServerReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(cfg.ServerWriteTimeout) * time.Second,
 		IdleTimeout:  time.Duration(cfg.ServerIdleTimeout) * time.Second,
@@ -112,6 +122,7 @@ func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Co
 		HandlersV1:       projectHandlersV1,
 		HandlersV2:       projectHandlersV2,
 		HealthHandlersV2: healthHandlersV2,
+		HandlersV3:       projectHandlersV3,
 		Srv:              srv,
 		Cfg:              cfg,
 		Log:              log,

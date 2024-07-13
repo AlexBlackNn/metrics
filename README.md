@@ -10,7 +10,7 @@ https://command-not-found.com/golint
 easy-json commands
 ```
 sudo apt install golang-easyjson
-easyjson -all /home/alex/Dev/GolandYandex/metrics/internal/handlers/v2/metrics_handlers.go 
+easyjson -all /home/alex/GolandProjects/metrics/internal/handlers/v3/metrics_handlers_response.go 
 ```
 
 ```

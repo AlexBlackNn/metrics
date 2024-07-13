@@ -54,6 +54,7 @@ func (ms *MetricsSuite) BeforeTest(suiteName, testName string) {
 		ms.application.HandlersV1,
 		ms.application.HandlersV2,
 		ms.application.HealthHandlersV2,
+		ms.application.HandlersV3,
 	))
 }
 

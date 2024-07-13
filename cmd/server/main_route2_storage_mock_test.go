@@ -53,7 +53,9 @@ func TestServerHappyPathMockStorageV2(t *testing.T) {
 		application.Log,
 		application.HandlersV1,
 		application.HandlersV2,
-		application.HealthHandlersV2),
+		application.HealthHandlersV2,
+		application.HandlersV3,
+	),
 	)
 	defer srv.Close()
 
