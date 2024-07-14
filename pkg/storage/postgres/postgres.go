@@ -57,7 +57,7 @@ func (s *PostStorage) UpdateMetric(
 	if err != nil {
 		return fmt.Errorf(
 			"DATA LAYER: storage.postgres.UpdateMetric: couldn't create template: %w - %v",
-			storage.ErrSqlExec, err,
+			storage.ErrSQLExec, err,
 		)
 	}
 
@@ -67,7 +67,7 @@ func (s *PostStorage) UpdateMetric(
 	if err != nil {
 		return fmt.Errorf(
 			"DATA LAYER: storage.postgres.UpdateMetric: couldn't save metric: %w - %v",
-			storage.ErrSqlExec, err,
+			storage.ErrSQLExec, err,
 		)
 	}
 	return nil
@@ -82,7 +82,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 	if err != nil {
 		return fmt.Errorf(
 			"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't open transaction: %w - %v",
-			storage.ErrSqlExec, err,
+			storage.ErrSQLExec, err,
 		)
 	}
 	defer func(tx *sql.Tx) {
@@ -105,7 +105,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		if err != nil {
 			return fmt.Errorf(
 				"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't prepare context: %w - %v",
-				storage.ErrSqlExec, err,
+				storage.ErrSQLExec, err,
 			)
 		}
 		preparedStmt[name] = stmt
@@ -118,7 +118,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		if err != nil {
 			return fmt.Errorf(
 				"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't save metric: %w - %v",
-				storage.ErrSqlExec, err,
+				storage.ErrSQLExec, err,
 			)
 		}
 	}
@@ -177,7 +177,7 @@ func (s *PostStorage) GetMetric(
 		}
 		return nil, fmt.Errorf(
 			"DATA LAYER: storage.postgres.GetMetric: %w - %v",
-			storage.ErrSqlExec, err,
+			storage.ErrSQLExec, err,
 		)
 	}
 	metricDB, err := models.New(

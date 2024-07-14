@@ -4,6 +4,6 @@ import "errors"
 
 var (
 	ErrMetricNotFound   = errors.New("metric not found")
-	ErrSqlExec          = errors.New("sql query failed")
+	ErrSQLExec          = errors.New("sql query failed")
 	ErrConnectionFailed = errors.New("connection failed")
 )
