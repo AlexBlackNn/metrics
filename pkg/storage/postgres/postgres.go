@@ -186,7 +186,10 @@ func (s *PostStorage) GetMetric(
 		tmpMetric.GetStringValue(),
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"DATA LAYER: storage.postgres.GetMetric: models.New %w - %v",
+			storage.ErrUnexpectedBehavior, err,
+		)
 	}
 	return metricDB, nil
 }
@@ -237,7 +240,10 @@ func (s *PostStorage) GetAllMetrics(
 		sqlTmp,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"DATA LAYER: storage.postgres.GetAllMetrics: %w - %v",
+			storage.ErrSQLExec, err,
+		)
 	}
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
@@ -250,7 +256,10 @@ func (s *PostStorage) GetAllMetrics(
 		var tmpMetric TempMetric
 		err = rows.Scan(&tmpMetric.Type, &tmpMetric.Name, &tmpMetric.Value)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf(
+				"DATA LAYER: storage.postgres.GetAllMetrics: rows.Scan %w - %v",
+				storage.ErrUnexpectedBehavior, err,
+			)
 		}
 
 		metricDB, err := models.New(
@@ -259,13 +268,19 @@ func (s *PostStorage) GetAllMetrics(
 			tmpMetric.GetStringValue(),
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf(
+				"DATA LAYER: storage.postgres.GetAllMetrics: models.New %w - %v",
+				storage.ErrUnexpectedBehavior, err,
+			)
 		}
 		metrics = append(metrics, metricDB)
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"DATA LAYER: storage.postgres.GetAllMetrics: rows.Err %w - %v",
+			storage.ErrUnexpectedBehavior, err,
+		)
 	}
 	return metrics, nil
 }
@@ -273,5 +288,12 @@ func (s *PostStorage) GetAllMetrics(
 func (s *PostStorage) HealthCheck(
 	ctx context.Context,
 ) error {
-	return s.db.PingContext(ctx)
+	err := s.db.PingContext(ctx)
+	if err != nil {
+		return fmt.Errorf(
+			"DATA LAYER: storage.postgres.HealthCheck: %w - %v",
+			storage.ErrConnectionFailed, err,
+		)
+	}
+	return nil
 }
