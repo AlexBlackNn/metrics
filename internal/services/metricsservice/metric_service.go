@@ -3,7 +3,6 @@ package metricsservice
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/pkg/storage"
@@ -69,30 +68,30 @@ func (ms *MetricService) UpdateMetricValue(ctx context.Context, metric models.Me
 		if errors.Is(err, storage.ErrMetricNotFound) {
 			err = ms.metricsStorage.UpdateMetric(ctx, metric)
 			if err != nil {
-				ms.log.Error(err.Error())
+				log.Error(err.Error())
 				return ErrCouldNotUpdateMetric
 			}
 			return nil
 		}
 		if err != nil {
-			ms.log.Error(err.Error())
+			log.Error(err.Error())
 			return ErrCouldNotUpdateMetric
 		}
 		err = metric.AddValue(metricStorage)
 		if err != nil {
-			ms.log.Error(err.Error())
+			log.Error(err.Error())
 			return ErrCouldNotUpdateMetric
 		}
 		err = ms.metricsStorage.UpdateMetric(ctx, metric)
 		if err != nil {
-			ms.log.Error(err.Error())
+			log.Error(err.Error())
 			return ErrCouldNotUpdateMetric
 		}
 		return nil
 	}
 	err := ms.metricsStorage.UpdateMetric(ctx, metric)
 	if err != nil {
-		ms.log.Error(err.Error())
+		log.Error(err.Error())
 		return ErrCouldNotUpdateMetric
 	}
 	log.Info("finish updating metric value")
@@ -116,7 +115,7 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 		if metric, ok := tmpMetricsReduces[oneMetric.GetName()]; ok && metric.GetType() == "counter" {
 			err := oneMetric.AddValue(metric)
 			if err != nil {
-				log.Error("failed to add value to metric", "metric", oneMetric.GetName(), "err", err)
+				log.Error("failed to add value to metric", "metric", oneMetric.GetName(), "err", err.Error())
 				return err
 			}
 
@@ -126,11 +125,13 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 			metricStorage, err := ms.metricsStorage.GetMetric(ctx, oneMetric)
 			if err != nil {
 				if !errors.Is(err, storage.ErrMetricNotFound) {
+					log.Error(err.Error())
 					return err
 				}
 			}
 			if errors.Is(err, storage.ErrMetricNotFound) {
 				tmpMetricsReduces[oneMetric.GetName()] = oneMetric
+				log.Error(err.Error())
 				continue
 			}
 			// if data exists then add to received metric
@@ -143,13 +144,9 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 		tmpMetricsReduces[oneMetric.GetName()] = oneMetric
 	}
 
-	for _, oneMetric := range tmpMetricsReduces {
-		fmt.Println("000000000", oneMetric, oneMetric.GetName(), oneMetric.GetValue(), oneMetric.GetType())
-	}
-
 	err := ms.metricsStorage.UpdateSeveralMetrics(ctx, tmpMetricsReduces)
 	if err != nil {
-		ms.log.Info("failed to update several metric values")
+		log.Info("failed to update several metric values", "err", err.Error())
 	}
 	log.Info("finish updating metric value")
 	return err
@@ -164,7 +161,6 @@ func (ms *MetricService) GetOneMetricValue(ctx context.Context, metric models.Me
 	metric, err := ms.metricsStorage.GetMetric(ctx, metric)
 	if err != nil {
 		if errors.Is(err, storage.ErrMetricNotFound) {
-			log.Warn("metric not found")
 			return nil, ErrMetricNotFound
 		}
 		log.Error(err.Error())
@@ -182,10 +178,12 @@ func (ms *MetricService) GetAllMetrics(ctx context.Context) ([]models.MetricGett
 	log.Info("starts getting all metrics")
 
 	metrics, err := ms.metricsStorage.GetAllMetrics(ctx)
-	if errors.Is(err, storage.ErrMetricNotFound) {
-		return nil, ErrMetricNotFound
-	}
+
 	if err != nil {
+		log.Error(err.Error())
+		if errors.Is(err, storage.ErrMetricNotFound) {
+			return nil, ErrMetricNotFound
+		}
 		return nil, ErrCouldNotUpdateMetric
 	}
 	log.Info("finish getting all metrics")
