@@ -1,18 +1,11 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"golang.org/x/exp/constraints"
 	"strconv"
 )
-
-var ErrNotValidMetricValue = errors.New("invalid metric value")
-var ErrNotValidMetricType = errors.New("invalid metric type")
-var ErrAddDifferentMetricType = errors.New("different metric types")
-var ErrAddDifferentMetricName = errors.New("different metric names")
-var ErrAddMetricValueCast = errors.New("cannot cast metric to required type")
 
 type MetricAdder interface {
 	AddValue(metric MetricGetter) error
