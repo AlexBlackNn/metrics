@@ -105,7 +105,10 @@ func (ms *MemStorage) GetMetric(
 	defer ms.mutex.RUnlock()
 	metric, ok := ms.db[metric.GetName()]
 	if !ok {
-		return &models.Metric[float64]{}, storage.ErrMetricNotFound
+		return &models.Metric[float64]{}, fmt.Errorf(
+			"DATA LAYER: storage.mem_storage.GetMetric: %w",
+			storage.ErrMetricNotFound,
+		)
 	}
 	return metric, nil
 }
@@ -128,7 +131,10 @@ func (ms *MemStorage) GetAllMetrics(
 ) ([]models.MetricGetter, error) {
 	var metrics []models.MetricGetter
 	if len(ms.db) == 0 {
-		return []models.MetricGetter{}, storage.ErrMetricNotFound
+		return []models.MetricGetter{}, fmt.Errorf(
+			"DATA LAYER: storage.mem_storage.GetAllMetrics: %w",
+			storage.ErrMetricNotFound,
+		)
 	}
 	ms.mutex.RLock()
 	defer ms.mutex.RUnlock()
