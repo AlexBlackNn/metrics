@@ -3,5 +3,7 @@ package storage
 import "errors"
 
 var (
-	ErrMetricNotFound = errors.New("metric not found")
+	ErrMetricNotFound   = errors.New("metric not found")
+	ErrSqlExec          = errors.New("sql query failed")
+	ErrConnectionFailed = errors.New("connection failed")
 )

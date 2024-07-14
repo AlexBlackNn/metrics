@@ -28,8 +28,8 @@ func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
 	if err != nil {
 		log.Error("Unable to connect to database", "error", err)
 		return nil, fmt.Errorf(
-			"DATA LAYER: storage.postgres.New: couldn't open a database: %w",
-			err,
+			"DATA LAYER: storage.postgres.GetMetric: %w - %v",
+			storage.ErrConnectionFailed, err,
 		)
 	}
 	return &PostStorage{db: db}, nil
@@ -56,8 +56,8 @@ func (s *PostStorage) UpdateMetric(
 	err := tpl.Execute(&sqlTmp, metric)
 	if err != nil {
 		return fmt.Errorf(
-			"DATA LAYER: storage.postgres.UpdateMetric: couldn't create template  %w",
-			err,
+			"DATA LAYER: storage.postgres.UpdateMetric: couldn't create template: %w - %v",
+			storage.ErrSqlExec, err,
 		)
 	}
 
@@ -66,8 +66,8 @@ func (s *PostStorage) UpdateMetric(
 	)
 	if err != nil {
 		return fmt.Errorf(
-			"DATA LAYER: storage.postgres.SaveOperation: couldn't save Operation  %w",
-			err,
+			"DATA LAYER: storage.postgres.UpdateMetric: couldn't save metric: %w - %v",
+			storage.ErrSqlExec, err,
 		)
 	}
 	return nil
@@ -81,8 +81,8 @@ func (s *PostStorage) UpdateSeveralMetrics(
 	tx, err := s.db.Begin()
 	if err != nil {
 		return fmt.Errorf(
-			"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't open transaction  %w",
-			err,
+			"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't open transaction: %w - %v",
+			storage.ErrSqlExec, err,
 		)
 	}
 	defer func(tx *sql.Tx) {
@@ -96,6 +96,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 	sqlTmpStms[configserver.MetricTypeGauge] = "INSERT INTO app.gauge_part (metric_id, name, value) VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)"
 	sqlTmpStms[configserver.MetricTypeCounter] = "INSERT INTO app.counter_part (metric_id, name, value) VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)"
 
+	// This prepared statements seem to be unnecessary, because Exec creates Prepare statement under the hood.
 	preparedStmt := make(map[string]*sql.Stmt)
 	for name, onesqlTmpStms := range sqlTmpStms {
 		// The statements prepared for a transaction by calling the transaction's Tx.Prepare or Tx.Stmt methods
@@ -103,8 +104,8 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		stmt, err := tx.PrepareContext(ctx, onesqlTmpStms)
 		if err != nil {
 			return fmt.Errorf(
-				"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't prepare context  %w",
-				err,
+				"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't prepare context: %w - %v",
+				storage.ErrSqlExec, err,
 			)
 		}
 		preparedStmt[name] = stmt
@@ -116,8 +117,8 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		)
 		if err != nil {
 			return fmt.Errorf(
-				"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't save metric  %w",
-				err,
+				"DATA LAYER: storage.postgres.UpdateSeveralMetrics: couldn't save metric: %w - %v",
+				storage.ErrSqlExec, err,
 			)
 		}
 	}
@@ -170,13 +171,13 @@ func (s *PostStorage) GetMetric(
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf(
-				"DATA LAYER: storage.postgres.GetMetric: %w",
-				storage.ErrMetricNotFound,
+				"DATA LAYER: storage.postgres.GetMetric: %w - %v",
+				storage.ErrMetricNotFound, err,
 			)
 		}
 		return nil, fmt.Errorf(
-			"DATA LAYER: storage.postgres.GetMetric: %w",
-			err,
+			"DATA LAYER: storage.postgres.GetMetric: %w - %v",
+			storage.ErrSqlExec, err,
 		)
 	}
 	metricDB, err := models.New(
