@@ -76,7 +76,7 @@ func New() (*App, error) {
 		log.Info("Starts to apply migrations")
 		err = migrator.ApplyMigration(cfg)
 		if err != nil {
-			log.Error("Failed to apply migration", err)
+			log.Error("Failed to apply migration", "err", err.Error())
 		}
 		log.Info("Finish to apply migrations")
 		return NewAppInitStorage(postgresStorage, postgresStorage, cfg, log)
