@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
@@ -11,6 +12,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 type MetricHandlers struct {
@@ -47,7 +49,8 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("getOneMetric probe timeout"))
+	defer cancel()
 
 	metric, err := models.New(reqMetrics.MType, reqMetrics.ID, "0")
 	if err != nil {
@@ -113,7 +116,9 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("updateMetric probe timeout"))
+	defer cancel()
+
 	err = m.metricsService.UpdateMetricValue(ctx, metric)
 	if err != nil {
 		if errors.Is(err, metricsservice.ErrNotValidURL) {

@@ -1,9 +1,12 @@
 package v2
 
 import (
+	"context"
+	"errors"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 type HealthHandlers struct {
@@ -20,7 +23,9 @@ func (m *HealthHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) 
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("readiness probe timeout"))
+	defer cancel()
+
 	err := m.metricsService.HealthCheck(ctx)
 
 	if err != nil {

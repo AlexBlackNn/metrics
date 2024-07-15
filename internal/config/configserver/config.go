@@ -21,6 +21,7 @@ type Config struct {
 	ServerReadTimeout     int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerWriteTimeout    int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerIdleTimeout     int    `yaml:"server_idle_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	ServerRequestTimeout  int    `yaml:"server_request_timeout" env-default:"300" env:"SEVER_REQUEST_TIMEOUT" envDefault:"300"`
 	ServerStoreInterval   int    `yaml:"server_store_interval" env:"STORE_INTERVAL"`
 	ServerFileStoragePath string `yaml:"server_file_storage_path" env-default:"/tmp/metrics-db.json" env:"FILE_STORAGE_PATH" envDefault:"/tmp/metrics-db.json"`
 	ServerRestore         bool   `yaml:"server_restore" env-default:"true" env:"RESTORE" envDefault:"true"`
