@@ -86,10 +86,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		)
 	}
 	defer func(tx *sql.Tx) {
-		err := tx.Rollback()
-		if err != nil {
-			fmt.Println(err)
-		}
+		err = errors.Join(err, tx.Rollback())
 	}(tx)
 
 	sqlTmpStms := make(map[string]string)
@@ -246,10 +243,7 @@ func (s *PostStorage) GetAllMetrics(
 		)
 	}
 	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
+		err = errors.Join(err, rows.Close())
 	}(rows)
 
 	for rows.Next() {
