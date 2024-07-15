@@ -49,7 +49,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("getOneMetric probe timeout"))
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("getOneMetric timeout"))
 	defer cancel()
 
 	metric, err := models.New(reqMetrics.MType, reqMetrics.ID, "0")
@@ -116,7 +116,7 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("updateMetric probe timeout"))
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("updateMetric timeout"))
 	defer cancel()
 
 	err = m.metricsService.UpdateMetricValue(ctx, metric)

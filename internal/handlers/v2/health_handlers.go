@@ -23,7 +23,7 @@ func (m *HealthHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) 
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
-	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("readiness probe timeout"))
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("readinessProbe timeout"))
 	defer cancel()
 
 	err := m.metricsService.HealthCheck(ctx)

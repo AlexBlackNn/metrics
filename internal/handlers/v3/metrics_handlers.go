@@ -77,7 +77,7 @@ func (m *MetricHandlers) UpdateSeveralMetrics(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("updateSeveralMetrics probe timeout"))
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("updateSeveralMetrics timeout"))
 	defer cancel()
 
 	err = m.metricsService.UpdateSeveralMetrics(ctx, severalMetrics)
