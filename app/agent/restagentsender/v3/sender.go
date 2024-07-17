@@ -61,6 +61,7 @@ func (s *Sender) Send(ctx context.Context) {
 				err := rateLimiter.Wait(ctx)
 				if err != nil {
 					log.Error(err.Error())
+					return
 				}
 
 				restyClient := resty.New()
@@ -77,6 +78,7 @@ func (s *Sender) Send(ctx context.Context) {
 					Post(url)
 				if err != nil {
 					log.Error("error creating http request")
+					return
 				}
 				log.Info("http request finished successfully",
 					"url", url,

@@ -76,6 +76,7 @@ func (s *Sender) Send(ctx context.Context) {
 						Post(url)
 					if err != nil {
 						log.Error("error creating http request")
+						return
 					}
 					log.Info("http request finished successfully",
 						"url", url,

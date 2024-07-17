@@ -56,6 +56,7 @@ func (s *Sender) Send(ctx context.Context) {
 					// TODO: need refactoring to better work with error.
 					if err != nil {
 						log.Error("error creating http request")
+						return
 					}
 
 					//Would be better to add backoff, but in next task client itself can do it.
@@ -65,10 +66,11 @@ func (s *Sender) Send(ctx context.Context) {
 					// TODO: need refactoring to better work with error.
 					if err != nil {
 						log.Error("error doing http request", "err", err.Error())
-					} else {
-						log.Info("sending data", "url", url, "status_code", response.StatusCode)
-						response.Body.Close()
+						return
 					}
+					log.Info("sending data", "url", url, "status_code", response.StatusCode)
+					response.Body.Close()
+
 				}(savedMetric)
 			}
 			<-time.After(reportInterval)
