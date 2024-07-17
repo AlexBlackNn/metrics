@@ -41,7 +41,7 @@ func (s *Sender) Send(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		default:
+		case <-time.After(reportInterval):
 			for _, savedMetric := range s.GetMetrics() {
 				err := rateLimiter.Wait(ctx)
 				if err != nil {
@@ -86,7 +86,6 @@ func (s *Sender) Send(ctx context.Context) {
 					)
 				}(savedMetric)
 			}
-			<-time.After(reportInterval)
 		}
 	}
 }

@@ -40,7 +40,7 @@ func (s *Sender) Send(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		default:
+		case <-time.After(reportInterval):
 
 			body := "["
 			for _, savedMetric := range s.GetMetrics() {
@@ -86,7 +86,6 @@ func (s *Sender) Send(ctx context.Context) {
 					"body", string(resp.Body()),
 				)
 			}
-			<-time.After(reportInterval)
 		}
 	}
 }
