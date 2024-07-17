@@ -46,6 +46,7 @@ func (s *Sender) Send(ctx context.Context) {
 				err := rateLimiter.Wait(ctx)
 				if err != nil {
 					log.Error(err.Error())
+					return
 				}
 				go func(savedMetric models.MetricInteraction) {
 					restyClient := resty.New()
