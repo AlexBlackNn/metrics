@@ -44,8 +44,8 @@ func (m *MetricHandlers) UpdateSeveralMetrics(w http.ResponseWriter, r *http.Req
 	}
 
 	var metric models.MetricInteraction
-	var severalMetrics []models.MetricInteraction
-	for _, oneMetric := range reqMetrics {
+	severalMetrics := make([]models.MetricInteraction, len(reqMetrics))
+	for i, oneMetric := range reqMetrics {
 
 		if err = validator.New().Struct(reqMetrics); err != nil {
 			var validateErr validator.ValidationErrors
@@ -70,7 +70,7 @@ func (m *MetricHandlers) UpdateSeveralMetrics(w http.ResponseWriter, r *http.Req
 				fmt.Sprintf("%g", *oneMetric.Value),
 			)
 		}
-		severalMetrics = append(severalMetrics, metric)
+		severalMetrics[i] = metric
 	}
 	if err != nil {
 		responseError(w, r, http.StatusBadRequest, "metric value conversion error")

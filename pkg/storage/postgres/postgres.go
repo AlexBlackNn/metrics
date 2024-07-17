@@ -289,5 +289,6 @@ func (s *PostStorage) HealthCheck(
 			storage.ErrConnectionFailed, err,
 		)
 	}
+
 	return nil
 }
