@@ -30,19 +30,19 @@ func New(
 	}
 }
 
-func (mhs *Sender) Send(ctx context.Context) {
+func (s *Sender) Send(ctx context.Context) {
 
-	log := mhs.log.With(
+	log := s.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
 	)
-	reportInterval := time.Duration(mhs.cfg.ReportInterval) * time.Second
-	rateLimiter := rate.NewLimiter(rate.Limit(mhs.cfg.AgentRateLimit), mhs.cfg.AgentBurstTokens)
+	reportInterval := time.Duration(s.cfg.ReportInterval) * time.Second
+	rateLimiter := rate.NewLimiter(rate.Limit(s.cfg.AgentRateLimit), s.cfg.AgentBurstTokens)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			for _, savedMetric := range mhs.GetMetrics() {
+			for _, savedMetric := range s.GetMetrics() {
 				err := rateLimiter.Wait(ctx)
 				if err != nil {
 					log.Error(err.Error())
@@ -50,9 +50,9 @@ func (mhs *Sender) Send(ctx context.Context) {
 				go func(savedMetric models.MetricInteraction) {
 					restyClient := resty.New()
 					restyClient.
-						SetRetryCount(mhs.cfg.AgentRetryCount).
-						SetRetryWaitTime(mhs.cfg.AgentRetryWaitTime).
-						SetRetryMaxWaitTime(mhs.cfg.AgentRetryMaxWaitTime)
+						SetRetryCount(s.cfg.AgentRetryCount).
+						SetRetryWaitTime(s.cfg.AgentRetryWaitTime).
+						SetRetryMaxWaitTime(s.cfg.AgentRetryMaxWaitTime)
 
 					var body string
 					if savedMetric.GetType() == configserver.MetricTypeCounter {
@@ -68,7 +68,7 @@ func (mhs *Sender) Send(ctx context.Context) {
 							savedMetric.GetValue(),
 						)
 					}
-					url := fmt.Sprintf("http://%s/update/", mhs.cfg.ServerAddr)
+					url := fmt.Sprintf("http://%s/update/", s.cfg.ServerAddr)
 					log.Info("sending data", "url", url)
 					resp, err := restyClient.R().
 						SetHeader("Content-Type", "application/json").

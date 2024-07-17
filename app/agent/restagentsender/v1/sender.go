@@ -28,27 +28,27 @@ func New(
 	}
 }
 
-func (mhs *Sender) Send(ctx context.Context) {
+func (s *Sender) Send(ctx context.Context) {
 
-	log := mhs.log.With(
+	log := s.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
 	)
 	client := http.Client{
-		Timeout: time.Duration(mhs.cfg.AgentTimeout) * time.Second,
+		Timeout: time.Duration(s.cfg.AgentTimeout) * time.Second,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error { // в 1 инкрименте "Редиректы не поддерживаются."
 			return http.ErrUseLastResponse
 		}}
-	reportInterval := time.Duration(mhs.cfg.ReportInterval) * time.Second
+	reportInterval := time.Duration(s.cfg.ReportInterval) * time.Second
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			for _, savedMetric := range mhs.GetMetrics() {
+			for _, savedMetric := range s.GetMetrics() {
 				go func(savedMetric models.MetricInteraction) {
 					savedMetricValue := savedMetric.GetStringValue()
 
-					url := fmt.Sprintf("http://%s/update/%s/%s/%s", mhs.cfg.ServerAddr, savedMetric.GetType(), savedMetric.GetName(), savedMetricValue)
+					url := fmt.Sprintf("http://%s/update/%s/%s/%s", s.cfg.ServerAddr, savedMetric.GetType(), savedMetric.GetName(), savedMetricValue)
 					log.Info("sending data", "url", url)
 
 					req, err := http.NewRequest(http.MethodPost, url, nil) // (1)
