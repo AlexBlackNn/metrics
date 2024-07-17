@@ -55,6 +55,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	metric, err := models.New(reqMetrics.MType, reqMetrics.ID, "0")
 	if err != nil {
 		responseError(w, r, http.StatusInternalServerError, err.Error())
+		return
 	}
 	metricReturned, err := m.metricsService.GetOneMetricValue(ctx, metric)
 

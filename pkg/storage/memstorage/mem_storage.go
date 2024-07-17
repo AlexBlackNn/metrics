@@ -61,16 +61,18 @@ func (ms *MemStorage) saveMetricToDisk() {
 			err := ms.sm.saveMetrics()
 			if err != nil {
 				log.Error("failed save metrics", "err", err)
+			} else {
+				log.Debug("finish save metric to disk")
 			}
-			log.Debug("finish save metric to disk")
 		} else {
 			<-ms.saveChan
 			log.Debug("starts saving metric to disk")
 			err := ms.sm.saveMetrics()
 			if err != nil {
 				log.Error("failed save metrics", "err", err)
+			} else {
+				log.Debug("finish save metric to disk")
 			}
-			log.Debug("finish save metric to disk")
 		}
 	}
 }

@@ -82,6 +82,7 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 						log.Error("failed to inform user")
 						return
 					}
+					return
 				}
 			}
 		}

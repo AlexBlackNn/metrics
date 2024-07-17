@@ -147,9 +147,10 @@ func (ms *MetricService) UpdateSeveralMetrics(ctx context.Context, metrics []mod
 	err := ms.metricsStorage.UpdateSeveralMetrics(ctx, tmpMetricsReduces)
 	if err != nil {
 		log.Info("failed to update several metric values", "err", err.Error())
+		return err
 	}
 	log.Info("finish updating metric value")
-	return err
+	return nil
 }
 
 // GetOneMetricValue extracts metric.
