@@ -115,7 +115,7 @@ func (ms *MemStorage) GetMetric(
 		defer ms.mutex.RUnlock()
 		metric, ok := ms.db[metric.GetName()]
 		if !ok {
-			return &models.Metric[float64]{}, fmt.Errorf(
+			return nil, fmt.Errorf(
 				"DATA LAYER: storage.mem_storage.GetMetric: %w",
 				storage.ErrMetricNotFound,
 			)
