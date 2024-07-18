@@ -48,20 +48,22 @@ func (s *Sender) Send(ctx context.Context) {
 			body.WriteString("[")
 			for _, savedMetric := range s.GetMetrics() {
 				if savedMetric.GetType() == configserver.MetricTypeCounter {
-					body.WriteString(fmt.Sprintf(`{"id":"%s", "type":"%s", "delta": %d}`,
+					body.WriteString(fmt.Sprintf(`{"id":"%s", "type":"%s", "delta": %d},`,
 						savedMetric.GetName(),
 						savedMetric.GetType(),
 						savedMetric.GetValue(),
 					))
 				} else {
-					body.WriteString(fmt.Sprintf(`{"id":"%s", "type":"%s", "value": %v}`,
+					body.WriteString(fmt.Sprintf(`{"id":"%s", "type":"%s", "value": %v},`,
 						savedMetric.GetName(),
 						savedMetric.GetType(),
 						savedMetric.GetValue(),
 					))
 				}
 			}
-			body.WriteString("]")
+			// need to delete last comma
+			jsonBody := body.String()[:len(body.String())-1] + "]"
+
 			err := rateLimiter.Wait(ctx)
 			if err != nil {
 				log.Error(err.Error())
@@ -78,7 +80,7 @@ func (s *Sender) Send(ctx context.Context) {
 			log.Info("sending data", "url", url)
 			resp, err := restyClient.R().
 				SetHeader("Content-Type", "application/json").
-				SetBody(body).
+				SetBody(jsonBody).
 				Post(url)
 			if err != nil {
 				log.Error("error creating http request")
