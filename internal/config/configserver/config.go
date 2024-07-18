@@ -28,6 +28,7 @@ type Config struct {
 	ServerRateLimit       int    `yaml:"server_rate_limit" env-default:"10000" env:"SERVER_RATE_LIMIT" envDefault:"10000"`
 	ServerDataBaseDSN     string `yaml:"server_data_base_dsn" env:"DATABASE_DSN"`
 	ServerMigrationTable  string `yaml:"server_migration_table_name" env-default:"migrations" env:"SERVER_MIGRATION_TABLE_NAME" envDefault:"migrations"`
+	HashKey               string `yaml:"hash_key" env:"KEY"`
 }
 
 func (c *Config) String() string {
@@ -58,6 +59,7 @@ func New() (*Config, error) {
 
 	flag.StringVar(&cfg.Env, "e", "local", "project environment")
 	flag.StringVar(&cfg.ServerAddr, "a", ":8080", "host address")
+	flag.StringVar(&cfg.HashKey, "k", "", "hash key")
 	flag.IntVar(&cfg.ServerStoreInterval, "i", 1, "metrics store interval")
 	flag.StringVar(&cfg.ServerFileStoragePath, "f", "/tmp/metrics-db.json", "metrics store path")
 	flag.BoolVar(&cfg.ServerRestore, "r", true, "restore saved metrics")

@@ -9,23 +9,27 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"github.com/go-resty/resty/v2"
 	"golang.org/x/time/rate"
+	"hash"
 	"log/slog"
 	"time"
 )
 
 type Sender struct {
-	log *slog.Logger
-	cfg *configagent.Config
+	log      *slog.Logger
+	cfg      *configagent.Config
+	hashCalc hash.Hash
 	*agentmetricsservice.MonitorService
 }
 
 func New(
 	log *slog.Logger,
 	cfg *configagent.Config,
+	hashCalc hash.Hash,
 ) *Sender {
 	return &Sender{
 		log,
 		cfg,
+		hashCalc,
 		agentmetricsservice.New(log, cfg),
 	}
 }
@@ -37,6 +41,7 @@ func (s *Sender) Send(ctx context.Context) {
 	)
 	reportInterval := time.Duration(s.cfg.ReportInterval) * time.Second
 	rateLimiter := rate.NewLimiter(rate.Limit(s.cfg.AgentRateLimit), s.cfg.AgentBurstTokens)
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -69,10 +74,15 @@ func (s *Sender) Send(ctx context.Context) {
 							savedMetric.GetValue(),
 						)
 					}
+					//calculate hash
+					s.hashCalc.Write([]byte(body))
+					metricHash := s.hashCalc.Sum(nil)
+
 					url := fmt.Sprintf("http://%s/update/", s.cfg.ServerAddr)
 					log.Info("sending data", "url", url)
 					resp, err := restyClient.R().
 						SetHeader("Content-Type", "application/json").
+						SetHeader("HashSHA256", string(metricHash)).
 						SetBody(body).
 						Post(url)
 					if err != nil {
