@@ -10,12 +10,11 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/pkg/storage"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"html/template"
 	"log/slog"
 )
 
 type PostStorage struct {
-	tmpl map[string]*template.Template
+	tmpl Tmpl
 	db   *sql.DB
 }
 
@@ -33,40 +32,7 @@ func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
 			storage.ErrConnectionFailed, err,
 		)
 	}
-	tmpl := make(map[string]*template.Template)
-	tmpl["GetMetric"] = template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
-		"GetType": GetType,
-	}).Parse(`
-      WITH LatestCounter AS (
-        SELECT
-          MAX(created) AS latest_created
-        FROM
-          app.{{GetType .}}_part
-        WHERE
-          app.{{GetType .}}_part.name = $1
-      )
-      SELECT
-        t.name, c.name, c.value
-      FROM
-        app.{{GetType .}}_part as c
-      JOIN
-        app.types as t ON c.metric_id = t.uuid
-      JOIN
-        LatestCounter lc ON c.created = lc.latest_created
-      WHERE
-        c.name = $1
-      ORDER BY c.created;
-  `))
-
-	tmpl["UpdateMetric"] = template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
-		"GetType": GetType,
-	}).Parse(`
-      INSERT INTO
-    app.{{GetType .}}_part (metric_id, name, value)
-	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
-	`))
-
-	return &PostStorage{db: db, tmpl: tmpl}, nil
+	return &PostStorage{db: db, tmpl: NewTemplate()}, nil
 }
 
 func (s *PostStorage) Stop() error {
