@@ -164,44 +164,15 @@ func (s *PostStorage) GetAllMetrics(
 
 	var metrics []models.MetricGetter
 
-	sqlTmp := `
-	WITH LatestCounter AS (
-		SELECT
-			MAX(created) AS latest_created, name
-		FROM
-			app.counter_part
-		GROUP BY
-			name
-	), LatestGauge AS (
-		SELECT
-			MAX(created) AS latest_created, name
-		FROM
-			app.gauge_part
-		GROUP BY
-			name
-	)
-	SELECT
-		t.name, c.name, c.value
-	FROM
-		app.counter_part as c
-			JOIN
-		app.types as t ON c.metric_id = t.uuid
-			JOIN
-		LatestCounter lc ON c.created = lc.latest_created AND c.name = lc.name
-	UNION
-	SELECT
-		t.name, g.name, g.value
-	FROM
-		app.gauge_part as g
-			JOIN
-		app.types as t ON g.metric_id = t.uuid
-			JOIN
-		LatestGauge lc ON g.created = lc.latest_created AND g.name = lc.name
-`
+	var sqlTmp bytes.Buffer
+	err := s.tmpl["GetAllMetrics"].Execute(&sqlTmp, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	rows, err := s.db.QueryContext(
 		ctx,
-		sqlTmp,
+		sqlTmp.String(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -256,6 +227,5 @@ func (s *PostStorage) HealthCheck(
 			storage.ErrConnectionFailed, err,
 		)
 	}
-
 	return nil
 }
