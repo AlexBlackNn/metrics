@@ -9,6 +9,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"golang.org/x/time/rate"
 	"log/slog"
+	"strings"
 	"time"
 )
 
@@ -42,50 +43,52 @@ func (s *Sender) Send(ctx context.Context) {
 			return
 		case <-time.After(reportInterval):
 
-			body := "["
+			var body strings.Builder
+
+			body.WriteString("[")
 			for _, savedMetric := range s.GetMetrics() {
 				if savedMetric.GetType() == configserver.MetricTypeCounter {
-					body += fmt.Sprintf(`{"id":"%s", "type":"%s", "delta": %d}`,
+					body.WriteString(fmt.Sprintf(`{"id":"%s", "type":"%s", "delta": %d}`,
 						savedMetric.GetName(),
 						savedMetric.GetType(),
 						savedMetric.GetValue(),
-					)
+					))
 				} else {
-					body += fmt.Sprintf(`{"id":"%s", "type":"%s", "value": %v}`,
+					body.WriteString(fmt.Sprintf(`{"id":"%s", "type":"%s", "value": %v}`,
 						savedMetric.GetName(),
 						savedMetric.GetType(),
 						savedMetric.GetValue(),
-					)
+					))
 				}
-				body += "]"
-				err := rateLimiter.Wait(ctx)
-				if err != nil {
-					log.Error(err.Error())
-					return
-				}
-
-				restyClient := resty.New()
-				restyClient.
-					SetRetryCount(s.cfg.AgentRetryCount).
-					SetRetryWaitTime(s.cfg.AgentRetryWaitTime).
-					SetRetryMaxWaitTime(s.cfg.AgentRetryMaxWaitTime)
-
-				url := fmt.Sprintf("http://%s/updates/", s.cfg.ServerAddr)
-				log.Info("sending data", "url", url)
-				resp, err := restyClient.R().
-					SetHeader("Content-Type", "application/json").
-					SetBody(body).
-					Post(url)
-				if err != nil {
-					log.Error("error creating http request")
-					return
-				}
-				log.Info("http request finished successfully",
-					"url", url,
-					"statusCode", resp.StatusCode(),
-					"body", string(resp.Body()),
-				)
 			}
+			body.WriteString("]")
+			err := rateLimiter.Wait(ctx)
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
+
+			restyClient := resty.New()
+			restyClient.
+				SetRetryCount(s.cfg.AgentRetryCount).
+				SetRetryWaitTime(s.cfg.AgentRetryWaitTime).
+				SetRetryMaxWaitTime(s.cfg.AgentRetryMaxWaitTime)
+
+			url := fmt.Sprintf("http://%s/updates/", s.cfg.ServerAddr)
+			log.Info("sending data", "url", url)
+			resp, err := restyClient.R().
+				SetHeader("Content-Type", "application/json").
+				SetBody(body).
+				Post(url)
+			if err != nil {
+				log.Error("error creating http request")
+				return
+			}
+			log.Info("http request finished successfully",
+				"url", url,
+				"statusCode", resp.StatusCode(),
+				"body", string(resp.Body()),
+			)
 		}
 	}
 }
