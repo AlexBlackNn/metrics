@@ -57,6 +57,15 @@ func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
         c.name = $1
       ORDER BY c.created;
   `))
+
+	tmpl["UpdateMetric"] = template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
+		"GetType": GetType,
+	}).Parse(`
+      INSERT INTO
+    app.{{GetType .}}_part (metric_id, name, value)
+	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
+	`))
+
 	return &PostStorage{db: db, tmpl: tmpl}, nil
 }
 
@@ -68,17 +77,8 @@ func (s *PostStorage) UpdateMetric(
 	ctx context.Context,
 	metric models.MetricGetter,
 ) error {
-
-	tpl := template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
-		"GetType": GetType,
-	}).Parse(`
-      INSERT INTO
-    app.{{GetType .}}_part (metric_id, name, value)
-	VALUES ((SELECT uuid FROM app.types WHERE name = $1), $2, $3)
-	`))
-
 	var sqlTmp bytes.Buffer
-	err := tpl.Execute(&sqlTmp, metric)
+	err := s.tmpl["UpdateMetric"].Execute(&sqlTmp, metric)
 	if err != nil {
 		return fmt.Errorf(
 			"DATA LAYER: storage.postgres.UpdateMetric: couldn't create template: %w - %v",
