@@ -48,6 +48,8 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 			responseError(w, r, http.StatusBadRequest, errorText)
 			return
 		}
+		responseError(w, r, http.StatusUnprocessableEntity, "failed to validate request")
+		return
 	}
 	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("getOneMetric timeout"))
 	defer cancel()
@@ -94,6 +96,8 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 			responseError(w, r, http.StatusBadRequest, errorText)
 			return
 		}
+		responseError(w, r, http.StatusUnprocessableEntity, "failed to validate request")
+		return
 	}
 
 	var metric models.MetricInteraction
