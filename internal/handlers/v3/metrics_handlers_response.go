@@ -1,7 +1,6 @@
-package v2
+package v3
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -80,12 +79,5 @@ func responseError(w http.ResponseWriter, r *http.Request, statusCode int, messa
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	dataMarshal, _ := easyjson.Marshal(Error(message))
-	w.Write(dataMarshal)
-}
-
-func responseHealth(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	dataMarshal, _ := json.Marshal(HealthOk(message))
 	w.Write(dataMarshal)
 }
