@@ -15,7 +15,8 @@ import (
 )
 
 type PostStorage struct {
-	db *sql.DB
+	tmpl map[string]*template.Template
+	db   *sql.DB
 }
 
 // GetType is a helper function to get the type
@@ -32,7 +33,31 @@ func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
 			storage.ErrConnectionFailed, err,
 		)
 	}
-	return &PostStorage{db: db}, nil
+	tmpl := make(map[string]*template.Template)
+	tmpl["GetMetric"] = template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
+		"GetType": GetType,
+	}).Parse(`
+      WITH LatestCounter AS (
+        SELECT
+          MAX(created) AS latest_created
+        FROM
+          app.{{GetType .}}_part
+        WHERE
+          app.{{GetType .}}_part.name = $1
+      )
+      SELECT
+        t.name, c.name, c.value
+      FROM
+        app.{{GetType .}}_part as c
+      JOIN
+        app.types as t ON c.metric_id = t.uuid
+      JOIN
+        LatestCounter lc ON c.created = lc.latest_created
+      WHERE
+        c.name = $1
+      ORDER BY c.created;
+  `))
+	return &PostStorage{db: db, tmpl: tmpl}, nil
 }
 
 func (s *PostStorage) Stop() error {
@@ -127,32 +152,8 @@ func (s *PostStorage) GetMetric(
 	metric models.MetricGetter,
 ) (models.MetricGetter, error) {
 
-	tpl := template.Must(template.New("sqlQuery").Funcs(template.FuncMap{
-		"GetType": GetType,
-	}).Parse(`
-      WITH LatestCounter AS (
-        SELECT
-          MAX(created) AS latest_created
-        FROM
-          app.{{GetType .}}_part
-        WHERE
-          app.{{GetType .}}_part.name = $1
-      )
-      SELECT
-        t.name, c.name, c.value
-      FROM
-        app.{{GetType .}}_part as c
-      JOIN
-        app.types as t ON c.metric_id = t.uuid
-      JOIN
-        LatestCounter lc ON c.created = lc.latest_created
-      WHERE
-        c.name = $1
-      ORDER BY c.created;
-  `))
-
 	var sqlTmp bytes.Buffer
-	err := tpl.Execute(&sqlTmp, metric)
+	err := s.tmpl["GetMetric"].Execute(&sqlTmp, metric)
 	if err != nil {
 		return nil, err
 	}
