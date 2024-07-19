@@ -68,7 +68,7 @@ func HashChecker(log *slog.Logger, cfg *configserver.Config) func(next http.Hand
 					dataMarshal, _ := json.Marshal(Error("hash calculation failed"))
 					_, err := w.Write(dataMarshal)
 					if err != nil {
-						log.Error("write error:", err)
+						log.Error("write error:", "err", err)
 					}
 					return
 				}
