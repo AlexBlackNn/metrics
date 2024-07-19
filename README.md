@@ -10,7 +10,7 @@ https://command-not-found.com/golint
 easy-json commands
 ```
 sudo apt install golang-easyjson
-easyjson -all /home/alex/Dev/GolandYandex/metrics/internal/handlers/v2/metrics_handlers.go 
+easyjson -all /home/alex/GolandProjects/metrics/internal/handlers/v3/metrics_handlers_response.go 
 ```
 
 ```
@@ -70,7 +70,7 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"tes
 
 
 ```bash
-curl --header "Content-Type: application/json" --request POST --data '{"id":"testGauge","type":"gauge","value":465529.39165260154}' http://localhost:8080/update/
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testGauge","type":"gauge","value":465528.39165260154}' http://localhost:8080/update/
 ```
 ```bash
 curl --header "Content-Type: application/json" --request POST --data '{"id":"testGauge","type":"gauge"}' http://localhost:8080/value/
@@ -91,7 +91,7 @@ curl --header "Content-Type: application/json" --request POST --data '{"id":"tes
 curl -v --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter"}' http://localhost:8080/value/
 ```
 ```bash
-curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter"}' http://localhost:8080/value/ --compressed
+curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter"}' http://localhost:8080/value/ --compressed
 ```
 
 ```bash
@@ -101,3 +101,45 @@ curl -v --request GET  http://localhost:8080/
 ```bash
 curl -v --header "Accept-Encoding: gzip" --request GET  http://localhost:8080/ --compressed
 ```
+
+```bash
+curl -v -X GET  http://localhost:8080/ping
+```
+
+# Моки
+Создаем руками папку для хранения мока
+```bash
+mkdir pkg/storage/mock
+```
+Запускаем создание мока 
+```bash
+mockgen -destination=pkg/storage/mockstorage/mock_storage.go -package=mockstorage github.com/AlexBlackNn/metrics/internal/services/metricsservice MetricsStorage,HealthChecker
+```
+
+# Миграции 
+go run ./cmd/migrator/postgres  --migrations-path=./migrations
+
+# SQL 
+CREATE EXTENSION pg_stat_statements; 
+
+
+```bash
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter"}' http://localhost:8080/value/
+```
+```bash
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_gauge","type":"gauge"}' http://localhost:8080/value/
+```
+
+```bash
+curl --header "Content-Type: application/json" --request POST --data '[{"id":"testGaugeMult","type":"gauge","value":465528.39165260154},{"id":"testGauge1Mult","type":"gauge","value":123.39165260154} ]' http://localhost:8080/updates/
+```
+
+
+
+
+linters
+https://golangci-lint.run/welcome/install/#binaries
+golangci-lint run -v
+
+staticcheck ./...
+

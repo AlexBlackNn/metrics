@@ -3,6 +3,7 @@ package v2
 import (
 	"context"
 	"fmt"
+	"github.com/AlexBlackNn/metrics/app/agent/hash"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -30,29 +31,31 @@ func New(
 	}
 }
 
-func (mhs *Sender) Send(ctx context.Context) {
+func (s *Sender) Send(ctx context.Context) {
 
-	log := mhs.log.With(
+	log := s.log.With(
 		slog.String("info", "SERVICE LAYER: metricsHttpService.Transmit"),
 	)
-	reportInterval := time.Duration(mhs.cfg.ReportInterval) * time.Second
-	rateLimiter := rate.NewLimiter(rate.Limit(mhs.cfg.AgentRateLimit), mhs.cfg.AgentBurstTokens)
+	reportInterval := time.Duration(s.cfg.ReportInterval) * time.Second
+	rateLimiter := rate.NewLimiter(rate.Limit(s.cfg.AgentRateLimit), s.cfg.AgentBurstTokens)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		default:
-			for _, savedMetric := range mhs.GetMetrics() {
+		case <-time.After(reportInterval):
+			for _, savedMetric := range s.GetMetrics() {
 				err := rateLimiter.Wait(ctx)
 				if err != nil {
 					log.Error(err.Error())
+					return
 				}
 				go func(savedMetric models.MetricInteraction) {
 					restyClient := resty.New()
 					restyClient.
-						SetRetryCount(mhs.cfg.AgentRetryCount).
-						SetRetryWaitTime(mhs.cfg.AgentRetryWaitTime).
-						SetRetryMaxWaitTime(mhs.cfg.AgentRetryMaxWaitTime)
+						SetRetryCount(s.cfg.AgentRetryCount).
+						SetRetryWaitTime(s.cfg.AgentRetryWaitTime).
+						SetRetryMaxWaitTime(s.cfg.AgentRetryMaxWaitTime)
 
 					var body string
 					if savedMetric.GetType() == configserver.MetricTypeCounter {
@@ -68,14 +71,21 @@ func (mhs *Sender) Send(ctx context.Context) {
 							savedMetric.GetValue(),
 						)
 					}
-					url := fmt.Sprintf("http://%s/update/", mhs.cfg.ServerAddr)
+
+					hashCalculator := hash.New(s.cfg)
+					hashResult := hashCalculator.MetricHash(body)
+
+					url := fmt.Sprintf("http://%s/update/", s.cfg.ServerAddr)
 					log.Info("sending data", "url", url)
+
 					resp, err := restyClient.R().
 						SetHeader("Content-Type", "application/json").
+						SetHeader("HashSHA256", hashResult).
 						SetBody(body).
 						Post(url)
 					if err != nil {
 						log.Error("error creating http request")
+						return
 					}
 					log.Info("http request finished successfully",
 						"url", url,
@@ -84,7 +94,6 @@ func (mhs *Sender) Send(ctx context.Context) {
 					)
 				}(savedMetric)
 			}
-			<-time.After(reportInterval)
 		}
 	}
 }
