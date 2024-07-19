@@ -32,6 +32,7 @@ func NewChiRouter(
 		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
 	))
 	router.Use(customMiddleware.Logger(log))
+	router.Use(customMiddleware.HashChecker(log, cfg))
 	router.Use(customMiddleware.GzipDecompressor(log))
 	router.Use(customMiddleware.GzipCompressor(log, gzip.BestCompression))
 
