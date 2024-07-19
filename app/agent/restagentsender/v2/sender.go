@@ -2,10 +2,8 @@ package v2
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
+	"github.com/AlexBlackNn/metrics/app/agent/hash"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -73,19 +71,16 @@ func (s *Sender) Send(ctx context.Context) {
 							savedMetric.GetValue(),
 						)
 					}
-					//calculate hash
-					hashCalculator := hmac.New(sha256.New, []byte(s.cfg.HashKey))
-					hashCalculator.Write([]byte(body))
-					metricHash := hashCalculator.Sum(nil)
-					dst := make([]byte, base64.StdEncoding.EncodedLen(len(metricHash)))
-					base64.StdEncoding.Encode(dst, metricHash)
+
+					hashCalculator := hash.New(s.cfg)
+					hashResult := hashCalculator.MetricHash(body)
 
 					url := fmt.Sprintf("http://%s/update/", s.cfg.ServerAddr)
 					log.Info("sending data", "url", url)
 
 					resp, err := restyClient.R().
 						SetHeader("Content-Type", "application/json").
-						SetHeader("HashSHA256", string(dst)).
+						SetHeader("HashSHA256", hashResult).
 						SetBody(body).
 						Post(url)
 					if err != nil {
