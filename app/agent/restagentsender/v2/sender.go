@@ -2,6 +2,9 @@ package v2
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
@@ -9,27 +12,23 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"github.com/go-resty/resty/v2"
 	"golang.org/x/time/rate"
-	"hash"
 	"log/slog"
 	"time"
 )
 
 type Sender struct {
-	log      *slog.Logger
-	cfg      *configagent.Config
-	hashCalc hash.Hash
+	log *slog.Logger
+	cfg *configagent.Config
 	*agentmetricsservice.MonitorService
 }
 
 func New(
 	log *slog.Logger,
 	cfg *configagent.Config,
-	hashCalc hash.Hash,
 ) *Sender {
 	return &Sender{
 		log,
 		cfg,
-		hashCalc,
 		agentmetricsservice.New(log, cfg),
 	}
 }
@@ -75,14 +74,18 @@ func (s *Sender) Send(ctx context.Context) {
 						)
 					}
 					//calculate hash
-					s.hashCalc.Write([]byte(body))
-					metricHash := s.hashCalc.Sum(nil)
+					hashCalculator := hmac.New(sha256.New, []byte(s.cfg.HashKey))
+					hashCalculator.Write([]byte(body))
+					metricHash := hashCalculator.Sum(nil)
+					dst := make([]byte, base64.StdEncoding.EncodedLen(len(metricHash)))
+					base64.StdEncoding.Encode(dst, metricHash)
 
 					url := fmt.Sprintf("http://%s/update/", s.cfg.ServerAddr)
 					log.Info("sending data", "url", url)
+
 					resp, err := restyClient.R().
 						SetHeader("Content-Type", "application/json").
-						SetHeader("HashSHA256", string(metricHash)).
+						SetHeader("HashSHA256", string(dst)).
 						SetBody(body).
 						Post(url)
 					if err != nil {
