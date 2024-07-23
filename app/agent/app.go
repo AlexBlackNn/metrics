@@ -9,6 +9,7 @@ import (
 
 type CollectSender interface {
 	Collect(ctx context.Context)
+	CollectAddition(ctx context.Context)
 	Send(ctx context.Context)
 }
 
