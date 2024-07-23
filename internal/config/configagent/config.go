@@ -25,7 +25,7 @@ type Config struct {
 	AgentRetryCount       int           `yaml:"agent_retry_count" env-default:"30" env:"AGENT_RETRY_COUNT" envDefault:"3"`
 	AgentRetryWaitTime    time.Duration `yaml:"agent_retry_wait_time" env-default:"30s" env:"AGENT_RETRY_WAIT_TIME" envDefault:"30s"`
 	AgentRetryMaxWaitTime time.Duration `yaml:"agent_retry_max_wait_time" env-default:"90s" env:"AGENT_RETRY_MAX_WAIT_TIME" envDefault:"90s"`
-	AgentRateLimit        int           `yaml:"agent_rate_limit" env-default:"100" env:"AGENT_RATE_LIMIT" envDefault:"100"`
+	AgentRateLimit        int           `yaml:"agent_rate_limit" env-default:"100" env:"RATE_LIMIT" envDefault:"100"`
 	AgentBurstTokens      int           `yaml:"agent_burst_tokens" env-default:"100" env:"AGENT_BURST_TOKENS" envDefault:"100"`
 	HashKey               string        `yaml:"hash_key" env:"KEY"`
 }
@@ -60,6 +60,7 @@ func New() (*Config, error) {
 	flag.IntVar(&cfg.ReportInterval, "r", 2, "metrics report interval")
 	flag.IntVar(&cfg.PollInterval, "p", 1, "metrics poll interval")
 	flag.IntVar(&cfg.AgentTimeout, "t", 1, "agent request timeout")
+	flag.IntVar(&cfg.AgentRateLimit, "l", 100, "agent rate limit")
 	flag.StringVar(&configPath, "c", "", "path to config file")
 	flag.Parse()
 
