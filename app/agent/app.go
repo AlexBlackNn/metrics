@@ -2,13 +2,14 @@ package agent
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/app/agent/restagentsender/v2"
+	restagentsender "github.com/AlexBlackNn/metrics/app/agent/restagentsender/v2"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"log/slog"
 )
 
 type CollectSender interface {
 	Collect(ctx context.Context)
+	CollectAddition(ctx context.Context)
 	Send(ctx context.Context)
 }
 
@@ -23,7 +24,7 @@ func NewAppMonitor(
 	cfg *configagent.Config,
 ) *AppMonitor {
 
-	metricsService := v2.New(
+	metricsService := restagentsender.New(
 		log,
 		cfg,
 	)

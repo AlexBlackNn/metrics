@@ -2,8 +2,10 @@ package memstorage
 
 import (
 	"context"
+	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/pkg/storage"
 	"log/slog"
 	"sync"
 	"time"
@@ -59,18 +61,26 @@ func (ms *MemStorage) saveMetricToDisk() {
 			err := ms.sm.saveMetrics()
 			if err != nil {
 				log.Error("failed save metrics", "err", err)
+			} else {
+				log.Debug("finish save metric to disk")
 			}
-			log.Debug("finish save metric to disk")
 		} else {
 			<-ms.saveChan
 			log.Debug("starts saving metric to disk")
 			err := ms.sm.saveMetrics()
 			if err != nil {
 				log.Error("failed save metrics", "err", err)
+			} else {
+				log.Debug("finish save metric to disk")
 			}
-			log.Debug("finish save metric to disk")
 		}
 	}
+}
+
+func (ms *MemStorage) HealthCheck(
+	ctx context.Context,
+) error {
+	return nil
 }
 
 // UpdateMetric updates metric value in mem storage.
@@ -78,41 +88,79 @@ func (ms *MemStorage) UpdateMetric(
 	ctx context.Context,
 	metric models.MetricGetter,
 ) error {
-	ms.mutex.Lock()
-	ms.db[metric.GetName()] = metric
-	ms.mutex.Unlock()
-	if ms.cfg.ServerStoreInterval == 0 {
-		ms.saveChan <- struct{}{}
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("aborting work: %v, because of %w", ctx.Err(), context.Cause(ctx))
+	default:
+		ms.mutex.Lock()
+		ms.db[metric.GetName()] = metric
+		ms.mutex.Unlock()
+		if ms.cfg.ServerStoreInterval == 0 {
+			ms.saveChan <- struct{}{}
+		}
+		return nil
 	}
-	return nil
 }
 
 // GetMetric gets metric value from mem storage.
 func (ms *MemStorage) GetMetric(
 	ctx context.Context,
-	name string,
+	metric models.MetricGetter,
 ) (models.MetricGetter, error) {
-	ms.mutex.RLock()
-	defer ms.mutex.RUnlock()
-	metric, ok := ms.db[name]
-	if !ok {
-		return &models.Metric[float64]{}, ErrMetricNotFound
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("aborting work: %v, because of %w", ctx.Err(), context.Cause(ctx))
+	default:
+		ms.mutex.RLock()
+		defer ms.mutex.RUnlock()
+		metric, ok := ms.db[metric.GetName()]
+		if !ok {
+			return nil, fmt.Errorf(
+				"DATA LAYER: storage.mem_storage.GetMetric: %w",
+				storage.ErrMetricNotFound,
+			)
+		}
+		return metric, nil
 	}
-	return metric, nil
+}
+
+func (ms *MemStorage) UpdateSeveralMetrics(
+	ctx context.Context,
+	metrics map[string]models.MetricGetter,
+) error {
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("aborting work: %v, because of %w", ctx.Err(), context.Cause(ctx))
+	default:
+		ms.mutex.RLock()
+		defer ms.mutex.RUnlock()
+		for _, oneMetric := range metrics {
+			ms.db[oneMetric.GetName()] = oneMetric
+		}
+		return nil
+	}
 }
 
 // GetAllMetrics gets metric value from mem storage.
 func (ms *MemStorage) GetAllMetrics(
 	ctx context.Context,
 ) ([]models.MetricGetter, error) {
-	var metrics []models.MetricGetter
-	if len(ms.db) == 0 {
-		return []models.MetricGetter{}, ErrMetricNotFound
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("aborting work: %v, because of %w", ctx.Err(), context.Cause(ctx))
+	default:
+		var metrics []models.MetricGetter
+		if len(ms.db) == 0 {
+			return []models.MetricGetter{}, fmt.Errorf(
+				"DATA LAYER: storage.mem_storage.GetAllMetrics: %w",
+				storage.ErrMetricNotFound,
+			)
+		}
+		ms.mutex.RLock()
+		defer ms.mutex.RUnlock()
+		for _, oneMetric := range ms.db {
+			metrics = append(metrics, oneMetric)
+		}
+		return metrics, nil
 	}
-	ms.mutex.RLock()
-	defer ms.mutex.RUnlock()
-	for _, oneMetric := range ms.db {
-		metrics = append(metrics, oneMetric)
-	}
-	return metrics, nil
 }
