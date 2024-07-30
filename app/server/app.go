@@ -14,6 +14,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 	"github.com/AlexBlackNn/metrics/pkg/storage/postgres"
+	"github.com/golang-migrate/migrate/v4"
 	"log/slog"
 	"net/http"
 	"time"
@@ -76,7 +77,12 @@ func New() (*App, error) {
 		log.Info("Starts to apply migrations")
 		err = migrator.ApplyMigration(cfg)
 		if err != nil {
-			log.Error("Failed to apply migration", "err", err.Error())
+			if err != migrate.ErrNoChange {
+				log.Error("Failed to apply migration", "err", err.Error())
+				return nil, err
+			}
+			log.Info("No migration to apply")
+			return NewAppInitStorage(postgresStorage, postgresStorage, cfg, log)
 		}
 		log.Info("Finish to apply migrations")
 		return NewAppInitStorage(postgresStorage, postgresStorage, cfg, log)

@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE SCHEMA IF NOT EXISTS app;
 
 
@@ -73,5 +75,7 @@ CREATE INDEX IF NOT EXISTS gauge_name_2_quarter_idx ON app.gauge_y2024_2_quarter
 CREATE INDEX IF NOT EXISTS gauge_name_3_quarter_idx ON app.gauge_y2024_3_quarter (name);
 CREATE INDEX IF NOT EXISTS gauge_name_4_quarter_idx ON app.gauge_y2024_4_quarter (name);
 
-INSERT INTO app.types(name) VALUES ('gauge');
-INSERT INTO app.types(name) VALUES ('counter');
+INSERT INTO app.types(name) VALUES ('gauge') ON CONFLICT DO NOTHING;
+INSERT INTO app.types(name) VALUES ('counter') ON CONFLICT DO NOTHING;
+
+COMMIT;
