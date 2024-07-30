@@ -107,6 +107,7 @@ func (ms *MonitorService) CollectAddition(ctx context.Context) {
 			utilCPU, err := ms.calculateUtilization()
 			if err != nil {
 				log.Error(err.Error())
+				continue
 			}
 			ms.Metrics["CPUutilization1"] = &models.Metric[float64]{Type: configagent.MetricTypeGauge, Value: utilCPU, Name: "CPUutilization1"}
 			ms.Metrics["TotalMemory"] = &models.Metric[uint64]{Type: configagent.MetricTypeGauge, Value: virtMem.Total, Name: "TotalMemory"}

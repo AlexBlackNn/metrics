@@ -68,7 +68,6 @@ func (s *PostStorage) UpdateSeveralMetrics(
 	ctx context.Context,
 	metrics map[string]models.MetricGetter,
 ) error {
-
 	tx, err := s.db.Begin()
 	if err != nil {
 		return fmt.Errorf(
@@ -77,7 +76,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		)
 	}
 	defer func(tx *sql.Tx) {
-		err = errors.Join(err, tx.Rollback())
+		tx.Rollback()
 	}(tx)
 
 	sqlTmpStms := make(map[string]string)
@@ -87,8 +86,6 @@ func (s *PostStorage) UpdateSeveralMetrics(
 	// This prepared statements seem to be unnecessary, because Exec creates Prepare statement under the hood.
 	preparedStmt := make(map[string]*sql.Stmt)
 	for name, onesqlTmpStms := range sqlTmpStms {
-		// The statements prepared for a transaction by calling the transaction's Tx.Prepare or Tx.Stmt methods
-		//are closed by the call to Tx.Commit or Tx.Rollback. https://pkg.go.dev/database/sql#Tx
 		stmt, err := tx.PrepareContext(ctx, onesqlTmpStms)
 		if err != nil {
 			return fmt.Errorf(
