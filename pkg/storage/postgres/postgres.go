@@ -95,6 +95,15 @@ func (s *PostStorage) UpdateSeveralMetrics(
 		}
 		preparedStmt[name] = stmt
 	}
+	// The statements prepared for a transaction by calling the transaction's Tx.Prepare or Tx.Stmt methods
+	//are closed by the call to Tx.Commit or Tx.Rollback. https://pkg.go.dev/database/sql#Tx
+	// BUT it must be proved in pgx docs or code
+	//TODO: prove or refute
+	defer func() {
+		for _, onesqlTmpStms := range preparedStmt {
+			onesqlTmpStms.Close()
+		}
+	}()
 
 	for _, oneMetric := range metrics {
 		_, err = preparedStmt[oneMetric.GetType()].ExecContext(
