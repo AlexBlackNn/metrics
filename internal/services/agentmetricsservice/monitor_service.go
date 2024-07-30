@@ -86,8 +86,6 @@ func (ms *MonitorService) Collect(ctx context.Context) {
 
 // CollectAddition Collect starts collecting gopsutil metrics.
 func (ms *MonitorService) CollectAddition(ctx context.Context) {
-	ms.mutex.Lock()
-	defer ms.mutex.Unlock()
 	log := ms.log.With(
 		slog.String("info", "SERVICE LAYER: agentmetricservice.Start"),
 	)
@@ -103,6 +101,7 @@ func (ms *MonitorService) CollectAddition(ctx context.Context) {
 			log.Info("stop signal received")
 			return
 		case <-time.After(time.Duration(ms.cfg.PollInterval) * time.Second):
+			ms.mutex.Lock()
 			log.Info("starts CollectAddingMetrics metrics pooling")
 
 			utilCPU, err := ms.calculateUtilization()
@@ -113,6 +112,7 @@ func (ms *MonitorService) CollectAddition(ctx context.Context) {
 			ms.Metrics["TotalMemory"] = &models.Metric[uint64]{Type: configagent.MetricTypeGauge, Value: virtMem.Total, Name: "TotalMemory"}
 			ms.Metrics["FreeMemory"] = &models.Metric[uint64]{Type: configagent.MetricTypeGauge, Value: virtMem.Available, Name: "FreeMemory"}
 			log.Info("metric pooling finished")
+			ms.mutex.Unlock()
 		}
 	}
 }
