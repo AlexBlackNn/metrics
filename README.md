@@ -143,3 +143,43 @@ golangci-lint run -v
 
 staticcheck ./...
 
+
+```bash
+cd /home/alex/Dev/GolandYandex/metrics/app/agent/hash
+go test -bench .
+go test -bench . -benchmem 
+```
+
+```bash
+goos: linux
+goarch: amd64
+pkg: github.com/AlexBlackNn/metrics/app/agent/hash
+cpu: AMD Ryzen 5 5500U with Radeon Graphics         
+BenchmarkMetricHash-12           2930110               401.1 ns/op           176 B/op          4 allocs/op
+PASS
+ok      github.com/AlexBlackNn/metrics/app/agent/hash   1.595s
+```
+
+
+## Подключение профилировщика к сервису
+
+1. подключили профилировщик в routers через middleware
+2. запускаем сервис 
+3.  go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/profile 
+
+4. Делаем запросы 
+```bash
+curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter","delta":10}' http://localhost:8080/update/
+```
+```bash
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter"}' http://localhost:8080/value/
+```
+
+5. Переходим по ссылке http://localhost:9090 и видим
+   
+       5.1 в меньшем масштабе
+       ![Screenshot from 2024-09-17 21-16-30.png](cmd%2Fdocs%2FScreenshot%20from%202024-09-17%2021-16-30.png
+        
+        5.2 в большем масштабе
+        ![Screenshot from 2024-09-17 21-16-49.png](cmd%2Fdocs%2FScreenshot%20from%202024-09-17%2021-16-49.png)
+   

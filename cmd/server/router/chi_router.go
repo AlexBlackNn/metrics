@@ -35,7 +35,6 @@ func NewChiRouter(
 	router.Use(customMiddleware.HashChecker(log, cfg))
 	router.Use(customMiddleware.GzipDecompressor(log))
 	router.Use(customMiddleware.GzipCompressor(log, gzip.BestCompression))
-
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {
@@ -47,5 +46,6 @@ func NewChiRouter(
 		r.Post("/updates/", metricHandlerV3.UpdateSeveralMetrics)
 		r.Post("/value/", metricHandlerV2.GetOneMetric)
 	})
+	router.Mount("/debug/", middleware.Profiler())
 	return router
 }

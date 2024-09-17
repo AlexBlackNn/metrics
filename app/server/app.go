@@ -17,6 +17,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"log/slog"
 	"net/http"
+	_ "net/http/pprof"
 	"time"
 )
 
