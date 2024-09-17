@@ -28,3 +28,4 @@ vendor/
 .idea
 .vscode
 /test_log_file.txt
+/infra/.env

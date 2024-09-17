@@ -31,7 +31,7 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
-	wg.Add(3)
+	wg.Add(4)
 	go func() {
 		defer wg.Done()
 		<-stop
@@ -45,7 +45,13 @@ func main() {
 
 	go func() {
 		defer wg.Done()
+		appMonitor.MetricsService.CollectAddition(ctx)
+	}()
+
+	go func() {
+		defer wg.Done()
 		appMonitor.MetricsService.Send(ctx)
 	}()
+
 	wg.Wait()
 }

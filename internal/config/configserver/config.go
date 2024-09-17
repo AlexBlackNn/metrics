@@ -21,10 +21,14 @@ type Config struct {
 	ServerReadTimeout     int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerWriteTimeout    int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
 	ServerIdleTimeout     int    `yaml:"server_idle_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	ServerRequestTimeout  int    `yaml:"server_request_timeout" env-default:"300" env:"SEVER_REQUEST_TIMEOUT" envDefault:"300"`
 	ServerStoreInterval   int    `yaml:"server_store_interval" env:"STORE_INTERVAL"`
 	ServerFileStoragePath string `yaml:"server_file_storage_path" env-default:"/tmp/metrics-db.json" env:"FILE_STORAGE_PATH" envDefault:"/tmp/metrics-db.json"`
 	ServerRestore         bool   `yaml:"server_restore" env-default:"true" env:"RESTORE" envDefault:"true"`
 	ServerRateLimit       int    `yaml:"server_rate_limit" env-default:"10000" env:"SERVER_RATE_LIMIT" envDefault:"10000"`
+	ServerDataBaseDSN     string `yaml:"server_data_base_dsn" env:"DATABASE_DSN"`
+	ServerMigrationTable  string `yaml:"server_migration_table_name" env-default:"migrations" env:"SERVER_MIGRATION_TABLE_NAME" envDefault:"migrations"`
+	HashKey               string `yaml:"hash_key" env:"KEY"`
 }
 
 func (c *Config) String() string {
@@ -55,9 +59,11 @@ func New() (*Config, error) {
 
 	flag.StringVar(&cfg.Env, "e", "local", "project environment")
 	flag.StringVar(&cfg.ServerAddr, "a", ":8080", "host address")
+	flag.StringVar(&cfg.HashKey, "k", "", "hash key")
 	flag.IntVar(&cfg.ServerStoreInterval, "i", 1, "metrics store interval")
 	flag.StringVar(&cfg.ServerFileStoragePath, "f", "/tmp/metrics-db.json", "metrics store path")
 	flag.BoolVar(&cfg.ServerRestore, "r", true, "restore saved metrics")
+	flag.StringVar(&cfg.ServerDataBaseDSN, "d", "", "database dsn")
 
 	flag.StringVar(&configPath, "c", "", "path to config file")
 	flag.Parse()

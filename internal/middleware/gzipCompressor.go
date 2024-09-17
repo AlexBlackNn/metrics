@@ -62,7 +62,12 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 
 			gzipWr, err := gzip.NewWriterLevel(w, compressorLevel)
 			if err != nil {
-				io.WriteString(w, err.Error())
+				log.Error("failed to compress gzip")
+				_, err := io.WriteString(w, err.Error())
+				if err != nil {
+					log.Error("failed to inform user")
+					return
+				}
 				return
 			}
 
@@ -71,7 +76,13 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 			if gz.GzipFlag {
 				err := gzipWr.Close()
 				if err != nil {
-					io.WriteString(w, err.Error())
+					log.Error("failed to close gzip")
+					_, err := io.WriteString(w, err.Error())
+					if err != nil {
+						log.Error("failed to inform user")
+						return
+					}
+					return
 				}
 			}
 		}

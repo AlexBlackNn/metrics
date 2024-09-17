@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
@@ -11,7 +12,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strings"
+	"time"
 )
 
 type MetricHandlers struct {
@@ -40,16 +41,25 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		responseError(w, r, http.StatusBadRequest, "failed to decode request")
 		return
 	}
-	if err := validator.New().Struct(reqMetrics); err != nil {
-		validateErr := err.(validator.ValidationErrors)
-		errorText := ValidationError(validateErr)
-		responseError(w, r, http.StatusBadRequest, errorText)
+	if err = validator.New().Struct(reqMetrics); err != nil {
+		var validateErr validator.ValidationErrors
+		if errors.As(err, &validateErr) {
+			errorText := ValidationError(validateErr)
+			responseError(w, r, http.StatusBadRequest, errorText)
+			return
+		}
+		responseError(w, r, http.StatusUnprocessableEntity, "failed to validate request")
 		return
 	}
-	ctx := r.Context()
-	metric, err := m.metricsService.GetOneMetricValue(
-		ctx, strings.ToLower(reqMetrics.ID),
-	)
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("getOneMetric timeout"))
+	defer cancel()
+
+	metric, err := models.New(reqMetrics.MType, reqMetrics.ID, "0")
+	if err != nil {
+		responseError(w, r, http.StatusInternalServerError, err.Error())
+		return
+	}
+	metricReturned, err := m.metricsService.GetOneMetricValue(ctx, metric)
 
 	if err != nil {
 		if errors.Is(err, metricsservice.ErrMetricNotFound) {
@@ -59,7 +69,7 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 		responseError(w, r, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	responseOK(w, r, metric)
+	responseOK(w, r, metricReturned)
 }
 
 func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
@@ -79,10 +89,14 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		responseError(w, r, http.StatusBadRequest, "failed to decode request")
 		return
 	}
-	if err := validator.New().Struct(reqMetrics); err != nil {
-		validateErr := err.(validator.ValidationErrors)
-		errorText := ValidationError(validateErr)
-		responseError(w, r, http.StatusBadRequest, errorText)
+	if err = validator.New().Struct(reqMetrics); err != nil {
+		var validateErr validator.ValidationErrors
+		if errors.As(err, &validateErr) {
+			errorText := ValidationError(validateErr)
+			responseError(w, r, http.StatusBadRequest, errorText)
+			return
+		}
+		responseError(w, r, http.StatusUnprocessableEntity, "failed to validate request")
 		return
 	}
 
@@ -107,7 +121,9 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
+	ctx, cancel := context.WithTimeoutCause(r.Context(), 300*time.Millisecond, errors.New("updateMetric timeout"))
+	defer cancel()
+
 	err = m.metricsService.UpdateMetricValue(ctx, metric)
 	if err != nil {
 		if errors.Is(err, metricsservice.ErrNotValidURL) {

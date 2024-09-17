@@ -59,7 +59,7 @@ func (gm *dataBaseGOBStateManager) saveMetrics() error {
 	log := gm.log.With(
 		slog.String("info", "STORAGE LAYER: gob_state_manager.saveMetrics"),
 	)
-	log.Info("starts saving metric")
+	log.Debug("starts saving metric")
 
 	gm.mutex.RLock()
 	defer gm.mutex.RUnlock()
