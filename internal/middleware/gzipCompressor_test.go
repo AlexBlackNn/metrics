@@ -3,7 +3,6 @@ package middleware
 import (
 	"compress/gzip"
 	"io"
-	"log/slog"
 	"net/http"
 	"testing"
 )
@@ -46,16 +45,6 @@ func BenchmarkGzipCompressor(b *testing.B) {
 		}
 	})
 
-	// Create a logger for the benchmark
-	logger := slog.New(
-		slog.NewTextHandler(
-			io.Discard, &slog.HandlerOptions{
-				Level:     slog.LevelInfo,
-				AddSource: true,
-			},
-		),
-	)
-
 	// Create a request for the benchmark
 	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	if err != nil {
@@ -64,7 +53,7 @@ func BenchmarkGzipCompressor(b *testing.B) {
 	req.Header.Set("Accept-Encoding", "gzip")
 
 	// Run the benchmark
-	gzipCompressor := GzipCompressor(logger, gzip.DefaultCompression)
+	gzipCompressor := GzipCompressor(nil, gzip.DefaultCompression)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Create a DummyResponseWriter to discard output

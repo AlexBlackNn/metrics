@@ -72,8 +72,8 @@ func (w *GzipWriter) WriteHeader(statusCode int) {
 }
 
 func (w *GzipWriter) Write(b []byte) (int, error) {
-	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") &&
-		!strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
+	contentType := w.ResWriter.Header().Get("Content-Type")
+	if !strings.Contains(contentType, "application/json") && !strings.Contains(contentType, "text/html") {
 		return w.ResWriter.Write(b)
 	}
 	return w.Writer.Write(b)
@@ -85,10 +85,6 @@ func (w *GzipWriter) Close() error {
 
 func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		log := log.With(
-			slog.String("component", "middleware/gzip"),
-		)
-		log.Info("gzip compressor enabled")
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
 			if !strings.Contains(strings.Join(r.Header.Values("Accept-Encoding"), " "), "gzip") {
@@ -96,8 +92,6 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 				next.ServeHTTP(w, r)
 				return
 			}
-
-			log.Info("gzip is supported")
 
 			gz, err := gzipWrPool.Get(w, compressorLevel)
 			if err != nil {
@@ -107,10 +101,8 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 			if gz.GzipFlag {
 				err = gzipWrPool.Put(gz)
 				if err != nil {
-					log.Error("failed to close gzip")
 					_, err = io.WriteString(w, err.Error())
 					if err != nil {
-						log.Error("failed to inform user")
 						return
 					}
 					return
