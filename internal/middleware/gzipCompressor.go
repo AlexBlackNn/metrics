@@ -2,12 +2,50 @@ package middleware
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"strings"
 	"sync"
 )
+
+type gzipWriterPool struct {
+	p sync.Pool
+}
+
+var gzipWrPool *gzipWriterPool
+
+func init() {
+	gzipWrPool = &gzipWriterPool{}
+}
+
+func (gp *gzipWriterPool) Get(w http.ResponseWriter, compressorLevel int) (*GzipWriter, error) {
+
+	gzipWriter := gp.p.Get()
+	if gzipWriter == nil {
+		gzipWr, err := gzip.NewWriterLevel(w, compressorLevel)
+		if err != nil {
+			return nil, err
+		}
+		return &GzipWriter{ResWriter: w, Writer: gzipWr}, nil
+	}
+	return gzipWriter.(*GzipWriter), nil
+}
+
+func (gp *gzipWriterPool) Put(gzipWriter *GzipWriter) error {
+	// Reset the writer to its initial state
+	err := gzipWriter.Writer.Flush()
+	if err != nil {
+		return err
+	}
+
+	gzipWriter.Writer.Reset(io.Discard)
+
+	// Put the writer back into the pool
+	gp.p.Put(gzipWriter)
+	return nil
+}
 
 type GzipWriter struct {
 	ResWriter       http.ResponseWriter
@@ -60,21 +98,14 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 
 			log.Info("gzip is supported")
 
-			gzipWr, err := gzip.NewWriterLevel(w, compressorLevel)
+			gz, err := gzipWrPool.Get(w, compressorLevel)
 			if err != nil {
-				log.Error("failed to compress gzip")
-				_, err := io.WriteString(w, err.Error())
-				if err != nil {
-					log.Error("failed to inform user")
-					return
-				}
+				fmt.Println("1111111111111111111")
 				return
 			}
-
-			gz := &GzipWriter{ResWriter: w, Writer: gzipWr}
 			next.ServeHTTP(gz, r)
 			if gz.GzipFlag {
-				err := gzipWr.Close()
+				err := gzipWrPool.Put(gz)
 				if err != nil {
 					log.Error("failed to close gzip")
 					_, err := io.WriteString(w, err.Error())

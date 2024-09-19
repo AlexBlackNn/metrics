@@ -1,5 +1,23 @@
 ### Сервис сбора метрик
 
+1. Профайл полученный с помощью  
+
+```
+go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/heap
+``` 
+
+[profile_handlers.pb.gz](profiles%2Fprofile_handlers.pb.gz)
+
+
+
+![Screenshot from 2024-09-19 16-47-26.png](..%2F..%2FPictures%2FScreenshots%2FScreenshot%20from%202024-09-19%2016-47-26.png)
+
+Cогласно, отчету, наибольшее потребление памяти приходится на GzipCompressor и GzipDecompressor
+
+
+
+
+
 ** Literature **
 RESTY USEFUL
 https://www.alldevstack.com/ru/go-resty-tutorial/go-resty-quickstart.html
@@ -182,4 +200,9 @@ curl -v --header "Content-Type: application/json" --request POST --data '{"id":"
         
         5.2 в большем масштабе
         ![Screenshot from 2024-09-17 21-16-49.png](cmd%2Fdocs%2FScreenshot%20from%202024-09-17%2021-16-49.png)
-   
+
+6. 
+```bash
+cd /home/alex/GolandProjects/metrics/app/agent/hash && \
+go test -bench . -benchmem 
+```

@@ -2,9 +2,10 @@ package tests
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"io"
 	"net/http"
+
+	"github.com/AlexBlackNn/metrics/internal/domain/models"
 )
 
 func (ms *MetricsSuite) TestServerHappyPathV1() {
