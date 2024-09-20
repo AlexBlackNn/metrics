@@ -23,7 +23,9 @@ func (gp *gzipWriterPool) Get(w http.ResponseWriter, compressorLevel int) (*Gzip
 		}
 		return &GzipWriter{ResWriter: w, Writer: gzipWr}, nil
 	}
-	return &GzipWriter{ResWriter: w, Writer: gzipWriter.(*gzip.Writer)}, nil
+	gzipWr := gzipWriter.(*gzip.Writer)
+	gzipWr.Reset(w)
+	return &GzipWriter{ResWriter: w, Writer: gzipWr}, nil
 }
 
 func (gp *gzipWriterPool) Put(gzipWriter *GzipWriter) error {
@@ -32,7 +34,6 @@ func (gp *gzipWriterPool) Put(gzipWriter *GzipWriter) error {
 	if err != nil {
 		return err
 	}
-	gzipWriter.Writer.Reset(io.Discard)
 	// Put the writer back into the pool
 	gp.p.Put(gzipWriter.Writer)
 	return nil
@@ -72,8 +73,8 @@ func (w *GzipWriter) WriteHeader(statusCode int) {
 }
 
 func (w *GzipWriter) Write(b []byte) (int, error) {
-	contentType := w.ResWriter.Header().Get("Content-Type")
-	if !strings.Contains(contentType, "application/json") && !strings.Contains(contentType, "text/html") {
+	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") &&
+		!strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
 		return w.ResWriter.Write(b)
 	}
 	return w.Writer.Write(b)
@@ -85,6 +86,10 @@ func (w *GzipWriter) Close() error {
 
 func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
+		log := log.With(
+			slog.String("component", "middleware/gzip"),
+		)
+		log.Info("gzip compressor enabled")
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
 			if !strings.Contains(strings.Join(r.Header.Values("Accept-Encoding"), " "), "gzip") {
@@ -93,22 +98,31 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 				return
 			}
 
-			gz, err := gzipWrPool.Get(w, compressorLevel)
+			log.Info("gzip is supported")
+
+			gzipWr, err := gzipWrPool.Get(w, compressorLevel)
 			if err != nil {
+				log.Error("failed to compress gzip")
+				_, err := io.WriteString(w, err.Error())
+				if err != nil {
+					log.Error("failed to inform user")
+					return
+				}
 				return
 			}
-			next.ServeHTTP(gz, r)
-			if gz.GzipFlag {
-				err = gzipWrPool.Put(gz)
+
+			next.ServeHTTP(gzipWr, r)
+			if gzipWr.GzipFlag {
+				err := gzipWr.Close()
 				if err != nil {
-					_, err = io.WriteString(w, err.Error())
+					log.Error("failed to close gzip")
+					_, err := io.WriteString(w, err.Error())
 					if err != nil {
+						log.Error("failed to inform user")
 						return
 					}
 					return
 				}
-			} else {
-				gzipWrPool.PutNoFlush(gz)
 			}
 		}
 		return http.HandlerFunc(fn)
