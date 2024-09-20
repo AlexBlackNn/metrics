@@ -29,12 +29,8 @@ func (gp *gzipWriterPool) Get(w http.ResponseWriter, compressorLevel int) (*Gzip
 }
 
 func (gp *gzipWriterPool) Put(gzipWriter *GzipWriter) error {
-	// Reset the writer to its initial state
-	err := gzipWriter.Writer.Flush()
-	if err != nil {
-		return err
-	}
-	// Put the writer back into the pool
+	gzipWriter.Flush()
+	gzipWriter.Close()
 	gp.p.Put(gzipWriter.Writer)
 	return nil
 }
@@ -84,6 +80,14 @@ func (w *GzipWriter) Close() error {
 	return w.Writer.Close()
 }
 
+func (w *GzipWriter) Flush() error {
+	return w.Writer.Flush()
+}
+
+func (w *GzipWriter) Reset() {
+	w.Writer.Reset(io.Discard)
+}
+
 func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		log := log.With(
@@ -113,7 +117,7 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 
 			next.ServeHTTP(gzipWr, r)
 			if gzipWr.GzipFlag {
-				err := gzipWr.Close()
+				err := gzipWrPool.Put(gzipWr)
 				if err != nil {
 					log.Error("failed to close gzip")
 					_, err := io.WriteString(w, err.Error())
