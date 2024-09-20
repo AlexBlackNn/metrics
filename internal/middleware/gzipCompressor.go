@@ -90,10 +90,6 @@ func (w *GzipWriter) Reset() {
 
 func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		log := log.With(
-			slog.String("component", "middleware/gzip"),
-		)
-		log.Info("gzip compressor enabled")
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
 			if !strings.Contains(strings.Join(r.Header.Values("Accept-Encoding"), " "), "gzip") {
@@ -102,14 +98,11 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 				return
 			}
 
-			log.Info("gzip is supported")
-
 			gzipWr, err := gzipWrPool.Get(w, compressorLevel)
 			if err != nil {
-				log.Error("failed to compress gzip")
+
 				_, err := io.WriteString(w, err.Error())
 				if err != nil {
-					log.Error("failed to inform user")
 					return
 				}
 				return
@@ -119,14 +112,14 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 			if gzipWr.GzipFlag {
 				err := gzipWrPool.Put(gzipWr)
 				if err != nil {
-					log.Error("failed to close gzip")
 					_, err := io.WriteString(w, err.Error())
 					if err != nil {
-						log.Error("failed to inform user")
 						return
 					}
 					return
 				}
+			} else {
+				gzipWrPool.PutNoFlush(gzipWr)
 			}
 		}
 		return http.HandlerFunc(fn)
