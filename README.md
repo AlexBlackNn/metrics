@@ -142,17 +142,19 @@ CREATE EXTENSION pg_stat_statements;
 
 
 ```bash
-curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter"}' http://localhost:8080/value/
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"testGaugeMult","type":"counter"}' http://localhost:8080/value/
 ```
 ```bash
-curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_gauge","type":"gauge"}' http://localhost:8080/value/
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"testGaugeMult","type":"gauge"}' http://localhost:8080/value/
 ```
 
 ```bash
 curl --header "Content-Type: application/json" --request POST --data '[{"id":"testGaugeMult","type":"gauge","value":465528.39165260154},{"id":"testGauge1Mult","type":"gauge","value":123.39165260154} ]' http://localhost:8080/updates/
 ```
 
-
+```bash
+curl -v --header "Accept-Encoding: gzip" --request GET  http://localhost:8080/ --compressed
+```
 
 
 linters
@@ -187,128 +189,18 @@ ok      github.com/AlexBlackNn/metrics/app/agent/hash   1.595s
 
 4. Делаем запросы 
 ```bash
-curl --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter","delta":10}' http://localhost:8080/update/
+curl --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter","delta":10}' http://localhost:8080/update/
 ```
 ```bash
-curl -v --header "Content-Type: application/json" --request POST --data '{"id":"testCounter14","type":"counter"}' http://localhost:8080/value/
-```
-
-5. Переходим по ссылке http://localhost:9090 и видим
-   
-       5.1 в меньшем масштабе
-       ![Screenshot from 2024-09-17 21-16-30.png](cmd%2Fdocs%2FScreenshot%20from%202024-09-17%2021-16-30.png
-        
-        5.2 в большем масштабе
-        ![Screenshot from 2024-09-17 21-16-49.png](cmd%2Fdocs%2FScreenshot%20from%202024-09-17%2021-16-49.png)
-
-6. 
-```bash
-cd /home/alex/GolandProjects/metrics/app/agent/hash && \
-go test -bench . -benchmem 
+curl -v --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter"}' http://localhost:8080/value/
 ```
 
 ```bash
-go test -bench . -benchmem -benchtime=1s -memprofile mem.out
-```
-```bash
-go tool pprof mem.out
-```
-
-На базе Sync Pool
-
-```bash
-
-type gzipWriterPool struct {
-	p sync.Pool
-}
-
-func (gp *gzipWriterPool) Get(w http.ResponseWriter, compressorLevel int) (*GzipWriter, error) {
-
-	gzipWriter := gp.p.Get()
-	if gzipWriter == nil {
-		gzipWr, err := gzip.NewWriterLevel(w, compressorLevel)
-		if err != nil {
-			return nil, err
-		}
-		return &GzipWriter{ResWriter: w, Writer: gzipWr}, nil
-	}
-	return &GzipWriter{ResWriter: w, Writer: gzipWriter.(*gzip.Writer)}, nil
-}
-
-func (gp *gzipWriterPool) Put(gzipWriter *GzipWriter) error {
-	// Reset the writer to its initial state
-	err := gzipWriter.Writer.Flush()
-	if err != nil {
-		return err
-	}
-	gzipWriter.Writer.Reset(io.Discard)
-	// Put the writer back into the pool
-	gp.p.Put(gzipWriter.Writer)
-	return nil
-}
-
-func (gp *gzipWriterPool) PutNoFlush(gzipWriter *GzipWriter) error {
-	// Reset the writer to its initial state
-	gzipWriter.Writer.Reset(io.Discard)
-	// Put the writer back into the pool
-	gp.p.Put(gzipWriter.Writer)
-	return nil
-}
-
-var gzipWrPool = &gzipWriterPool{}
-
+curl --header "Content-Type: application/json" --request POST --data '[{"id":"testGa2ugeMult","type":"gauge","value":1.39165260154},{"id":"testGauge1Mult","type":"gauge","value":123.39165260154} ]' http://localhost:8080/updates/
 ```
 
 ```bash
- go tool pprof mem.out
-File: middleware.test
-Type: alloc_space
-Time: Sep 19, 2024 at 10:53pm (MSK)
-Entering interactive mode (type "help" for commands, "o" for options)
-(pprof) top
-Showing nodes accounting for 471.11MB, 99.89% of 471.61MB total
-Dropped 16 nodes (cum <= 2.36MB)
-Showing top 10 nodes out of 11
-      flat  flat%   sum%        cum   cum%
-  317.60MB 67.34% 67.34%   317.60MB 67.34%  net/textproto.MIMEHeader.Set (inline)
-      47MB  9.97% 77.31%       47MB  9.97%  github.com/AlexBlackNn/metrics/internal/middleware.(*DummyResponseWriter).Header (inline)
-   46.50MB  9.86% 87.17%    46.50MB  9.86%  github.com/AlexBlackNn/metrics/internal/middleware.(*gzipWriterPool).Get
-   35.50MB  7.53% 94.70%    35.50MB  7.53%  io.WriteString
-   24.50MB  5.20% 99.89%   471.11MB 99.89%  github.com/AlexBlackNn/metrics/internal/middleware.BenchmarkGzipCompressor
-         0     0% 99.89%       82MB 17.39%  github.com/AlexBlackNn/metrics/internal/middleware.BenchmarkGzipCompressor.BenchmarkGzipCompressor.GzipCompressor.func2.func3
-         0     0% 99.89%    35.50MB  7.53%  github.com/AlexBlackNn/metrics/internal/middleware.BenchmarkGzipCompressor.func1
-         0     0% 99.89%       82MB 17.39%  net/http.HandlerFunc.ServeHTTP (partial-inline)
-         0     0% 99.89%   317.60MB 67.34%  net/http.Header.Set (inline)
-         0     0% 99.89%   471.11MB 99.89%  testing.(*B).launch
-(pprof)    
-
+curl -v --header "Accept-Encoding: gzip" --header "Content-Type: application/json" --request POST --data '{"id":"test_counter","type":"counter"}' http://localhost:8080/value/ 
 ```
 
-До оптимизации 
-
-```bash
-go tool pprof mem.out
-File: old_gzip.test
-Type: alloc_space
-Time: Sep 19, 2024 at 10:54pm (MSK)
-Entering interactive mode (type "help" for commands, "o" for options)
-(pprof) top
-Showing nodes accounting for 661.64MB, 99.92% of 662.14MB total
-Dropped 4 nodes (cum <= 3.31MB)
-Showing top 10 nodes out of 11
-      flat  flat%   sum%        cum   cum%
-  336.11MB 50.76% 50.76%   336.11MB 50.76%  net/textproto.MIMEHeader.Set (inline)
-  163.53MB 24.70% 75.46%   163.53MB 24.70%  compress/gzip.NewWriterLevel
-   53.50MB  8.08% 83.54%   254.03MB 38.37%  github.com/AlexBlackNn/metrics/internal/middleware/old_gzip.BenchmarkGzipCompressor.BenchmarkGzipCompressor.GzipCompressor.func2.func3
-      50MB  7.55% 91.09%       50MB  7.55%  github.com/AlexBlackNn/metrics/internal/middleware/old_gzip.(*DummyResponseWriter).Header (inline)
-      37MB  5.59% 96.68%       37MB  5.59%  io.WriteString
-   21.50MB  3.25% 99.92%   661.64MB 99.92%  github.com/AlexBlackNn/metrics/internal/middleware/old_gzip.BenchmarkGzipCompressor
-         0     0% 99.92%       37MB  5.59%  github.com/AlexBlackNn/metrics/internal/middleware/old_gzip.BenchmarkGzipCompressor.func1
-         0     0% 99.92%   254.03MB 38.37%  net/http.HandlerFunc.ServeHTTP (partial-inline)
-         0     0% 99.92%   336.11MB 50.76%  net/http.Header.Set (inline)
-         0     0% 99.92%   661.64MB 99.92%  testing.(*B).launch
-(pprof) 
-
-```
-
-Оптимизировано:   163.53MB 24.70% 75.46%   163.53MB 24.70%  compress/gzip.NewWriterLevel за счет использования sync.Pool
+за счет использования sync.Pool
