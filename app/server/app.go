@@ -3,6 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"net/http"
+	_ "net/http/pprof"
+	"time"
+
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -15,10 +20,6 @@ import (
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 	"github.com/AlexBlackNn/metrics/pkg/storage/postgres"
 	"github.com/golang-migrate/migrate/v4"
-	"log/slog"
-	"net/http"
-	_ "net/http/pprof"
-	"time"
 )
 
 type MetricsStorage interface {

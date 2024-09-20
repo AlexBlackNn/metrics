@@ -3,12 +3,13 @@ package v1
 import (
 	"context"
 	"fmt"
-	"github.com/AlexBlackNn/metrics/internal/config/configagent"
-	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
+	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 )
 
 type Sender struct {

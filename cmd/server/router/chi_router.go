@@ -2,6 +2,9 @@ package router
 
 import (
 	"compress/gzip"
+	"log/slog"
+	"time"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v2"
@@ -10,8 +13,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
-	"log/slog"
-	"time"
 )
 
 func NewChiRouter(

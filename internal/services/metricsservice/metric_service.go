@@ -3,10 +3,11 @@ package metricsservice
 import (
 	"context"
 	"errors"
+	"log/slog"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/pkg/storage"
-	"log/slog"
 )
 
 type MetricsStorage interface {

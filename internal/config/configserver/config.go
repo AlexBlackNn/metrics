@@ -3,10 +3,11 @@ package configserver
 import (
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/caarlos0/env/v6"
 	"github.com/ilyakaznacheev/cleanenv"
-	"os"
 )
 
 const (

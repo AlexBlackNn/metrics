@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 )
 

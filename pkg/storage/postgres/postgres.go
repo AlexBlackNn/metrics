@@ -6,11 +6,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/pkg/storage"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"log/slog"
 )
 
 type PostStorage struct {

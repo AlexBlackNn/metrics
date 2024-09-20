@@ -2,15 +2,16 @@ package agentmetricsservice
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/internal/config/configagent"
-	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/shirou/gopsutil/v4/cpu"
-	"github.com/shirou/gopsutil/v4/mem"
 	"log/slog"
 	"math/rand"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
+	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/mem"
 )
 
 type MonitorService struct {

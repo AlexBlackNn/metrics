@@ -1,8 +1,9 @@
 package hash
 
 import (
-	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"testing"
+
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 )
 
 func BenchmarkMetricHash(b *testing.B) {

@@ -2,6 +2,7 @@ package migrator
 
 import (
 	"fmt"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	// migration lib
 	"github.com/golang-migrate/migrate/v4"

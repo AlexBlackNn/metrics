@@ -3,15 +3,16 @@ package v1
 import (
 	"errors"
 	"fmt"
-	"github.com/AlexBlackNn/metrics/internal/domain/models"
-	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
-	"github.com/go-chi/chi/v5"
 	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/AlexBlackNn/metrics/internal/domain/models"
+	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
+	"github.com/go-chi/chi/v5"
 )
 
 type MetricHandlers struct {

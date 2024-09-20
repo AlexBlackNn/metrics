@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/AlexBlackNn/metrics/app/server"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/AlexBlackNn/metrics/app/server"
 )
 
 func main() {

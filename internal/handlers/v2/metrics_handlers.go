@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"time"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
-	"io"
-	"log/slog"
-	"net/http"
-	"time"
 )
 
 type MetricHandlers struct {

@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
-	"github.com/AlexBlackNn/metrics/app/agent"
-	"github.com/AlexBlackNn/metrics/internal/config/configagent"
-	"github.com/AlexBlackNn/metrics/internal/logger"
 	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/AlexBlackNn/metrics/app/agent"
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
+	"github.com/AlexBlackNn/metrics/internal/logger"
 )
 
 func main() {

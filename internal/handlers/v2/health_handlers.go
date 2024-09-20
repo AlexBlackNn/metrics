@@ -3,10 +3,11 @@ package v2
 import (
 	"context"
 	"errors"
-	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 )
 
 type HealthHandlers struct {

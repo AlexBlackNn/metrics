@@ -4,8 +4,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"hash"
+
+	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 )
 
 type MetricHash struct {
