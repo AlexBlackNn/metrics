@@ -1,55 +1,18 @@
-package middleware
+package gzipcompressor
 
 import (
 	"compress/gzip"
 	"io"
-	"log/slog"
 	"net/http"
 	"strings"
-	"sync"
 )
-
-type gzipWriterPool struct {
-	p sync.Pool
-}
-
-func (gp *gzipWriterPool) Get(w http.ResponseWriter, compressorLevel int) (*GzipWriter, error) {
-
-	gzipWriter := gp.p.Get()
-	if gzipWriter == nil {
-		gzipWr, err := gzip.NewWriterLevel(w, compressorLevel)
-		if err != nil {
-			return nil, err
-		}
-		return &GzipWriter{ResWriter: w, Writer: gzipWr}, nil
-	}
-	gzipWr := gzipWriter.(*gzip.Writer)
-	gzipWr.Reset(w)
-	return &GzipWriter{ResWriter: w, Writer: gzipWr}, nil
-}
-
-func (gp *gzipWriterPool) Put(gzipWriter *GzipWriter) error {
-	gzipWriter.Flush()
-	gzipWriter.Close()
-	gp.p.Put(gzipWriter.Writer)
-	return nil
-}
-
-func (gp *gzipWriterPool) PutNoFlush(gzipWriter *GzipWriter) error {
-	// Reset the writer to its initial state
-	gzipWriter.Writer.Reset(io.Discard)
-	// Put the writer back into the pool
-	gp.p.Put(gzipWriter.Writer)
-	return nil
-}
 
 var gzipWrPool = &gzipWriterPool{}
 
 type GzipWriter struct {
-	ResWriter       http.ResponseWriter
-	Writer          *gzip.Writer
-	GzipWriterMutex sync.Mutex
-	GzipFlag        bool
+	ResWriter http.ResponseWriter
+	Writer    *gzip.Writer
+	GzipFlag  bool
 }
 
 func (w *GzipWriter) Header() http.Header {
@@ -59,8 +22,8 @@ func (w *GzipWriter) Header() http.Header {
 func (w *GzipWriter) WriteHeader(statusCode int) {
 	if !strings.Contains(w.ResWriter.Header().Get("Content-Type"), "application/json") &&
 		!strings.Contains(w.ResWriter.Header().Get("Content-Type"), "text/html") {
-		w.ResWriter.WriteHeader(statusCode)
 		w.GzipFlag = false
+		w.ResWriter.WriteHeader(statusCode)
 		return
 	}
 	w.GzipFlag = true
@@ -88,7 +51,7 @@ func (w *GzipWriter) Reset() {
 	w.Writer.Reset(io.Discard)
 }
 
-func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handler) http.Handler {
+func GzipCompressor(compressorLevel int) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
@@ -98,28 +61,26 @@ func GzipCompressor(log *slog.Logger, compressorLevel int) func(next http.Handle
 				return
 			}
 
-			gzipWr, err := gzipWrPool.Get(w, compressorLevel)
+			gzipWr, err := gzipWrPool.get(w, compressorLevel)
 			if err != nil {
-
-				_, err := io.WriteString(w, err.Error())
+				_, err = io.WriteString(w, err.Error())
 				if err != nil {
 					return
 				}
 				return
 			}
-
 			next.ServeHTTP(gzipWr, r)
 			if gzipWr.GzipFlag {
-				err := gzipWrPool.Put(gzipWr)
+				err = gzipWrPool.put(gzipWr)
+			} else {
+				err = gzipWrPool.putNoFlush(gzipWr)
+			}
+			if err != nil {
+				_, err = io.WriteString(w, err.Error())
 				if err != nil {
-					_, err := io.WriteString(w, err.Error())
-					if err != nil {
-						return
-					}
 					return
 				}
-			} else {
-				gzipWrPool.PutNoFlush(gzipWr)
+				return
 			}
 		}
 		return http.HandlerFunc(fn)

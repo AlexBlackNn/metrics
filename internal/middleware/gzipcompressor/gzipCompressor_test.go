@@ -1,4 +1,4 @@
-package middleware
+package gzipcompressor
 
 import (
 	"compress/gzip"
@@ -53,7 +53,7 @@ func BenchmarkGzipCompressor(b *testing.B) {
 	req.Header.Set("Accept-Encoding", "gzip")
 
 	// Run the benchmark
-	gzipCompressor := GzipCompressor(nil, gzip.DefaultCompression)
+	gzipCompressor := GzipCompressor(gzip.DefaultCompression)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Create a DummyResponseWriter to discard output
