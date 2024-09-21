@@ -1,4 +1,4 @@
-host: localhost:8000
+host: localhost:8080
 info:
   contact:
     name: API Support
@@ -7,5 +7,16 @@ info:
     name: Apache 2.0
   title: Swagger API
   version: "1.0"
-paths: {}
+paths:
+  /ping:
+    get:
+      description: Определяет можно ли подавать трафик на сервис
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Проверка готовности приложения
+      tags:
+      - Health
 swagger: "2.0"

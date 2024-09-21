@@ -19,6 +19,13 @@ func NewHealth(log *slog.Logger, metricsService *metricsservice.MetricService) H
 	return HealthHandlers{log: log, metricsService: metricsService}
 }
 
+// ReadinessProbe проверка готовности приложения.
+// @Summary Проверка готовности приложения
+// @Description Определяет можно ли подавать трафик на сервис
+// @Tags Health
+// @Produce json
+// @Success 200
+// @Router /ping [get]
 func (m *HealthHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
