@@ -25,3 +25,9 @@ http://localhost:8080/pkg/bytes/#example_Buffer
 http://localhost:8080/pkg/?m=all
 ```
 
+## swagger
+```bash
+swag init -g ./cmd/server/main.go -o ./cmd/server/docs
+```
+
+http://localhost:8080/swagger/index.htm/index.html

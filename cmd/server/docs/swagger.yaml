@@ -1,0 +1,11 @@
+host: localhost:8000
+info:
+  contact:
+    name: API Support
+  description: metric collection service.
+  license:
+    name: Apache 2.0
+  title: Swagger API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

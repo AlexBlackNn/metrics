@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	_ "github.com/AlexBlackNn/metrics/cmd/server/docs"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v1"
 	"github.com/AlexBlackNn/metrics/internal/handlers/v2"
@@ -14,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func NewChiRouter(
@@ -34,12 +36,12 @@ func NewChiRouter(
 		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
 	))
 	router.Use(customMiddleware.Logger(log))
-	router.Use(customMiddleware.HashChecker(log, cfg))
-	router.Use(customMiddleware.GzipDecompressor(log))
-	router.Use(gzipcompressor.GzipCompressor(gzip.BestCompression))
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {
+		r.Use(customMiddleware.HashChecker(log, cfg))
+		r.Use(customMiddleware.GzipDecompressor(log))
+		r.Use(gzipcompressor.GzipCompressor(gzip.BestCompression))
 		r.Get("/", metricHandlerV1.GetAllMetrics)
 		r.Get("/ping", healthHandlerV2.ReadinessProbe)
 		r.Post("/update/{metric_type}/{metric_name}/{metric_value}", metricHandlerV1.UpdateMetric)
@@ -49,5 +51,11 @@ func NewChiRouter(
 		r.Post("/value/", metricHandlerV2.GetOneMetric)
 	})
 	router.Mount("/debug/", middleware.Profiler())
+
+	router.Route("/swagger", func(r chi.Router) {
+		r.Get("/*", httpSwagger.Handler(
+			httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		))
+	})
 	return router
 }
