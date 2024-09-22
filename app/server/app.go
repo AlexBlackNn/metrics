@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	_ "net/http/pprof"
@@ -111,7 +110,7 @@ func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Co
 	projectHandlersV3 := v3.New(log, metricsService)
 
 	srv := &http.Server{
-		Addr: fmt.Sprintf(cfg.ServerAddr),
+		Addr: cfg.ServerAddr,
 		Handler: router.NewChiRouter(
 			cfg,
 			log,
