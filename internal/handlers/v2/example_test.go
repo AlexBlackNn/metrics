@@ -42,7 +42,7 @@ func (w *DummyResponseWriter) WriteHeader(code int) {
 	w.code = code
 }
 
-func ExampleHealthHandlers() {
+func ExampleHealthHandlers_LivenessProbe() {
 	cfg, err := configserver.New()
 	if err != nil {
 		panic(err)
@@ -84,4 +84,48 @@ func ExampleHealthHandlers() {
 	fmt.Println(string(w.result))
 	// Output:
 	// {"status":"alive"}
+}
+
+func ExampleHealthHandlers_ReadinessProbe() {
+	cfg, err := configserver.New()
+	if err != nil {
+		panic(err)
+	}
+	// switch off loger output
+	log := slog.New(
+		slog.NewTextHandler(
+			io.Discard, &slog.HandlerOptions{
+				Level:     slog.LevelError,
+				AddSource: true,
+			},
+		),
+	)
+
+	ms, err := memstorage.New(cfg, log)
+	if err != nil {
+		panic(err)
+	}
+
+	metricsService := metricsservice.New(
+		log,
+		cfg,
+		ms,
+		ms,
+	)
+
+	newHealthHandlers := NewHealth(log, metricsService)
+	// Create a request for the benchmark
+	req, err := http.NewRequest(http.MethodGet, "/ping", nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	w := &DummyResponseWriter{}
+	// Set the header before calling ServeHTTP
+	w.Header().Set("Content-Type", "json")
+	w.WriteHeader(200)
+
+	newHealthHandlers.ReadinessProbe(w, req)
+	fmt.Println(string(w.result))
+	// Output:
+	// {"status":"ready"}
 }
