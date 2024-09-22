@@ -1,12 +1,12 @@
 package v2
 
 import (
-	"bytes"
 	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
-	"github.com/AlexBlackNn/metrics/internal/logger"
 	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 )
@@ -30,8 +30,9 @@ func (w *DummyResponseWriter) Write(b []byte) (int, error) {
 	if !w.wrote {
 		w.wrote = true
 	}
-	copy(w.result, bytes.ReplaceAll(b, []byte("\n"), nil))
-	return len(b), nil // Discard the data
+	w.result = make([]byte, len(b))
+	n := copy(w.result, b)
+	return n, nil // Discard the data
 }
 
 func (w *DummyResponseWriter) WriteHeader(code int) {
@@ -41,14 +42,20 @@ func (w *DummyResponseWriter) WriteHeader(code int) {
 	w.code = code
 }
 
-func ExampleReadinessProbe() {
-
+func ExampleHealthHandlers() {
 	cfg, err := configserver.New()
 	if err != nil {
 		panic(err)
 	}
-
-	log := logger.New(cfg.Env)
+	// switch off loger output
+	log := slog.New(
+		slog.NewTextHandler(
+			io.Discard, &slog.HandlerOptions{
+				Level:     slog.LevelError,
+				AddSource: true,
+			},
+		),
+	)
 
 	ms, err := memstorage.New(cfg, log)
 	if err != nil {
@@ -74,7 +81,7 @@ func ExampleReadinessProbe() {
 	w.WriteHeader(200)
 
 	newHealthHandlers.LivenessProbe(w, req)
-	fmt.Println(w.result)
+	fmt.Println(string(w.result))
 	// Output:
-	// Gopher
+	// {"status":"alive"}
 }
