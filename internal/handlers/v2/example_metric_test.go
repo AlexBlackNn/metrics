@@ -86,7 +86,7 @@ func ExampleMetricHandlers_UpdateMetric() {
 
 	newMetricHandlers := New(log, metricsService)
 	// Create a request for the benchmark
-	body := fmt.Sprintf(`{"id":"counter_test", "type":"counter", "delta": 100}`)
+	body := `{"id":"counter_test", "type":"counter", "delta": 100}`
 	myReader := strings.NewReader(body)
 	req, err := http.NewRequest(http.MethodPost, "/value", myReader)
 	if err != nil {
@@ -153,7 +153,7 @@ func ExampleMetricHandlers_GetOneMetric() {
 
 	newMetricHandlers := New(log, metricsService)
 	// Create a request for the benchmark
-	body := fmt.Sprintf(`{"id":"counter_test", "type":"counter", "delta": 100}`)
+	body := `{"id":"counter_test", "type":"counter", "delta": 100}`
 	myReader := strings.NewReader(body)
 	req, err := http.NewRequest(http.MethodPost, "/value", myReader)
 	if err != nil {
