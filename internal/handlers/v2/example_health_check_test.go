@@ -4,6 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
+	"github.com/AlexBlackNn/metrics/internal/logger"
+	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
+	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 )
 
 // DummyResponseWriter implements http.ResponseWriter but discards the output
@@ -38,7 +43,26 @@ func (w *DummyResponseWriter) WriteHeader(code int) {
 
 func ExampleReadinessProbe() {
 
-	newHealthHandlers := NewHealth(nil, nil)
+	cfg, err := configserver.New()
+	if err != nil {
+		panic(err)
+	}
+
+	log := logger.New(cfg.Env)
+
+	ms, err := memstorage.New(cfg, log)
+	if err != nil {
+		panic(err)
+	}
+
+	metricsService := metricsservice.New(
+		log,
+		cfg,
+		ms,
+		ms,
+	)
+
+	newHealthHandlers := NewHealth(log, metricsService)
 	// Create a request for the benchmark
 	req, err := http.NewRequest(http.MethodGet, "/ping", nil)
 	if err != nil {
@@ -49,7 +73,7 @@ func ExampleReadinessProbe() {
 	w.Header().Set("Content-Type", "json")
 	w.WriteHeader(200)
 
-	newHealthHandlers.ReadinessProbe(w, req)
+	newHealthHandlers.LivenessProbe(w, req)
 	fmt.Println(w.result)
 	// Output:
 	// Gopher

@@ -3,6 +3,7 @@ package v2
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -47,9 +48,11 @@ func (m *HealthHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) 
 }
 
 func (m *HealthHandlers) LivenessProbe(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("11111111111")
 	if r.Method != http.MethodGet {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
+	fmt.Println("2222222222")
 	responseHealth(w, r, http.StatusOK, "alive")
 }
