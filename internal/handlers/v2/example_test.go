@@ -43,10 +43,22 @@ func (w *DummyResponseWriter) WriteHeader(code int) {
 }
 
 func ExampleHealthHandlers_LivenessProbe() {
-	cfg, err := configserver.New()
-	if err != nil {
-		panic(err)
+	cfg := &configserver.Config{
+		Env:                   "local",
+		ServerAddr:            ":8080",
+		ServerReadTimeout:     100,
+		ServerWriteTimeout:    100,
+		ServerIdleTimeout:     100,
+		ServerRequestTimeout:  100,
+		ServerStoreInterval:   100,
+		ServerFileStoragePath: "/tmp/metrics-db.json",
+		ServerRestore:         true,
+		ServerRateLimit:       10000,
+		ServerDataBaseDSN:     "DATABASE_DSN",
+		ServerMigrationTable:  "migrations",
+		HashKey:               "KEY",
 	}
+
 	// switch off loger output
 	log := slog.New(
 		slog.NewTextHandler(
@@ -87,11 +99,22 @@ func ExampleHealthHandlers_LivenessProbe() {
 }
 
 func ExampleHealthHandlers_ReadinessProbe() {
-	cfg, err := configserver.New()
-	if err != nil {
-		panic(err)
+	cfg := &configserver.Config{
+		Env:                   "local",
+		ServerAddr:            ":8080",
+		ServerReadTimeout:     100,
+		ServerWriteTimeout:    100,
+		ServerIdleTimeout:     100,
+		ServerRequestTimeout:  100,
+		ServerStoreInterval:   100,
+		ServerFileStoragePath: "/tmp/metrics-db.json",
+		ServerRestore:         true,
+		ServerRateLimit:       10000,
+		ServerDataBaseDSN:     "DATABASE_DSN",
+		ServerMigrationTable:  "migrations",
+		HashKey:               "KEY",
 	}
-	// switch off loger output
+
 	log := slog.New(
 		slog.NewTextHandler(
 			io.Discard, &slog.HandlerOptions{
