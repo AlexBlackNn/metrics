@@ -92,7 +92,7 @@ func ExampleMetricHandlers_UpdateMetric() {
 	if err != nil {
 		panic(err.Error())
 	}
-	w := &DummyResponseWriter{}
+	w := &DummyMetricResponseWriter{}
 	// Set the header before calling ServeHTTP
 	w.Header().Set("Content-Type", "json")
 	w.WriteHeader(200)
@@ -159,7 +159,7 @@ func ExampleMetricHandlers_GetOneMetric() {
 	if err != nil {
 		panic(err.Error())
 	}
-	w := &DummyResponseWriter{}
+	w := &DummyMetricResponseWriter{}
 	// Set the header before calling ServeHTTP
 	w.Header().Set("Content-Type", "json")
 	w.WriteHeader(200)
