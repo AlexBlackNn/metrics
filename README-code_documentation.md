@@ -17,8 +17,7 @@ go doc -all github.com/AlexBlackNn/metrics/pkg/storage/postgres
 ```bash
 godoc -http=:8085 -play
 ```
-http://localhost:8085/pkg/bytes/#example_Buffer
-
+http://localhost:8085/pkg/?m=all
 ## По умолчанию godoc не отображает пакеты, расположенные в поддиректориях internal. 
 Чтобы увидеть служебные пакеты, добавьте в браузере 
 ```

@@ -99,7 +99,6 @@ func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
-
 	var reqMetrics Metrics
 	err := render.DecodeJSON(r.Body, &reqMetrics)
 	if err != nil {

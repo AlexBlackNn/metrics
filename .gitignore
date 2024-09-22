@@ -29,3 +29,4 @@ vendor/
 .vscode
 /test_log_file.txt
 /infra/.env
+/profile.cov
