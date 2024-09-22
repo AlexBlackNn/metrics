@@ -25,6 +25,17 @@ func New(log *slog.Logger, metricsService *metricsservice.MetricService) MetricH
 	return MetricHandlers{log: log, metricsService: metricsService}
 }
 
+// GetOneMetric get metric from DB.
+// @Summary GetOneMetric
+// @Description Get metric from DB
+// @Tags Metrics
+// @Accept json
+// @Produce json
+// @Param body body v2.Metrics true "metric request"
+// @Success 200 {object}  v2.Metrics "Successful metric provision"
+// @Failure 404 {string} string "Metric not found"
+// @Router /value/ [post]
+// @Security BearerAuth
 func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
@@ -73,6 +84,16 @@ func (m *MetricHandlers) GetOneMetric(w http.ResponseWriter, r *http.Request) {
 	responseOK(w, r, metricReturned)
 }
 
+// UpdateMetric update value of metric in DB.
+// @Summary UpdateMetric
+// @Description update metric in DB
+// @Tags Metrics
+// @Accept json
+// @Produce json
+// @Param body body v2.Metrics true "metric request"
+// @Success 200 {object}  v2.Metrics "Successful metric update"
+// @Router /update/ [post]
+// @Security BearerAuth
 func (m *MetricHandlers) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")

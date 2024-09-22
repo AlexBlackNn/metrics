@@ -30,10 +30,142 @@ const docTemplate = `{
                     "Health"
                 ],
                 "summary": "Проверка готовности приложения",
+                "operationId": "infoHealth",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v2.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v2.Response"
+                        }
                     }
+                }
+            }
+        },
+        "/update/": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "update metric in DB",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Metrics"
+                ],
+                "summary": "UpdateMetric",
+                "parameters": [
+                    {
+                        "description": "metric request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v2.Metrics"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful metric update",
+                        "schema": {
+                            "$ref": "#/definitions/v2.Metrics"
+                        }
+                    }
+                }
+            }
+        },
+        "/value/": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get metric from DB",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Metrics"
+                ],
+                "summary": "GetOneMetric",
+                "parameters": [
+                    {
+                        "description": "metric request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v2.Metrics"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful metric provision",
+                        "schema": {
+                            "$ref": "#/definitions/v2.Metrics"
+                        }
+                    },
+                    "404": {
+                        "description": "Metric not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "v2.Metrics": {
+            "type": "object",
+            "properties": {
+                "delta": {
+                    "description": "exists if mType = counter",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "metrics name",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "mType = counter || gauge",
+                    "type": "string",
+                    "enum": [
+                        "gauge",
+                        "counter"
+                    ]
+                },
+                "value": {
+                    "description": "exists if mType = gauge",
+                    "type": "number"
+                }
+            }
+        },
+        "v2.Response": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         }
@@ -50,6 +182,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "metric collection service.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

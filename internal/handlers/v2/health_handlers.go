@@ -20,11 +20,13 @@ func NewHealth(log *slog.Logger, metricsService *metricsservice.MetricService) H
 }
 
 // ReadinessProbe проверка готовности приложения.
+// @ID infoHealth
 // @Summary Проверка готовности приложения
 // @Description Определяет можно ли подавать трафик на сервис
 // @Tags Health
 // @Produce json
-// @Success 200
+// @Success 200 {object} v2.Response
+// @Failure 500 {object} v2.Response
 // @Router /ping [get]
 func (m *HealthHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

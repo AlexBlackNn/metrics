@@ -1,3 +1,29 @@
+definitions:
+  v2.Metrics:
+    properties:
+      delta:
+        description: exists if mType = counter
+        type: integer
+      id:
+        description: metrics name
+        type: string
+      type:
+        description: mType = counter || gauge
+        enum:
+        - gauge
+        - counter
+        type: string
+      value:
+        description: exists if mType = gauge
+        type: number
+    type: object
+  v2.Response:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -11,12 +37,71 @@ paths:
   /ping:
     get:
       description: Определяет можно ли подавать трафик на сервис
+      operationId: infoHealth
       produces:
       - application/json
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/v2.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v2.Response'
       summary: Проверка готовности приложения
       tags:
       - Health
+  /update/:
+    post:
+      consumes:
+      - application/json
+      description: update metric in DB
+      parameters:
+      - description: metric request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/v2.Metrics'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful metric update
+          schema:
+            $ref: '#/definitions/v2.Metrics'
+      security:
+      - BearerAuth: []
+      summary: UpdateMetric
+      tags:
+      - Metrics
+  /value/:
+    post:
+      consumes:
+      - application/json
+      description: Get metric from DB
+      parameters:
+      - description: metric request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/v2.Metrics'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful metric provision
+          schema:
+            $ref: '#/definitions/v2.Metrics'
+        "404":
+          description: Metric not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: GetOneMetric
+      tags:
+      - Metrics
 swagger: "2.0"

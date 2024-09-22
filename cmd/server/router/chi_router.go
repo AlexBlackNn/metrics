@@ -43,7 +43,6 @@ func NewChiRouter(
 		r.Use(customMiddleware.GzipDecompressor(log))
 		r.Use(gzipcompressor.GzipCompressor(gzip.BestCompression))
 		r.Get("/", metricHandlerV1.GetAllMetrics)
-		r.Get("/ping", healthHandlerV2.ReadinessProbe)
 		r.Post("/update/{metric_type}/{metric_name}/{metric_value}", metricHandlerV1.UpdateMetric)
 		r.Get("/value/{metric_type}/{metric_name}", metricHandlerV1.GetOneMetric)
 		r.Post("/update/", metricHandlerV2.UpdateMetric)
@@ -51,7 +50,7 @@ func NewChiRouter(
 		r.Post("/value/", metricHandlerV2.GetOneMetric)
 	})
 	router.Mount("/debug/", middleware.Profiler())
-
+	router.Get("/ping", healthHandlerV2.ReadinessProbe)
 	router.Route("/swagger", func(r chi.Router) {
 		r.Get("/*", httpSwagger.Handler(
 			httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
