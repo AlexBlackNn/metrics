@@ -1,8 +1,6 @@
 package migrator
 
 import (
-	"fmt"
-
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	// migration lib
 	"github.com/golang-migrate/migrate/v4"
@@ -15,7 +13,7 @@ import (
 func ApplyMigration(cfg *configserver.Config) error {
 	m, err := migrate.New(
 		"file://"+"./migrations",
-		fmt.Sprintf(cfg.ServerDataBaseDSN),
+		cfg.ServerDataBaseDSN,
 	)
 	if err != nil {
 		return err
