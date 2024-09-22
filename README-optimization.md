@@ -197,6 +197,7 @@ ok      github.com/AlexBlackNn/metrics/internal/middleware/old_gzip     1.778s
 ```bash
 go tool pprof mem.out
 ```
+```
 File: old_gzip.test
 Type: alloc_space
 Time: Sep 19, 2024 at 10:54pm (MSK)
