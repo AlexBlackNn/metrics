@@ -3,11 +3,12 @@ package configagent
 import (
 	"flag"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/caarlos0/env/v6"
 	"github.com/ilyakaznacheev/cleanenv"
-	"os"
-	"time"
 )
 
 const (

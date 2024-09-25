@@ -3,12 +3,13 @@ package v2
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/go-playground/validator/v10"
 	"github.com/mailru/easyjson"
-	"net/http"
-	"strings"
 )
 
 type Metrics struct {

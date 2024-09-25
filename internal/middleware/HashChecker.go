@@ -6,12 +6,13 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/AlexBlackNn/metrics/internal/config/configserver"
-	"github.com/go-chi/chi/v5/middleware"
 	"io"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/AlexBlackNn/metrics/internal/config/configserver"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const StatusError = "Error"

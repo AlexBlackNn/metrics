@@ -2,7 +2,11 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
+	"net/http"
+	_ "net/http/pprof"
+	"time"
+
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
@@ -15,9 +19,6 @@ import (
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 	"github.com/AlexBlackNn/metrics/pkg/storage/postgres"
 	"github.com/golang-migrate/migrate/v4"
-	"log/slog"
-	"net/http"
-	"time"
 )
 
 type MetricsStorage interface {
@@ -109,7 +110,7 @@ func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Co
 	projectHandlersV3 := v3.New(log, metricsService)
 
 	srv := &http.Server{
-		Addr: fmt.Sprintf(cfg.ServerAddr),
+		Addr: cfg.ServerAddr,
 		Handler: router.NewChiRouter(
 			cfg,
 			log,

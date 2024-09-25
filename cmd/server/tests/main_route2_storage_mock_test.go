@@ -2,6 +2,12 @@ package tests
 
 import (
 	"bytes"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"github.com/AlexBlackNn/metrics/app/server"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
@@ -10,11 +16,6 @@ import (
 	"github.com/AlexBlackNn/metrics/pkg/storage/mockstorage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
 func TestServerHappyPathMockStorageV2(t *testing.T) {

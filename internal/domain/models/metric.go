@@ -2,9 +2,10 @@ package models
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"golang.org/x/exp/constraints"
-	"strconv"
 )
 
 type MetricAdder interface {

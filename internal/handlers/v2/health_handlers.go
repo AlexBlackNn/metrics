@@ -3,10 +3,11 @@ package v2
 import (
 	"context"
 	"errors"
-	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/AlexBlackNn/metrics/internal/services/metricsservice"
 )
 
 type HealthHandlers struct {
@@ -18,6 +19,15 @@ func NewHealth(log *slog.Logger, metricsService *metricsservice.MetricService) H
 	return HealthHandlers{log: log, metricsService: metricsService}
 }
 
+// ReadinessProbe проверка готовности приложения.
+// @ID infoHealth
+// @Summary Проверка готовности приложения
+// @Description Определяет можно ли подавать трафик на сервис
+// @Tags Health
+// @Produce json
+// @Success 200 {object} v2.Response
+// @Failure 500 {object} v2.Response
+// @Router /ping [get]
 func (m *HealthHandlers) ReadinessProbe(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")

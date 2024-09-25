@@ -3,14 +3,15 @@ package v3
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strings"
+	"time"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/services/agentmetricsservice"
 	"github.com/go-resty/resty/v2"
 	"golang.org/x/time/rate"
-	"log/slog"
-	"strings"
-	"time"
 )
 
 type Sender struct {

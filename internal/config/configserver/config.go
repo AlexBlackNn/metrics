@@ -3,10 +3,11 @@ package configserver
 import (
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/AlexBlackNn/metrics/internal/config"
 	"github.com/caarlos0/env/v6"
 	"github.com/ilyakaznacheev/cleanenv"
-	"os"
 )
 
 const (
@@ -18,9 +19,9 @@ const (
 type Config struct {
 	Env                   string `yaml:"env" env-default:"local" env:"ENV"`
 	ServerAddr            string `yaml:"server_addr" env-default:":8080" env:"ADDRESS"`
-	ServerReadTimeout     int    `yaml:"server_read_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
-	ServerWriteTimeout    int    `yaml:"server_write_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
-	ServerIdleTimeout     int    `yaml:"server_idle_timeout" env-default:"10" env:"SEVER_READ_TIMEOUT" envDefault:"10"`
+	ServerReadTimeout     int    `yaml:"server_read_timeout" env-default:"100" env:"SEVER_READ_TIMEOUT" envDefault:"100"`
+	ServerWriteTimeout    int    `yaml:"server_write_timeout" env-default:"100" env:"SEVER_WRITE_TIMEOUT" envDefault:"1000000000"`
+	ServerIdleTimeout     int    `yaml:"server_idle_timeout" env-default:"100" env:"SEVER_IDLE_TIMEOUT" envDefault:"100"`
 	ServerRequestTimeout  int    `yaml:"server_request_timeout" env-default:"300" env:"SEVER_REQUEST_TIMEOUT" envDefault:"300"`
 	ServerStoreInterval   int    `yaml:"server_store_interval" env:"STORE_INTERVAL"`
 	ServerFileStoragePath string `yaml:"server_file_storage_path" env-default:"/tmp/metrics-db.json" env:"FILE_STORAGE_PATH" envDefault:"/tmp/metrics-db.json"`

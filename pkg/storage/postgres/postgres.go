@@ -1,3 +1,4 @@
+// Package postgres is a data layer which communicate with postgresql database.
 package postgres
 
 import (
@@ -6,23 +7,26 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/pkg/storage"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"log/slog"
 )
 
+// PostStorage client to communicate with postgresql
 type PostStorage struct {
 	tmpl Tmpl
 	db   *sql.DB
 }
 
-// GetType is a helper function to get the type
+// GetType is a helper function to get the type.
 func GetType(m models.MetricGetter) string {
 	return m.GetType()
 }
 
+// New creates client for concurrent use by multiple goroutines and maintains its own pool of idle connections.
 func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
 	db, err := sql.Open("pgx", cfg.ServerDataBaseDSN)
 	if err != nil {
@@ -35,10 +39,12 @@ func New(cfg *configserver.Config, log *slog.Logger) (*PostStorage, error) {
 	return &PostStorage{db: db, tmpl: NewTemplate()}, nil
 }
 
+// Stop closes connection to DB.
 func (s *PostStorage) Stop() error {
 	return s.db.Close()
 }
 
+// UpdateMetric updates metric value.
 func (s *PostStorage) UpdateMetric(
 	ctx context.Context,
 	metric models.MetricGetter,
@@ -64,6 +70,7 @@ func (s *PostStorage) UpdateMetric(
 	return nil
 }
 
+// UpdateSeveralMetrics updates several metric value.
 func (s *PostStorage) UpdateSeveralMetrics(
 	ctx context.Context,
 	metrics map[string]models.MetricGetter,
@@ -119,6 +126,7 @@ func (s *PostStorage) UpdateSeveralMetrics(
 	return tx.Commit()
 }
 
+// GetMetric updates gets metric value.
 func (s *PostStorage) GetMetric(
 	ctx context.Context,
 	metric models.MetricGetter,
@@ -164,6 +172,7 @@ func (s *PostStorage) GetMetric(
 	return metricDB, nil
 }
 
+// GetAllMetrics gets all metric values.
 func (s *PostStorage) GetAllMetrics(
 	ctx context.Context,
 ) ([]models.MetricGetter, error) {
@@ -223,6 +232,7 @@ func (s *PostStorage) GetAllMetrics(
 	return metrics, nil
 }
 
+// HealthCheck provides service health check.
 func (s *PostStorage) HealthCheck(
 	ctx context.Context,
 ) error {

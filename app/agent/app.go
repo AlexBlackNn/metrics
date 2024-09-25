@@ -2,9 +2,10 @@ package agent
 
 import (
 	"context"
+	"log/slog"
+
 	restagentsender "github.com/AlexBlackNn/metrics/app/agent/restagentsender/v2"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
-	"log/slog"
 )
 
 type CollectSender interface {
