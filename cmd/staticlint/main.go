@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/AlexBlackNn/metrics/cmd/staticlint/checker"
+	"github.com/fatih/addlint/addcheck"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
 	"golang.org/x/tools/go/analysis/passes/printf"
@@ -40,6 +41,7 @@ func main() {
 		printf.Analyzer,
 		shadow.Analyzer,
 		structtag.Analyzer,
+		addcheck.Analyzer,
 	}
 	checks := make(map[string]bool)
 	for _, v := range cfg.Staticcheck {
