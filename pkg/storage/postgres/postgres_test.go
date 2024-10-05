@@ -96,11 +96,29 @@ func TestUpdateSeveralMetrics(t *testing.T) {
 	assert.Equal(t, metrics["testMetric2"].GetValue(), testMetricGot.GetValue())
 }
 
-func TestStop(t *testing.T) {
+func TestGetAllMetrics(t *testing.T) {
 	ds := &PostStorage{
 		NewTemplate(),
 		testDbInstance,
 	}
-	err := ds.Stop()
+
+	metrics := make(map[string]models.MetricGetter)
+
+	metrics["testMetric1"] = &models.Metric[uint64]{
+		Type:  "counter",
+		Name:  "testMetric1",
+		Value: 10,
+	}
+
+	metrics["testMetric2"] = &models.Metric[float64]{
+		Type:  "gauge",
+		Name:  "testMetric2",
+		Value: 0.10,
+	}
+
+	err := ds.UpdateSeveralMetrics(context.Background(), metrics)
 	assert.NoError(t, err)
+	metricsGot, err := ds.GetAllMetrics(context.Background())
+	assert.NoError(t, err)
+	assert.NotNil(t, metricsGot)
 }
