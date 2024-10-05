@@ -27,6 +27,15 @@ func TestCreateConnection(t *testing.T) {
 	assert.NotNil(t, ds)
 }
 
+func TestHealthCheck(t *testing.T) {
+	ds := &PostStorage{
+		NewTemplate(),
+		testDbInstance,
+	}
+	err := ds.HealthCheck(context.Background())
+	assert.NoError(t, err)
+}
+
 func TestUpdateMetric(t *testing.T) {
 	ds := &PostStorage{
 		NewTemplate(),
