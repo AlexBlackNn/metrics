@@ -2,6 +2,7 @@ package memstorage
 
 import (
 	"fmt"
+
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 )
 
@@ -26,16 +27,13 @@ func (m *TempMetric) GetValue() any {
 }
 
 func (m *TempMetric) GetStringValue() string {
-	switch m.GetType() {
-	case configserver.MetricTypeCounter:
+	if m.GetType() == configserver.MetricTypeCounter {
 		if value, ok := m.GetValue().(float64); ok {
 			return fmt.Sprintf("%d", int(value))
 		}
 		if value, ok := m.GetValue().(int64); ok {
 			return fmt.Sprintf("%d", value)
 		}
-	default:
-		return fmt.Sprintf("%g", m.GetValue())
 	}
-	return ""
+	return fmt.Sprintf("%g", m.GetValue())
 }
