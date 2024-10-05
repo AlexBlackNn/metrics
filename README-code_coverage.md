@@ -17,9 +17,7 @@ go tool cover -func profile.cov
 go tool cover -func profile.cov | awk '{if ($NF == "0.0%") print $0}'
 ```
 
-
+# # show in browser coverage and not coverage code
 ```bash
-go test -v ./... -coverprofile profile.out
-go tool cover -func profile.out
-go tool cover -o coverage.html -html=profile.out; sed -i 's/black/whitesmoke/g' coverage.html; sensible-browser coverage.html
+go tool cover -o coverage.html -html=profile.cov; sed -i 's/black/whitesmoke/g' coverage.html; sensible-browser coverage.html
 ```
