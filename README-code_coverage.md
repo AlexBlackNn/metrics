@@ -6,9 +6,11 @@ go test -v ./...
 ```bash
 go test -v -coverpkg=./... -coverprofile=profile.cov.tmp ./...
 cat profile.cov.tmp  | grep -v "test_" > profile.cov.tmp1
-cat profile.cov.tmp1  | grep -v "mock_" > profile.cov
+cat profile.cov.tmp1  | grep -v "mock_" > profile.cov.tmp2
+cat profile.cov.tmp2  | grep -v "_easyjson.go" > profile.cov
+rm profile.cov.tmp1 && rm profile.cov.tmp && rm profile.cov.tmp2
 go tool cover -func profile.cov
-rm profile.cov.tmp1 && rm profile.cov.tmp
+
 ```
 
 # show files with zero coverage 
