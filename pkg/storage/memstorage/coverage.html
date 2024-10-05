@@ -1,0 +1,571 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>memstorage: Go Coverage Report</title>
+		<style>
+			body {
+				background: whitesmoke;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: whitesmoke;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/AlexBlackNn/metrics/pkg/storage/memstorage/database.go (0.0%)</option>
+				
+				<option value="file1">github.com/AlexBlackNn/metrics/pkg/storage/memstorage/gob_state_manager.go (8.2%)</option>
+				
+				<option value="file2">github.com/AlexBlackNn/metrics/pkg/storage/memstorage/json_state_manager.go (0.0%)</option>
+				
+				<option value="file3">github.com/AlexBlackNn/metrics/pkg/storage/memstorage/mem_storage.go (0.0%)</option>
+				
+				<option value="file4">github.com/AlexBlackNn/metrics/pkg/storage/memstorage/temp_metric.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package memstorage
+
+import (
+        "encoding/json"
+        "github.com/AlexBlackNn/metrics/internal/domain/models"
+)
+
+type dataBase map[string]models.MetricGetter
+
+func (db *dataBase) UnmarshalJSON(data []byte) error <span class="cov0" title="0">{
+
+        // Can't unmarshal to models.MetricInteraction (interface).
+        var TempDBMetric map[string]TempMetric
+
+        if err := json.Unmarshal(data, &amp;TempDBMetric); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">for _, v := range TempDBMetric </span><span class="cov0" title="0">{
+                v := v
+                metric, err := models.New(v.Type, v.Name, v.GetStringValue())
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">(*db)[v.Name] = metric</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package memstorage
+
+import (
+        "bufio"
+        "bytes"
+        "encoding/gob"
+        "errors"
+        "fmt"
+        "github.com/AlexBlackNn/metrics/internal/config/configserver"
+        "github.com/AlexBlackNn/metrics/internal/domain/models"
+        "log/slog"
+        "os"
+        "sync"
+)
+
+func init() <span class="cov8" title="1">{
+        gob.Register(models.Metric[uint64]{})
+        gob.Register(models.Metric[float64]{})
+        gob.Register(encodeMetricUint64)
+        gob.Register(encodeMetricFloat64)
+
+}</span>
+
+// dataBaseJSONStateManager saves and restores database state.
+type dataBaseGOBStateManager struct {
+        cfg   *configserver.Config
+        log   *slog.Logger
+        db    dataBase
+        mutex *sync.RWMutex
+}
+
+// Custom gob encoder for models.Metric[uint64].
+func encodeMetricUint64(enc *gob.Encoder, m models.Metric[uint64]) error <span class="cov0" title="0">{
+        return enc.Encode(struct {
+                Name  string
+                Type  string
+                Value uint64
+        }{
+                Name:  m.Name,
+                Type:  m.Type,
+                Value: m.Value,
+        })
+}</span>
+
+// Custom gob encoder for models.Metric[uint64].
+func encodeMetricFloat64(enc *gob.Encoder, m models.Metric[float64]) error <span class="cov0" title="0">{
+        return enc.Encode(struct {
+                Name  string
+                Type  string
+                Value float64
+        }{
+                Name:  m.Name,
+                Type:  m.Type,
+                Value: m.Value,
+        })
+}</span>
+
+func (gm *dataBaseGOBStateManager) saveMetrics() error <span class="cov0" title="0">{
+        log := gm.log.With(
+                slog.String("info", "STORAGE LAYER: gob_state_manager.saveMetrics"),
+        )
+        log.Debug("starts saving metric")
+
+        gm.mutex.RLock()
+        defer gm.mutex.RUnlock()
+        file, err := os.OpenFile(
+                gm.cfg.ServerFileStoragePath, os.O_WRONLY|os.O_CREATE, 0777,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer func(file *os.File) </span><span class="cov0" title="0">{
+                err = file.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error("failed to close file", "err", err)
+                }</span>
+        }(file)
+        <span class="cov0" title="0">writer := bufio.NewWriter(file)
+        defer writer.Flush()
+        var buffer bytes.Buffer
+        if err = gob.NewEncoder(&amp;buffer).Encode(gm.db); err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                return err
+        }</span>
+        <span class="cov0" title="0">_, err = writer.Write(buffer.Bytes())
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (gm *dataBaseGOBStateManager) restoreMetrics() error <span class="cov0" title="0">{
+        log := gm.log.With(
+                slog.String("info", "STORAGE LAYER: gob_state_manager.restoreMetrics"),
+        )
+        log.Info("restore saved metric")
+        gm.mutex.RLock()
+        defer gm.mutex.RUnlock()
+        file, err := os.OpenFile(
+                gm.cfg.ServerFileStoragePath, os.O_RDONLY, 0777,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer func(file *os.File) </span><span class="cov0" title="0">{
+                err = file.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error("failed to close file", "err", err)
+                }</span>
+        }(file)
+
+        <span class="cov0" title="0">reader := bufio.NewReader(file)
+        dec := gob.NewDecoder(reader)
+
+        // Decode the data into a map[string]interface{}.
+        var decodedData map[string]interface{}
+        if err = dec.Decode(&amp;decodedData); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">for k, v := range decodedData </span><span class="cov0" title="0">{
+                switch v := v.(type) </span>{
+                case models.Metric[uint64]:<span class="cov0" title="0">
+                        gm.db[k] = &amp;v</span>
+                case models.Metric[float64]:<span class="cov0" title="0">
+                        gm.db[k] = &amp;v</span>
+                default:<span class="cov0" title="0">
+                        return errors.New("unknown type")</span>
+                }
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package memstorage
+
+import (
+        "bufio"
+        "encoding/json"
+        "fmt"
+        "github.com/AlexBlackNn/metrics/internal/config/configserver"
+        "io"
+        "log/slog"
+        "os"
+        "sync"
+)
+
+// dataBaseJSONStateManager saves and restores database state.
+type dataBaseJSONStateManager struct {
+        cfg   *configserver.Config
+        log   *slog.Logger
+        db    dataBase
+        mutex *sync.RWMutex
+}
+
+func (jm *dataBaseJSONStateManager) saveMetrics() error <span class="cov0" title="0">{
+        log := jm.log.With(
+                slog.String("info", "STORAGE LAYER: json_state_manager.saveMetrics"),
+        )
+        log.Debug("starts saving metric")
+        jm.mutex.RLock()
+        defer jm.mutex.RUnlock()
+        file, err := os.OpenFile(
+                jm.cfg.ServerFileStoragePath, os.O_WRONLY|os.O_CREATE, 0777,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf(
+                        "STORAGE LAYER: json_state_manager.saveMetrics: couldn't open metric file: %w",
+                        err,
+                )
+        }</span>
+        <span class="cov0" title="0">defer func(file *os.File) </span><span class="cov0" title="0">{
+                err = file.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error("failed to close file", "err", err)
+                }</span>
+        }(file)
+        <span class="cov0" title="0">writer := bufio.NewWriter(file)
+        defer writer.Flush()
+
+        dataBaseBytes, err := json.Marshal(jm.db)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">_, err = writer.Write(dataBaseBytes)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (jm *dataBaseJSONStateManager) restoreMetrics() error <span class="cov0" title="0">{
+        log := jm.log.With(
+                slog.String("info", "STORAGE LAYER: json_state_manager.restoreMetrics"),
+        )
+        log.Info("restore saved metric")
+
+        jm.mutex.RLock()
+        defer jm.mutex.RUnlock()
+        file, err := os.OpenFile(
+                jm.cfg.ServerFileStoragePath, os.O_RDONLY, 0777,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer func(file *os.File) </span><span class="cov0" title="0">{
+                err = file.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Error("failed to close file", "err", err)
+                }</span>
+        }(file)
+
+        <span class="cov0" title="0">reader := bufio.NewReader(file)
+        tmpBuffer, err := io.ReadAll(reader)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf(
+                        "STORAGE LAYER: json_state_manager.restoreMetrics: couldn't read metric file: %w",
+                        err,
+                )
+        }</span>
+
+        <span class="cov0" title="0">return json.Unmarshal(tmpBuffer, &amp;jm.db)</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package memstorage
+
+import (
+        "context"
+        "fmt"
+        "github.com/AlexBlackNn/metrics/internal/config/configserver"
+        "github.com/AlexBlackNn/metrics/internal/domain/models"
+        "github.com/AlexBlackNn/metrics/pkg/storage"
+        "log/slog"
+        "sync"
+        "time"
+)
+
+type StateManager interface {
+        saveMetrics() error
+        restoreMetrics() error
+}
+
+type MemStorage struct {
+        mutex    *sync.RWMutex
+        db       dataBase
+        cfg      *configserver.Config
+        sm       StateManager
+        log      *slog.Logger
+        saveChan chan struct{}
+}
+
+// New inits mem storage (map structure)
+func New(cfg *configserver.Config, log *slog.Logger) (*MemStorage, error) <span class="cov0" title="0">{
+        db := make(dataBase)
+        mutex := &amp;sync.RWMutex{}
+        memStorage := MemStorage{
+                mutex:    mutex,
+                cfg:      cfg,
+                db:       db,
+                log:      log,
+                sm:       &amp;dataBaseGOBStateManager{cfg: cfg, db: db, mutex: mutex, log: log},
+                saveChan: make(chan struct{}),
+        }
+
+        go func() </span><span class="cov0" title="0">{
+                memStorage.saveMetricToDisk()
+        }</span>()
+
+        <span class="cov0" title="0">if cfg.ServerRestore </span><span class="cov0" title="0">{
+                _ = memStorage.sm.restoreMetrics()
+        }</span>
+        <span class="cov0" title="0">return &amp;memStorage, nil</span>
+}
+
+// saveMetricToDisk saves metrics to disk.
+func (ms *MemStorage) saveMetricToDisk() <span class="cov0" title="0">{
+        log := ms.log.With(
+                slog.String("info", "STORAGE LAYER: mem_storage.saveMetricToDisk"),
+        )
+        storeInterval := time.Duration(ms.cfg.ServerStoreInterval) * time.Second
+        for </span><span class="cov0" title="0">{
+                if ms.cfg.ServerStoreInterval &gt; 0 </span><span class="cov0" title="0">{
+                        &lt;-time.After(storeInterval)
+                        log.Debug("starts saving metric to disk")
+                        err := ms.sm.saveMetrics()
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Error("failed save metrics", "err", err)
+                        }</span> else<span class="cov0" title="0"> {
+                                log.Debug("finish save metric to disk")
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        &lt;-ms.saveChan
+                        log.Debug("starts saving metric to disk")
+                        err := ms.sm.saveMetrics()
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Error("failed save metrics", "err", err)
+                        }</span> else<span class="cov0" title="0"> {
+                                log.Debug("finish save metric to disk")
+                        }</span>
+                }
+        }
+}
+
+func (ms *MemStorage) HealthCheck(
+        ctx context.Context,
+) error <span class="cov0" title="0">{
+        return nil
+}</span>
+
+// UpdateMetric updates metric value in mem storage.
+func (ms *MemStorage) UpdateMetric(
+        ctx context.Context,
+        metric models.MetricGetter,
+) error <span class="cov0" title="0">{
+        select </span>{
+        case &lt;-ctx.Done():<span class="cov0" title="0">
+                return fmt.Errorf("aborting work: %v, because of %w", ctx.Err(), context.Cause(ctx))</span>
+        default:<span class="cov0" title="0">
+                ms.mutex.Lock()
+                ms.db[metric.GetName()] = metric
+                ms.mutex.Unlock()
+                if ms.cfg.ServerStoreInterval == 0 </span><span class="cov0" title="0">{
+                        ms.saveChan &lt;- struct{}{}
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        }
+}
+
+// GetMetric gets metric value from mem storage.
+func (ms *MemStorage) GetMetric(
+        ctx context.Context,
+        metric models.MetricGetter,
+) (models.MetricGetter, error) <span class="cov0" title="0">{
+        select </span>{
+        case &lt;-ctx.Done():<span class="cov0" title="0">
+                return nil, fmt.Errorf("aborting work: %v, because of %w", ctx.Err(), context.Cause(ctx))</span>
+        default:<span class="cov0" title="0">
+                ms.mutex.RLock()
+                defer ms.mutex.RUnlock()
+                metric, ok := ms.db[metric.GetName()]
+                if !ok </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf(
+                                "DATA LAYER: storage.mem_storage.GetMetric: %w",
+                                storage.ErrMetricNotFound,
+                        )
+                }</span>
+                <span class="cov0" title="0">return metric, nil</span>
+        }
+}
+
+func (ms *MemStorage) UpdateSeveralMetrics(
+        ctx context.Context,
+        metrics map[string]models.MetricGetter,
+) error <span class="cov0" title="0">{
+        select </span>{
+        case &lt;-ctx.Done():<span class="cov0" title="0">
+                return fmt.Errorf("aborting work: %v, because of %w", ctx.Err(), context.Cause(ctx))</span>
+        default:<span class="cov0" title="0">
+                ms.mutex.RLock()
+                defer ms.mutex.RUnlock()
+                for _, oneMetric := range metrics </span><span class="cov0" title="0">{
+                        ms.db[oneMetric.GetName()] = oneMetric
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        }
+}
+
+// GetAllMetrics gets metric value from mem storage.
+func (ms *MemStorage) GetAllMetrics(
+        ctx context.Context,
+) ([]models.MetricGetter, error) <span class="cov0" title="0">{
+        select </span>{
+        case &lt;-ctx.Done():<span class="cov0" title="0">
+                return nil, fmt.Errorf("aborting work: %v, because of %w", ctx.Err(), context.Cause(ctx))</span>
+        default:<span class="cov0" title="0">
+                var metrics []models.MetricGetter
+                if len(ms.db) == 0 </span><span class="cov0" title="0">{
+                        return []models.MetricGetter{}, fmt.Errorf(
+                                "DATA LAYER: storage.mem_storage.GetAllMetrics: %w",
+                                storage.ErrMetricNotFound,
+                        )
+                }</span>
+                <span class="cov0" title="0">ms.mutex.RLock()
+                defer ms.mutex.RUnlock()
+                for _, oneMetric := range ms.db </span><span class="cov0" title="0">{
+                        metrics = append(metrics, oneMetric)
+                }</span>
+                <span class="cov0" title="0">return metrics, nil</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package memstorage
+
+import (
+        "fmt"
+
+        "github.com/AlexBlackNn/metrics/internal/config/configserver"
+)
+
+// TempMetric is a template to deserialize data from bytes
+// (models.MetricGetter and generic types can't be used here).
+type TempMetric struct {
+        Type  string
+        Name  string
+        Value any
+}
+
+func (m *TempMetric) GetType() string <span class="cov8" title="1">{
+        return m.Type
+}</span>
+
+func (m *TempMetric) GetName() string <span class="cov8" title="1">{
+        return m.Name
+}</span>
+
+func (m *TempMetric) GetValue() any <span class="cov8" title="1">{
+        return m.Value
+}</span>
+
+func (m *TempMetric) GetStringValue() string <span class="cov8" title="1">{
+        if m.GetType() == configserver.MetricTypeCounter </span><span class="cov8" title="1">{
+                if value, ok := m.GetValue().(float64); ok </span><span class="cov8" title="1">{
+                        return fmt.Sprintf("%d", int(value))
+                }</span>
+                <span class="cov8" title="1">if value, ok := m.GetValue().(int64); ok </span><span class="cov8" title="1">{
+                        return fmt.Sprintf("%d", value)
+                }</span>
+        }
+        <span class="cov8" title="1">return fmt.Sprintf("%g", m.GetValue())</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
