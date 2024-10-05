@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS app.metrics;
+DROP TABLE IF EXISTS app.types;
+DROP INDEX IF EXISTS metrics_modified_idx;
+DROP SCHEMA IF EXISTS app;
