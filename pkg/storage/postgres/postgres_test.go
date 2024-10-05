@@ -36,6 +36,29 @@ func TestHealthCheck(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestUpdateMetric(t *testing.T) {
+	ds := &PostStorage{
+		NewTemplate(),
+		testDbInstance,
+	}
+
+	testMetric := &models.Metric[uint64]{
+		Type:  "counter",
+		Name:  "test_metric_counter",
+		Value: 10,
+	}
+
+	err := ds.UpdateMetric(context.Background(), testMetric)
+
+	assert.NoError(t, err)
+
+	testMetricGot, err := ds.GetMetric(context.Background(), testMetric)
+	assert.Equal(t, testMetric.GetStringValue(), testMetricGot.GetStringValue())
+	assert.Equal(t, testMetric.GetName(), testMetricGot.GetName())
+	assert.Equal(t, testMetric.GetValue(), testMetricGot.GetValue())
+	assert.NoError(t, err)
+}
+
 func TestUpdateSeveralMetrics(t *testing.T) {
 	ds := &PostStorage{
 		NewTemplate(),
@@ -61,37 +84,23 @@ func TestUpdateSeveralMetrics(t *testing.T) {
 	assert.NoError(t, err)
 
 	testMetricGot, err := ds.GetMetric(context.Background(), metrics["testMetric1"])
+	assert.NoError(t, err)
 	assert.Equal(t, metrics["testMetric1"].GetStringValue(), testMetricGot.GetStringValue())
 	assert.Equal(t, metrics["testMetric1"].GetName(), testMetricGot.GetName())
 	assert.Equal(t, metrics["testMetric1"].GetValue(), testMetricGot.GetValue())
-	assert.NoError(t, err)
 
 	testMetricGot, err = ds.GetMetric(context.Background(), metrics["testMetric2"])
+	assert.NoError(t, err)
 	assert.Equal(t, metrics["testMetric2"].GetStringValue(), testMetricGot.GetStringValue())
 	assert.Equal(t, metrics["testMetric2"].GetName(), testMetricGot.GetName())
 	assert.Equal(t, metrics["testMetric2"].GetValue(), testMetricGot.GetValue())
-	assert.NoError(t, err)
 }
 
-func TestUpdateMetric(t *testing.T) {
+func TestStop(t *testing.T) {
 	ds := &PostStorage{
 		NewTemplate(),
 		testDbInstance,
 	}
-
-	testMetric := &models.Metric[uint64]{
-		Type:  "counter",
-		Name:  "test_metric_counter",
-		Value: 10,
-	}
-
-	err := ds.UpdateMetric(context.Background(), testMetric)
-
-	assert.NoError(t, err)
-
-	testMetricGot, err := ds.GetMetric(context.Background(), testMetric)
-	assert.Equal(t, testMetric.GetStringValue(), testMetricGot.GetStringValue())
-	assert.Equal(t, testMetric.GetName(), testMetricGot.GetName())
-	assert.Equal(t, testMetric.GetValue(), testMetricGot.GetValue())
+	err := ds.Stop()
 	assert.NoError(t, err)
 }
