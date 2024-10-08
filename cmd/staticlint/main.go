@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -26,15 +27,15 @@ type ConfigData struct {
 func main() {
 	appfile, err := os.Executable()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	data, err := os.ReadFile(filepath.Join(filepath.Dir(appfile), Config))
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	var cfg ConfigData
 	if err = json.Unmarshal(data, &cfg); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	mychecks := []*analysis.Analyzer{
 		checker.ExitCheckAnalyzer,
