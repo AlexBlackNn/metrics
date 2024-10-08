@@ -12,6 +12,27 @@ import (
 
 var testDbInstance *sql.DB
 
+func TestPostStorage(t *testing.T) {
+	ds := &PostStorage{NewTemplate(), testDbInstance}
+
+	tests := []struct {
+		name     string
+		testFunc func(*testing.T, *PostStorage)
+	}{
+		{"CreateConnection", testCreateConnection},
+		{"HealthCheck", testHealthCheck},
+		{"UpdateMetric", testUpdateMetric},
+		{"UpdateSeveralMetrics", testUpdateSeveralMetrics},
+		{"GetAllMetrics", testGetAllMetrics},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.testFunc(t, ds)
+		})
+	}
+}
+
 func TestMain(m *testing.M) {
 	testDB := SetupTestDatabase()
 	testDbInstance = testDB.DbInstance
@@ -19,29 +40,16 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestCreateConnection(t *testing.T) {
-	ds := &PostStorage{
-		NewTemplate(),
-		testDbInstance,
-	}
+func testCreateConnection(t *testing.T, ds *PostStorage) {
 	assert.NotNil(t, ds)
 }
 
-func TestHealthCheck(t *testing.T) {
-	ds := &PostStorage{
-		NewTemplate(),
-		testDbInstance,
-	}
+func testHealthCheck(t *testing.T, ds *PostStorage) {
 	err := ds.HealthCheck(context.Background())
 	assert.NoError(t, err)
 }
 
-func TestUpdateMetric(t *testing.T) {
-	ds := &PostStorage{
-		NewTemplate(),
-		testDbInstance,
-	}
-
+func testUpdateMetric(t *testing.T, ds *PostStorage) {
 	testMetric := &models.Metric[uint64]{
 		Type:  "counter",
 		Name:  "test_metric_counter",
@@ -59,12 +67,7 @@ func TestUpdateMetric(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestUpdateSeveralMetrics(t *testing.T) {
-	ds := &PostStorage{
-		NewTemplate(),
-		testDbInstance,
-	}
-
+func testUpdateSeveralMetrics(t *testing.T, ds *PostStorage) {
 	metrics := make(map[string]models.MetricGetter)
 
 	metrics["testMetric1"] = &models.Metric[uint64]{
@@ -96,12 +99,7 @@ func TestUpdateSeveralMetrics(t *testing.T) {
 	assert.Equal(t, metrics["testMetric2"].GetValue(), testMetricGot.GetValue())
 }
 
-func TestGetAllMetrics(t *testing.T) {
-	ds := &PostStorage{
-		NewTemplate(),
-		testDbInstance,
-	}
-
+func testGetAllMetrics(t *testing.T, ds *PostStorage) {
 	metrics := make(map[string]models.MetricGetter)
 
 	metrics["testMetric1"] = &models.Metric[uint64]{
