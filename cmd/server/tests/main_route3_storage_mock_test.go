@@ -5,36 +5,18 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"time"
 
 	"github.com/AlexBlackNn/metrics/app/server"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
-	"github.com/AlexBlackNn/metrics/internal/config/configserver"
 	"github.com/AlexBlackNn/metrics/internal/domain/models"
 	"github.com/AlexBlackNn/metrics/internal/logger"
 	"github.com/AlexBlackNn/metrics/pkg/storage/mockstorage"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestServerHappyPathMockStorageV3(t *testing.T) {
-	cfg := &configserver.Config{
-		Env:                   "local",
-		ServerAddr:            ":8080",
-		ServerReadTimeout:     10,
-		ServerWriteTimeout:    10,
-		ServerIdleTimeout:     10,
-		ServerStoreInterval:   2,
-		ServerFileStoragePath: "/tmp/metrics-db.json",
-		ServerRestore:         true,
-		ServerRateLimit:       10000,
-		ServerDataBaseDSN:     "postgresql://postgres:postgres@127.0.0.1:5432/postgres",
-	}
-
-	log := logger.New(cfg.Env)
-
-	ctrl := gomock.NewController(t)
+func (ms *MetricsSuite) TestServerHappyPathMockStorageV3() {
+	ctrl := gomock.NewController(ms.T())
 	defer ctrl.Finish()
 	mockMetricStorage := mockstorage.NewMockMetricsStorage(ctrl)
 	mockHealthChecker := mockstorage.NewMockHealthChecker(ctrl)
@@ -51,16 +33,16 @@ func TestServerHappyPathMockStorageV3(t *testing.T) {
 		UpdateSeveralMetrics(gomock.Any(), gomock.Any()).
 		Return(nil).AnyTimes()
 
-	application, err := server.NewAppInitStorage(mockMetricStorage, mockHealthChecker, cfg, log)
-	assert.NoError(t, err)
+	log := logger.New(ms.cfg.Env)
+	application, err := server.NewAppInitStorage(mockMetricStorage, mockHealthChecker, ms.cfg, log)
+	ms.NoError(err)
 	srv := httptest.NewServer(router.NewChiRouter(
 		application.Cfg,
 		application.Log,
 		application.HandlersV1,
 		application.HandlersV2,
 		application.HealthHandlersV2,
-		application.HandlersV3,
-	),
+		application.HandlersV3),
 	)
 	defer srv.Close()
 
@@ -98,18 +80,18 @@ func TestServerHappyPathMockStorageV3(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		ms.Run(tt.name, func() {
 			url := srv.URL + tt.url
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(tt.body))
-			assert.NoError(t, err, "error creating HTTP request")
+			ms.NoError(err, "error creating HTTP request")
 			res, err := client.Do(request)
-			assert.NoError(t, err, "error making HTTP request")
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			ms.NoError(err, "error making HTTP request")
+			ms.Equal(tt.want.code, res.StatusCode)
 			defer res.Body.Close()
-			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
+			ms.Equal(tt.want.contentType, res.Header.Get("Content-Type"))
 			data, err := io.ReadAll(res.Body)
-			assert.NoError(t, err, "error reading response body")
-			assert.JSONEq(t, tt.want.response, string(data))
+			ms.NoError(err, "error reading response body")
+			ms.JSONEq(tt.want.response, string(data))
 		})
 	}
 }
