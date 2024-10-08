@@ -32,12 +32,18 @@ type TestDatabase struct {
 
 func SetupTestDatabase() *TestDatabase {
 
-	// setup db container
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
+
+	// setup db container
 	container, dbInstance, dbAddr, err := createContainer(ctx)
 	if err != nil {
 		log.Fatal("failed to setup test", err)
+	}
+
+	// Wait for the DB to be ready
+	if err := waitForDBReady(ctx, dbAddr); err != nil {
+		log.Fatal("failed to wait for database ready", err)
 	}
 
 	// migrate db schema
@@ -88,8 +94,6 @@ func createContainer(ctx context.Context) (testcontainers.Container, *sql.DB, st
 
 	log.Println("postgres container ready and running at port: ", p.Port())
 
-	time.Sleep(time.Second)
-
 	dbAddr := fmt.Sprintf("localhost:%s", p.Port())
 	db, err := sql.Open("pgx", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", DbUser, DbPass, dbAddr, DbName))
 	if err != nil {
@@ -99,9 +103,38 @@ func createContainer(ctx context.Context) (testcontainers.Container, *sql.DB, st
 	return container, db, dbAddr, nil
 }
 
-func migrateDb(dbAddr string) error {
+// waitForDBReady проверяет, доступна ли база данных, до достижения таймаута.
+func waitForDBReady(ctx context.Context, dbAddr string) error {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
 
-	// get location of test
+	for {
+		select {
+		case <-ctx.Done():
+			// Возврат ошибки, если таймаут истек
+			return fmt.Errorf("waiting for DB ready timed out: %w", ctx.Err())
+		case <-ticker.C:
+			// Проверяем доступность базы данных
+			if err := checkDBConnection(dbAddr); err == nil {
+				log.Println("database is ready")
+				return nil
+			}
+		}
+	}
+}
+
+// checkDBConnection пытается установить соединение с базой данных.
+func checkDBConnection(dbAddr string) error {
+	db, err := sql.Open("pgx", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", DbUser, DbPass, dbAddr, DbName))
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	return db.Ping()
+}
+
+func migrateDb(dbAddr string) error {
 	_, path, _, ok := runtime.Caller(0)
 	if !ok {
 		return fmt.Errorf("failed to get path")
@@ -121,6 +154,5 @@ func migrateDb(dbAddr string) error {
 	}
 
 	log.Println("migration done")
-
 	return nil
 }
