@@ -6,8 +6,8 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
-var ExitCheckAnalyzer = &analysis.Analyzer{
-	Name: "exitcheck",
+var ExitAnalyzer = &analysis.Analyzer{
+	Name: "exitanalyzer",
 	Doc:  "check if os.exit exists",
 	Run:  run,
 }

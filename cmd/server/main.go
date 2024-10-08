@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/AlexBlackNn/metrics/app/server"
@@ -52,18 +52,23 @@ func main() {
 }
 
 func showProjectInfo(log *slog.Logger) {
-	if buildVersion == "" {
-		buildVersion = "N/A"
+	var sb strings.Builder
+
+	// Определённый порядок вывода
+	keys := []string{"Build version: ", "Build date: ", "Build commit: "}
+	values := map[string]*string{
+		"Build version: ": &buildVersion,
+		"Build date: ":    &buildDate,
+		"Build commit: ":  &buildCommit,
 	}
-	if buildDate == "" {
-		buildDate = "N/A"
+
+	for _, key := range keys {
+		if *values[key] == "" {
+			*values[key] = "N/A"
+		}
+		sb.WriteString(key)
+		sb.WriteString(*values[key])
+		sb.WriteString(", ")
 	}
-	if buildCommit == "" {
-		buildCommit = "N/A"
-	}
-	projInfo := fmt.Sprintf(
-		"Build version: %s, Build date: %s, Build commit: %s",
-		buildVersion, buildDate, buildCommit,
-	)
-	log.Info(projInfo)
+	log.Info(strings.Trim(sb.String(), ","))
 }

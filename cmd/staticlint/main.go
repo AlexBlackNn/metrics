@@ -38,7 +38,7 @@ func main() {
 		log.Fatal(err)
 	}
 	mychecks := []*analysis.Analyzer{
-		checker.ExitCheckAnalyzer,
+		checker.ExitAnalyzer,
 		printf.Analyzer,
 		shadow.Analyzer,
 		structtag.Analyzer,
