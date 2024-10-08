@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -13,6 +14,10 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/logger"
 )
 
+var buildVersion string
+var buildDate string
+var buildCommit string
+
 func main() {
 	var wg sync.WaitGroup
 
@@ -22,6 +27,7 @@ func main() {
 	}
 
 	log := logger.New(cfg.Env)
+	showProjectInfo(log)
 	log.Info("starting application", slog.String("env", cfg.Env))
 
 	appMonitor := agent.NewAppMonitor(log, cfg)
@@ -55,4 +61,21 @@ func main() {
 	}()
 
 	wg.Wait()
+}
+
+func showProjectInfo(log *slog.Logger) {
+	if buildVersion == "" {
+		buildVersion = "N/A"
+	}
+	if buildDate == "" {
+		buildDate = "N/A"
+	}
+	if buildCommit == "" {
+		buildCommit = "N/A"
+	}
+	projInfo := fmt.Sprintf(
+		"Build version: %s, Build date: %s, Build commit: %s",
+		buildVersion, buildDate, buildCommit,
+	)
+	log.Info(projInfo)
 }

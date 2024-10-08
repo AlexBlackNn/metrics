@@ -176,15 +176,12 @@ func (s *PostStorage) GetMetric(
 func (s *PostStorage) GetAllMetrics(
 	ctx context.Context,
 ) ([]models.MetricGetter, error) {
-
 	var metrics []models.MetricGetter
-
 	var sqlTmp bytes.Buffer
-	err := s.tmpl["GetAllMetrics"].Execute(&sqlTmp, nil)
+	err := s.tmpl["GetAllMetric"].Execute(&sqlTmp, nil)
 	if err != nil {
 		return nil, err
 	}
-
 	rows, err := s.db.QueryContext(
 		ctx,
 		sqlTmp.String(),

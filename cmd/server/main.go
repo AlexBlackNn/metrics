@@ -4,10 +4,15 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/AlexBlackNn/metrics/app/server"
 )
+
+var buildVersion string
+var buildDate string
+var buildCommit string
 
 // @title           Swagger API
 // @version         1.0
@@ -27,7 +32,9 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
+	showProjectInfo(application.Log)
 	application.Log.Info("starting application", slog.String("cfg", application.Cfg.String()))
+
 	go func() {
 		if err = application.Srv.ListenAndServe(); err != nil {
 			panic(err)
@@ -41,4 +48,27 @@ func main() {
 		slog.String("signalType",
 			signalType.String()),
 	)
+
+}
+
+func showProjectInfo(log *slog.Logger) {
+	var sb strings.Builder
+
+	// Определённый порядок вывода
+	keys := []string{"Build version: ", "Build date: ", "Build commit: "}
+	values := map[string]*string{
+		"Build version: ": &buildVersion,
+		"Build date: ":    &buildDate,
+		"Build commit: ":  &buildCommit,
+	}
+
+	for _, key := range keys {
+		if *values[key] == "" {
+			*values[key] = "N/A"
+		}
+		sb.WriteString(key)
+		sb.WriteString(*values[key])
+		sb.WriteString(", ")
+	}
+	log.Info(strings.Trim(sb.String(), ","))
 }
