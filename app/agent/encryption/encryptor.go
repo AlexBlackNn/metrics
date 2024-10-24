@@ -12,6 +12,7 @@ import (
 
 type Encryptor struct {
 	rsaPub *rsa.PublicKey
+	path   string
 }
 
 func NewEncryptor(path string) (*Encryptor, error) {
@@ -25,6 +26,12 @@ func NewEncryptor(path string) (*Encryptor, error) {
 
 // loadPublicKey create a function to load the public key from a file:
 func (e *Encryptor) loadPublicKey(path string) error {
+	e.path = path
+	// if empty path, then no encryption
+	if path == "" {
+		return nil
+	}
+
 	keyData, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -50,6 +57,10 @@ func (e *Encryptor) loadPublicKey(path string) error {
 
 // EncryptMessage encrypts the message using the public key:
 func (e *Encryptor) EncryptMessage(message string) (string, error) {
+	// if empty path, then no encryption
+	if e.path == "" {
+		return message, nil
+	}
 	encryptedMessage, err := rsa.EncryptOAEP(
 		sha256.New(),
 		rand.Reader,

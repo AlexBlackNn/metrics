@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -23,15 +24,17 @@ func main() {
 
 	cfg, err := configagent.New()
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
-	log := logger.New(cfg.Env)
-	showProjectInfo(log)
-	log.Info("starting application", slog.String("env", cfg.Env))
+	log_ := logger.New(cfg.Env)
+	showProjectInfo(log_)
+	log_.Info("starting application", slog.String("env", cfg.Env))
 
-	appMonitor := agent.NewAppMonitor(log, cfg)
-
+	appMonitor, err := agent.NewAppMonitor(log_, cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
