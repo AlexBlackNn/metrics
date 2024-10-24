@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/AlexBlackNn/metrics/app/agent/encryption"
 	restagentsender "github.com/AlexBlackNn/metrics/app/agent/restagentsender/v2"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 )
@@ -23,11 +24,17 @@ type AppMonitor struct {
 func NewAppMonitor(
 	log *slog.Logger,
 	cfg *configagent.Config,
-) *AppMonitor {
+) (*AppMonitor, error) {
+
+	encryptor, err := encryption.NewEncryptor(cfg.CryptoKeyPath)
+	if err != nil {
+		return nil, err
+	}
 
 	metricsService := restagentsender.New(
 		log,
 		cfg,
+		encryptor,
 	)
-	return &AppMonitor{MetricsService: metricsService}
+	return &AppMonitor{MetricsService: metricsService}, nil
 }

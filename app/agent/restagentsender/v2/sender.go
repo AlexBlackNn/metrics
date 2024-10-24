@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/AlexBlackNn/metrics/app/agent/encryption"
 	"github.com/AlexBlackNn/metrics/app/agent/hash"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
@@ -16,18 +17,22 @@ import (
 )
 
 type Sender struct {
-	log *slog.Logger
-	cfg *configagent.Config
+	log       *slog.Logger
+	cfg       *configagent.Config
+	encryptor *encryption.Encryptor
 	*agentmetricsservice.MonitorService
 }
 
 func New(
 	log *slog.Logger,
 	cfg *configagent.Config,
+	encryptor *encryption.Encryptor,
 ) *Sender {
+
 	return &Sender{
 		log,
 		cfg,
+		encryptor,
 		agentmetricsservice.New(log, cfg),
 	}
 }
@@ -73,17 +78,32 @@ func (s *Sender) Send(ctx context.Context) {
 						)
 					}
 
+					body, err = s.encryptor.EncryptMessage(body)
+					if err != nil {
+						log.Error("error creating encrypted message", "error", err.Error())
+						return
+					}
 					hashCalculator := hash.New(s.cfg)
 					hashResult := hashCalculator.MetricHash(body)
 
 					url := fmt.Sprintf("http://%s/update/", s.cfg.ServerAddr)
 					log.Info("sending data", "url", url)
-
-					resp, err := restyClient.R().
-						SetHeader("Content-Type", "application/json").
-						SetHeader("HashSHA256", hashResult).
-						SetBody(body).
-						Post(url)
+					var resp *resty.Response
+					if s.cfg.CryptoKeyPath != "" {
+						resp, err = restyClient.R().
+							SetHeader("Content-Type", "application/json").
+							SetHeader("HashSHA256", hashResult).
+							SetHeader("X-Encrypted", "true").
+							SetHeader("X-Encryption-Method", "RSA").
+							SetBody(body).
+							Post(url)
+					} else {
+						resp, err = restyClient.R().
+							SetHeader("Content-Type", "application/json").
+							SetHeader("HashSHA256", hashResult).
+							SetBody(body).
+							Post(url)
+					}
 					if err != nil {
 						log.Error("error creating http request")
 						return

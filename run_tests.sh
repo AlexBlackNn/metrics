@@ -3,8 +3,8 @@
 # Define the log file
 LOG_FILE="test_log_file.txt"
 
-go build -o cmd/agent/agent cmd/agent/main.go
-go build -o cmd/server/server cmd/server/main.go
+go build -ldflags '-s -w -X main.buildVersion=1.0.0 -X main.buildDate=2023-01-23 -X main.buildCommit=0c2fs'  -o cmd/agent/agent cmd/agent/main.go
+go build -ldflags '-s -w -X main.buildVersion=1.0.0 -X main.buildDate=2023-01-23 -X main.buildCommit=0c2fs' -o cmd/server/server cmd/server/main.go
 
 # Run your test commands, capturing output to the log file
 ./metricstest -test.v -test.run=^TestIteration1$ -agent-binary-path=cmd/agent/agent -binary-path=./cmd/server/server > "$LOG_FILE" 2>&1

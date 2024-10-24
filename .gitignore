@@ -30,3 +30,5 @@ vendor/
 /test_log_file.txt
 /infra/.env
 /profile.cov
+/private_key.pem
+/public_key.pem

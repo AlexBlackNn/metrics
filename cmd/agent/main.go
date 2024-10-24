@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -13,24 +15,31 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/logger"
 )
 
+var buildVersion string
+var buildDate string
+var buildCommit string
+
 func main() {
 	var wg sync.WaitGroup
 
 	cfg, err := configagent.New()
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
-	log := logger.New(cfg.Env)
-	log.Info("starting application", slog.String("env", cfg.Env))
+	log_ := logger.New(cfg.Env)
+	showProjectInfo(log_)
+	log_.Info("starting application", slog.String("env", cfg.Env))
 
-	appMonitor := agent.NewAppMonitor(log, cfg)
-
+	appMonitor, err := agent.NewAppMonitor(log_, cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
 	wg.Add(4)
 	go func() {
@@ -55,4 +64,21 @@ func main() {
 	}()
 
 	wg.Wait()
+}
+
+func showProjectInfo(log *slog.Logger) {
+	if buildVersion == "" {
+		buildVersion = "N/A"
+	}
+	if buildDate == "" {
+		buildDate = "N/A"
+	}
+	if buildCommit == "" {
+		buildCommit = "N/A"
+	}
+	projInfo := fmt.Sprintf(
+		"Build version: %s, Build date: %s, Build commit: %s",
+		buildVersion, buildDate, buildCommit,
+	)
+	log.Info(projInfo)
 }

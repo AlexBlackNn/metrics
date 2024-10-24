@@ -11,6 +11,7 @@ import (
 	"github.com/AlexBlackNn/metrics/internal/handlers/v2"
 	v3 "github.com/AlexBlackNn/metrics/internal/handlers/v3"
 	customMiddleware "github.com/AlexBlackNn/metrics/internal/middleware"
+	"github.com/AlexBlackNn/metrics/internal/middleware/decryptor"
 	"github.com/AlexBlackNn/metrics/internal/middleware/gzipcompressor"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -42,6 +43,8 @@ func NewChiRouter(
 		r.Use(customMiddleware.HashChecker(log, cfg))
 		r.Use(customMiddleware.GzipDecompressor(log))
 		r.Use(gzipcompressor.GzipCompressor(gzip.BestCompression))
+		r.Use(decryptor.Decryptor(log, cfg))
+
 		r.Get("/", metricHandlerV1.GetAllMetrics)
 		r.Post("/update/{metric_type}/{metric_name}/{metric_value}", metricHandlerV1.UpdateMetric)
 		r.Get("/value/{metric_type}/{metric_name}", metricHandlerV1.GetOneMetric)
