@@ -66,7 +66,7 @@ func New() (*Config, error) {
 	flag.StringVar(&cfg.ServerFileStoragePath, "f", "/tmp/metrics-db.json", "metrics store path")
 	flag.BoolVar(&cfg.ServerRestore, "r", true, "restore saved metrics")
 	flag.StringVar(&cfg.ServerDataBaseDSN, "d", "", "database dsn")
-	flag.StringVar(&cfg.CryptoKeyPath, "", "", "path to crypto file")
+	flag.StringVar(&cfg.CryptoKeyPath, "crypto-key", "", "path to crypto file")
 
 	flag.StringVar(&configPath, "c", "", "path to config file")
 	flag.Parse()
