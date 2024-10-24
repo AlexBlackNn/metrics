@@ -39,7 +39,7 @@ func main() {
 	ctx, cancel := context.WithCancel(ctx)
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
 	wg.Add(4)
 	go func() {

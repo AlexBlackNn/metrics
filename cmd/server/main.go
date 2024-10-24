@@ -30,7 +30,7 @@ func main() {
 		panic(err)
 	}
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
 	showProjectInfo(application.Log)
 	application.Log.Info("starting application", slog.String("cfg", application.Cfg.String()))

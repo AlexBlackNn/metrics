@@ -13,7 +13,6 @@ launch server
 go run cmd/server/main.go -crypto-key /home/alex/Dev/GolandYandex/metrics/private_key.pem
 ```
 
-
 launch agent
 ```bash
 go run cmd/agent/main.go -crypto-key /home/alex/Dev/GolandYandex/metrics/public_key.pem
