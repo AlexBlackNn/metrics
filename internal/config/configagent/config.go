@@ -29,6 +29,7 @@ type Config struct {
 	AgentRateLimit        int           `yaml:"agent_rate_limit" env-default:"100" env:"RATE_LIMIT" envDefault:"100"`
 	AgentBurstTokens      int           `yaml:"agent_burst_tokens" env-default:"100" env:"AGENT_BURST_TOKENS" envDefault:"100"`
 	HashKey               string        `yaml:"hash_key" env:"KEY"`
+	CryptoKeyPath         string        `yaml:"env" env-default:"secret-key" env:"ENV"`
 }
 
 func (c *Config) String() string {
@@ -63,6 +64,8 @@ func New() (*Config, error) {
 	flag.IntVar(&cfg.AgentTimeout, "t", 1, "agent request timeout")
 	flag.IntVar(&cfg.AgentRateLimit, "l", 100, "agent rate limit")
 	flag.StringVar(&configPath, "c", "", "path to config file")
+	flag.StringVar(&cfg.CryptoKeyPath, "crypto-key", "", "path to crypto file")
+
 	flag.Parse()
 
 	if configPath == "" {

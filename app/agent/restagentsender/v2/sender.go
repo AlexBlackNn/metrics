@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/AlexBlackNn/metrics/app/agent/encryption"
 	"github.com/AlexBlackNn/metrics/app/agent/hash"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
@@ -19,16 +20,23 @@ type Sender struct {
 	log *slog.Logger
 	cfg *configagent.Config
 	*agentmetricsservice.MonitorService
+	*encryption.Encryptor
 }
 
 func New(
 	log *slog.Logger,
 	cfg *configagent.Config,
 ) *Sender {
+
+	encryptor, err := encryption.NewEncryptor(cfg.CryptoKeyPath)
+	if err != nil {
+		log.Error(err.Error())
+	}
 	return &Sender{
 		log,
 		cfg,
 		agentmetricsservice.New(log, cfg),
+		encryptor,
 	}
 }
 
@@ -73,6 +81,11 @@ func (s *Sender) Send(ctx context.Context) {
 						)
 					}
 
+					body, err = s.EncryptMessage(body)
+					if err != nil {
+						log.Error("error creating encrypted message", "error", err.Error())
+						return
+					}
 					hashCalculator := hash.New(s.cfg)
 					hashResult := hashCalculator.MetricHash(body)
 
