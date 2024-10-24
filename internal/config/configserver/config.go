@@ -1,6 +1,7 @@
 package configserver
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -13,6 +14,7 @@ import (
 const (
 	MetricTypeCounter = "counter"
 	MetricTypeGauge   = "gauge"
+	configJSON        = "config.json"
 )
 
 // Config consists project settings.
@@ -59,6 +61,11 @@ func New() (*Config, error) {
 	var err error
 	var configPath string
 
+	err = loadConfigFromFile(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	flag.StringVar(&cfg.Env, "e", "local", "project environment")
 	flag.StringVar(&cfg.ServerAddr, "a", ":8080", "host address")
 	flag.StringVar(&cfg.HashKey, "k", "", "hash key")
@@ -103,4 +110,24 @@ func LoadByPath(configPath string) (*Config, error) {
 		return nil, config.ErrReadConfigFailed
 	}
 	return &cfg, nil
+}
+
+func (c *Config) SaveToJson() error {
+	data, err := json.Marshal(c)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(configJSON, data, 0644)
+}
+
+func loadConfigFromFile(cfg *Config) error {
+	data, err := os.ReadFile(configJSON)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(data, cfg)
+	if err != nil {
+		return err
+	}
+	return nil
 }

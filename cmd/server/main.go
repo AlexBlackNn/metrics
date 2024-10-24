@@ -48,6 +48,7 @@ func main() {
 		slog.String("signalType",
 			signalType.String()),
 	)
+	application.Cfg.SaveToJson()
 
 }
 
