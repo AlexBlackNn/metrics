@@ -88,12 +88,22 @@ func (s *Sender) Send(ctx context.Context) {
 
 					url := fmt.Sprintf("http://%s/update/", s.cfg.ServerAddr)
 					log.Info("sending data", "url", url)
-
-					resp, err := restyClient.R().
-						SetHeader("Content-Type", "application/json").
-						SetHeader("HashSHA256", hashResult).
-						SetBody(body).
-						Post(url)
+					var resp *resty.Response
+					if s.cfg.CryptoKeyPath != "" {
+						resp, err = restyClient.R().
+							SetHeader("Content-Type", "application/json").
+							SetHeader("HashSHA256", hashResult).
+							SetHeader("X-Encrypted", "true").
+							SetHeader("X-Encryption-Method", "RSA").
+							SetBody(body).
+							Post(url)
+					} else {
+						resp, err = restyClient.R().
+							SetHeader("Content-Type", "application/json").
+							SetHeader("HashSHA256", hashResult).
+							SetBody(body).
+							Post(url)
+					}
 					if err != nil {
 						log.Error("error creating http request")
 						return

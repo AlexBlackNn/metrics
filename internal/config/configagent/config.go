@@ -29,7 +29,7 @@ type Config struct {
 	AgentRateLimit        int           `yaml:"agent_rate_limit" env-default:"100" env:"RATE_LIMIT" envDefault:"100"`
 	AgentBurstTokens      int           `yaml:"agent_burst_tokens" env-default:"100" env:"AGENT_BURST_TOKENS" envDefault:"100"`
 	HashKey               string        `yaml:"hash_key" env:"KEY"`
-	CryptoKeyPath         string        `yaml:"env" env-default:"secret-key" env:"ENV"`
+	CryptoKeyPath         string        `yaml:"env" env-default:"" env:"ENV"`
 }
 
 func (c *Config) String() string {
