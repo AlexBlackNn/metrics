@@ -13,6 +13,7 @@ import (
 	customMiddleware "github.com/AlexBlackNn/metrics/internal/middleware"
 	"github.com/AlexBlackNn/metrics/internal/middleware/decryptor"
 	"github.com/AlexBlackNn/metrics/internal/middleware/gzipcompressor"
+	"github.com/AlexBlackNn/metrics/internal/middleware/ipchecker"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
@@ -40,6 +41,7 @@ func NewChiRouter(
 	router.Use(middleware.Recoverer)
 
 	router.Route("/", func(r chi.Router) {
+		r.Use(ipchecker.IPChecker(log, cfg))
 		r.Use(customMiddleware.HashChecker(log, cfg))
 		r.Use(customMiddleware.GzipDecompressor(log))
 		r.Use(gzipcompressor.GzipCompressor(gzip.BestCompression))
