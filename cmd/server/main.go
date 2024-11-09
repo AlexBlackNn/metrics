@@ -7,7 +7,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/AlexBlackNn/metrics/app/server"
+	"github.com/AlexBlackNn/metrics/app/servergrpc"
 )
 
 var buildVersion string
@@ -36,7 +36,7 @@ func main() {
 	application.Log.Info("starting application", slog.String("cfg", application.Cfg.String()))
 
 	go func() {
-		if err = application.Srv.ListenAndServe(); err != nil {
+		if err = application.Start(); err != nil {
 			panic(err)
 		}
 	}()

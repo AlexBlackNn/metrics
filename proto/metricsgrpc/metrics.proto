@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package metricsgrpc;
+
+option go_package = "metricsgrpc.v1";
+
+// MetricsService is service for managing metrics.
+service MetricsService {
+  // UpdateMetric updates a metric.
+  rpc UpdateMetric (MetricRequest) returns (Response);
+  // UpdateSeveralMetrics updates several metrics.
+  rpc UpdateSeveralMetrics (MetricsRequest) returns (Response);
+  // GetOneMetric gets the value of a metric.
+  rpc GetOneMetric (MetricRequest) returns (MetricResponse);
+}
+
+// MetricRequest is request for updating or getting a metric.
+message MetricRequest {
+  string id = 1; // Metric ID.
+  string type = 2; // Metric type (gauge or counter).
+  int64 delta = 3; // Delta value for counter metrics.
+  double value = 4; // Value for gauge metrics.
+}
+
+// MetricsRequest is request for updating several metrics.
+message MetricsRequest {
+  repeated MetricRequest metrics = 1; // List of metrics to update.
+}
+
+// MetricResponse is response for getting a metric.
+message MetricResponse {
+  string id = 1; // Metric ID.
+  string type = 2; // Metric type (gauge or counter).
+  int64 delta = 3; // Delta value for counter metrics.
+  double value = 4; // Value for gauge metrics.
+}
+
+// Response is response for updating metrics.
+message Response {
+  string status = 1; // Status of the operation.
+  string error = 2; // Error message (if any).
+}

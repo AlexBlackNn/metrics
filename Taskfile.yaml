@@ -1,0 +1,12 @@
+# See: https://taskfile.dev/api/
+
+version: "3"
+
+tasks:
+  grpc:
+    aliases:
+      - grpc
+    desc: "Generate code from proto files to grpc"
+    cmds:
+      - pwd
+      - protoc -I proto proto/metricsgrpc/metrics.proto --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative
