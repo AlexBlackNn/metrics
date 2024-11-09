@@ -1,6 +1,7 @@
 package configserver
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -13,6 +14,7 @@ import (
 const (
 	MetricTypeCounter = "counter"
 	MetricTypeGauge   = "gauge"
+	configJSON        = "config.json"
 )
 
 // Config consists project settings.
@@ -30,6 +32,7 @@ type Config struct {
 	ServerDataBaseDSN     string `yaml:"server_data_base_dsn" env:"DATABASE_DSN"`
 	ServerMigrationTable  string `yaml:"server_migration_table_name" env-default:"migrations" env:"SERVER_MIGRATION_TABLE_NAME" envDefault:"migrations"`
 	HashKey               string `yaml:"hash_key" env:"KEY"`
+	CryptoKeyPath         string `yaml:"env" env-default:"secret-key" env:"ENV"`
 }
 
 func (c *Config) String() string {
@@ -58,6 +61,11 @@ func New() (*Config, error) {
 	var err error
 	var configPath string
 
+	err = loadConfigFromFile(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	flag.StringVar(&cfg.Env, "e", "local", "project environment")
 	flag.StringVar(&cfg.ServerAddr, "a", ":8080", "host address")
 	flag.StringVar(&cfg.HashKey, "k", "", "hash key")
@@ -65,6 +73,7 @@ func New() (*Config, error) {
 	flag.StringVar(&cfg.ServerFileStoragePath, "f", "/tmp/metrics-db.json", "metrics store path")
 	flag.BoolVar(&cfg.ServerRestore, "r", true, "restore saved metrics")
 	flag.StringVar(&cfg.ServerDataBaseDSN, "d", "", "database dsn")
+	flag.StringVar(&cfg.CryptoKeyPath, "crypto-key", "", "path to crypto file")
 
 	flag.StringVar(&configPath, "c", "", "path to config file")
 	flag.Parse()
@@ -101,4 +110,24 @@ func LoadByPath(configPath string) (*Config, error) {
 		return nil, config.ErrReadConfigFailed
 	}
 	return &cfg, nil
+}
+
+func (c *Config) SaveToJson() error {
+	data, err := json.Marshal(c)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(configJSON, data, 0644)
+}
+
+func loadConfigFromFile(cfg *Config) error {
+	data, err := os.ReadFile(configJSON)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(data, cfg)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -1,6 +1,11 @@
 package tests
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"github.com/AlexBlackNn/metrics/app/server"
 	"github.com/AlexBlackNn/metrics/cmd/server/router"
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
@@ -8,10 +13,6 @@ import (
 	"github.com/AlexBlackNn/metrics/pkg/storage/memstorage"
 	"github.com/AlexBlackNn/metrics/pkg/storage/postgres"
 	"github.com/stretchr/testify/suite"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
 type MetricsSuite struct {
@@ -19,11 +20,12 @@ type MetricsSuite struct {
 	application *server.App
 	client      http.Client
 	srv         *httptest.Server
+	cfg         *configserver.Config
 }
 
 func (ms *MetricsSuite) SetupSuite() {
 	var err error
-	cfg := &configserver.Config{
+	ms.cfg = &configserver.Config{
 		Env:                   "local",
 		ServerAddr:            ":8080",
 		ServerReadTimeout:     10,
@@ -35,13 +37,13 @@ func (ms *MetricsSuite) SetupSuite() {
 		ServerRateLimit:       10000,
 		ServerDataBaseDSN:     "postgresql://postgres:postgres@127.0.0.1:5432/postgres",
 	}
-	log := logger.New(cfg.Env)
+	log := logger.New(ms.cfg.Env)
 
-	memStorage, _ := memstorage.New(cfg, log)
-	postgresStorage, err := postgres.New(cfg, log)
+	memStorage, _ := memstorage.New(ms.cfg, log)
+	postgresStorage, err := postgres.New(ms.cfg, log)
 	ms.Suite.NoError(err)
 
-	ms.application, err = server.NewAppInitStorage(memStorage, postgresStorage, cfg, log)
+	ms.application, err = server.NewAppInitStorage(memStorage, postgresStorage, ms.cfg, log)
 	ms.Suite.NoError(err)
 	ms.client = http.Client{Timeout: 3 * time.Second}
 }

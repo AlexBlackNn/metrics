@@ -30,10 +30,8 @@ func (m *MetricHandlers) UpdateSeveralMetrics(w http.ResponseWriter, r *http.Req
 		responseError(w, r, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
-
 	var reqMetrics []Metrics
 	err := render.DecodeJSON(r.Body, &reqMetrics)
-
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			// Post with empty body
