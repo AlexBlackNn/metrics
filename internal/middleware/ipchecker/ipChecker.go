@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/AlexBlackNn/metrics/internal/config/configserver"
-	"github.com/go-chi/chi/v5/middleware"
 )
 
 const StatusError = "Error"
@@ -32,10 +31,8 @@ func IPChecker(log *slog.Logger, cfg *configserver.Config) func(next http.Handle
 		log.Info("IPChecker middleware enabled")
 
 		fn := func(w http.ResponseWriter, r *http.Request) {
-
-			if cfg.TrustedSubnet == "*" {
-				ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-				next.ServeHTTP(ww, r)
+			if cfg.TrustedSubnet == "" {
+				next.ServeHTTP(w, r)
 				return
 			}
 
@@ -60,8 +57,7 @@ func IPChecker(log *slog.Logger, cfg *configserver.Config) func(next http.Handle
 				}
 				return
 			}
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-			next.ServeHTTP(ww, r)
+			next.ServeHTTP(w, r)
 		}
 		return http.HandlerFunc(fn)
 	}

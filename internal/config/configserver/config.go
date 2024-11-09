@@ -33,7 +33,7 @@ type Config struct {
 	ServerMigrationTable  string `yaml:"server_migration_table_name" env-default:"migrations" env:"SERVER_MIGRATION_TABLE_NAME" envDefault:"migrations"`
 	HashKey               string `yaml:"hash_key" env:"KEY"`
 	CryptoKeyPath         string `yaml:"crypto_key_path" env-default:"secret-key" env:"ENV"`
-	TrustedSubnet         string `yaml:"trusted_subnet" env-default:"192.168.0.0/24" env:"ENV"`
+	TrustedSubnet         string `yaml:"trusted_subnet" env-default:"" env:"ENV"`
 }
 
 func (c *Config) String() string {
@@ -43,12 +43,14 @@ func (c *Config) String() string {
 			"ServerReadTimeout: %d,"+
 			"ServerWriteTimeout: %d,"+
 			"ServerIdleTimeout: %d,"+
+			"TrustedSubnet: %s,"+
 			"ServerStoreInterval: %d,",
 		c.Env,
 		c.ServerAddr,
 		c.ServerReadTimeout,
 		c.ServerWriteTimeout,
 		c.ServerIdleTimeout,
+		c.TrustedSubnet,
 		c.ServerStoreInterval,
 	)
 }
@@ -75,7 +77,7 @@ func New() (*Config, error) {
 	flag.BoolVar(&cfg.ServerRestore, "r", true, "restore saved metrics")
 	flag.StringVar(&cfg.ServerDataBaseDSN, "d", "", "database dsn")
 	flag.StringVar(&cfg.CryptoKeyPath, "crypto-key", "", "path to crypto file")
-	flag.StringVar(&cfg.TrustedSubnet, "t", "*", "trusted subnet") // example: 192.168.0.0/24
+	flag.StringVar(&cfg.TrustedSubnet, "t", "", "trusted subnet") // example: 192.168.0.0/24
 	flag.StringVar(&configPath, "c", "", "path to config file")
 	flag.Parse()
 
