@@ -18,3 +18,7 @@ go build -ldflags '-s -w -X main.buildVersion=1.0.0 -X main.buildDate=2023-01-23
 ```bash
 go run cmd/server/main.go --d postgres://app:app123@localhost:5432/metric_db?sslmode=disable
 ```
+
+```bash
+go run cmd/agent/main.go
+```

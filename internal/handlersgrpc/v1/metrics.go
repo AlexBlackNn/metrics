@@ -184,5 +184,4 @@ func (s *serverAPI) GetOneMetric(ctx context.Context, metricgrpc *metricsgrpc_v1
 		Type:  metricReturned.GetType(),
 		Value: value,
 	}, nil
-
 }

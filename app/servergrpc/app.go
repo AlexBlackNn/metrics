@@ -110,10 +110,10 @@ func RegisterService(ms MetricsStorage, hc HealthChecker, cfg *configserver.Conf
 }
 
 func (a *App) Start() error {
-	lis, err := net.Listen("tcp", ":44044")
+	lis, err := net.Listen("tcp", a.Cfg.ServerAddr)
 	if err != nil {
 		return err
 	}
-	a.Log.Info("gRPC server listening on", "addr", ":44044")
+	a.Log.Info("gRPC server listening on", "addr", a.Cfg.ServerAddr)
 	return a.GrpcServer.Serve(lis)
 }
