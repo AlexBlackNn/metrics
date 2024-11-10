@@ -25,7 +25,7 @@ var buildCommit string
 //go:generate go run github.com/swaggo/swag/cmd/swag init
 func main() {
 
-	application, err := server.New()
+	application, err := servergrpc.New()
 	if err != nil {
 		panic(err)
 	}

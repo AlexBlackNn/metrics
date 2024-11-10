@@ -43,12 +43,13 @@ func (s *serverAPI) UpdateMetric(ctx context.Context, metricgrpc *metricsgrpc_v1
 	*metricsgrpc_v1.Response,
 	error,
 ) {
+
 	return &metricsgrpc_v1.Response{
 		Status: "ok",
 	}, nil
 }
 
-func UpdateSeveralMetrics(context.Context, *metricsgrpc_v1.MetricsRequest) (
+func (s *serverAPI) UpdateSeveralMetrics(context.Context, *metricsgrpc_v1.MetricsRequest) (
 	*metricsgrpc_v1.Response,
 	error,
 ) {
@@ -57,7 +58,7 @@ func UpdateSeveralMetrics(context.Context, *metricsgrpc_v1.MetricsRequest) (
 	}, nil
 }
 
-func GetOneMetric(context.Context, *metricsgrpc_v1.MetricRequest) (
+func (s *serverAPI) GetOneMetric(context.Context, *metricsgrpc_v1.MetricRequest) (
 	*metricsgrpc_v1.MetricResponse,
 	error,
 ) {

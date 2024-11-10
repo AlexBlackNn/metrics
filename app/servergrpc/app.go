@@ -1,4 +1,4 @@
-package server
+package servergrpc
 
 import (
 	"context"
@@ -75,19 +75,19 @@ func New() (*App, error) {
 				return nil, err
 			}
 			log.Info("No migration to apply")
-			return NewAppInitStorage(postgresStorage, postgresStorage, cfg, log)
+			return RegisterService(postgresStorage, postgresStorage, cfg, log)
 		}
 		log.Info("Finish to apply migrations")
-		return NewAppInitStorage(postgresStorage, postgresStorage, cfg, log)
+		return RegisterService(postgresStorage, postgresStorage, cfg, log)
 	}
 	memStorage, err := memstorage.New(cfg, log)
 	if err != nil {
 		return nil, err
 	}
-	return NewAppInitStorage(memStorage, memStorage, cfg, log)
+	return RegisterService(memStorage, memStorage, cfg, log)
 }
 
-func NewAppInitStorage(ms MetricsStorage, hc HealthChecker, cfg *configserver.Config, log *slog.Logger) (*App, error) {
+func RegisterService(ms MetricsStorage, hc HealthChecker, cfg *configserver.Config, log *slog.Logger) (*App, error) {
 
 	prjMetricsService := metricsservice.New(
 		log,
