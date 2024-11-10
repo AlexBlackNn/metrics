@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/AlexBlackNn/metrics/app/agent/encryption"
-	restagentsender "github.com/AlexBlackNn/metrics/app/agent/restagentsender/v2"
+	agentsender "github.com/AlexBlackNn/metrics/app/agent/restagentsender/grpcv1"
 	"github.com/AlexBlackNn/metrics/internal/config/configagent"
 )
 
@@ -31,7 +31,7 @@ func NewAppMonitor(
 		return nil, err
 	}
 
-	metricsService := restagentsender.New(
+	metricsService := agentsender.New(
 		log,
 		cfg,
 		encryptor,

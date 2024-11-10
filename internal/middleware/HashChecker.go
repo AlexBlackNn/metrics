@@ -34,7 +34,6 @@ func HashChecker(log *slog.Logger, cfg *configserver.Config) func(next http.Hand
 		log := log.With(
 			slog.String("component", "middleware/HashChecker"),
 		)
-
 		log.Info("HashChecker middleware enabled")
 
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +41,8 @@ func HashChecker(log *slog.Logger, cfg *configserver.Config) func(next http.Hand
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.String("remote_addr", r.RemoteAddr),
+				slog.String("x_real_ip", r.Header.Get("X-Real-IP")),
+				slog.String("x_forward_for", r.Header.Get("X-Forwarded-For")),
 				slog.String("user_agent", r.UserAgent()),
 				slog.String("request_id", middleware.GetReqID(r.Context())),
 			)

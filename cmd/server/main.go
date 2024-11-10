@@ -7,7 +7,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/AlexBlackNn/metrics/app/server"
+	"github.com/AlexBlackNn/metrics/app/servergrpc"
 )
 
 var buildVersion string
@@ -25,7 +25,7 @@ var buildCommit string
 //go:generate go run github.com/swaggo/swag/cmd/swag init
 func main() {
 
-	application, err := server.New()
+	application, err := servergrpc.New()
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +36,7 @@ func main() {
 	application.Log.Info("starting application", slog.String("cfg", application.Cfg.String()))
 
 	go func() {
-		if err = application.Srv.ListenAndServe(); err != nil {
+		if err = application.Start(); err != nil {
 			panic(err)
 		}
 	}()
