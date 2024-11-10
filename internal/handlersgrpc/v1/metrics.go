@@ -86,10 +86,44 @@ func (s *serverAPI) UpdateMetric(ctx context.Context, metricgrpc *metricsgrpc_v1
 	}, nil
 }
 
-func (s *serverAPI) UpdateSeveralMetrics(context.Context, *metricsgrpc_v1.MetricsRequest) (
+func (s *serverAPI) UpdateSeveralMetrics(ctx context.Context, severalMetricsgrpc *metricsgrpc_v1.MetricsRequest) (
 	*metricsgrpc_v1.Response,
 	error,
 ) {
+	var metricRecieved models.MetricInteraction
+	var err error
+
+	severalMetrics := make([]models.MetricInteraction, len(severalMetricsgrpc.GetMetrics()))
+
+	for i, metricgrpc := range severalMetricsgrpc.GetMetrics() {
+		if metricgrpc.GetType() == configserver.MetricTypeCounter {
+			metricRecieved, err = models.New(
+				metricgrpc.GetType(),
+				metricgrpc.GetId(),
+				fmt.Sprintf("%d", metricgrpc.GetDelta()),
+			)
+		} else {
+			metricRecieved, err = models.New(
+				metricgrpc.GetType(),
+				metricgrpc.GetId(),
+				fmt.Sprintf("%g", metricgrpc.GetValue()),
+			)
+		}
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "data validation failed")
+		}
+		severalMetrics[i] = metricRecieved
+	}
+	ctx, cancel := context.WithTimeoutCause(ctx, 300*time.Millisecond, errors.New("updateMetric timeout"))
+	defer cancel()
+
+	err = s.metric.UpdateSeveralMetrics(ctx, severalMetrics)
+	if err != nil {
+		if errors.Is(err, metricsservice.ErrNotValidURL) {
+			return nil, status.Errorf(codes.NotFound, "data not found")
+		}
+		return nil, status.Errorf(codes.Internal, "internal server error")
+	}
 	return &metricsgrpc_v1.Response{
 		Status: "ok",
 	}, nil
